@@ -94,7 +94,7 @@ router.delete('/:id', function(req,res){
   connection.query("Select * from `databases` where ID = ? LIMIT 1;", [db_id], function(err, data){
     var dbinfo = data[0];
     db_tools.update_database_users(dbinfo, function(errors){
-      if(errors.length > 0){
+      if(errors){
         console.log(errors);
       }
       var query = "Delete from groups_databases where Database_ID = ?";
