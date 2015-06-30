@@ -92,6 +92,7 @@ router.post('/login', function(req,res){
 router.get('/convert/', function(req, res){
   connection.query("Select Email, Password from Portal_Users", function(err, results){
     async.eachSeries(results, function(result, callback){
+      console.log("Updating " + result.Email);
       encryption.decrypt(result.Password, function(err, plainpass){
         if(err){
           callback(err);
@@ -100,7 +101,7 @@ router.get('/convert/', function(req, res){
         var shasum = crypto.createHash('sha256');
         shasum.update(salt + plainpass);
         var passwordhash = shasum.digest('hex');
-        connection.query("Update users set Salt=?, Password=? where Email=?", [salt, passhash, result.email], function(err, success){
+        connection.query("Update users set Salt=?, Password=? where Email=?", [salt, passwordhash, result.email], function(err, success){
           if(err){
             callback(err);
           }
