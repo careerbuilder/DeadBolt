@@ -29,6 +29,12 @@ module.exports = {
               callback(err);
             });
             break;
+          case 'aurora':
+            mysql_tools.update_users(dbinfo, all_users, gospel_users, function(err){
+              console.log(dbinfo.Name + " Updated");
+              callback(err);
+            });
+            break;
           /*
           case 'sqlserver':
             mssql_tools.update_users(dbinfo, all_users, gospel_users, function(errs){
