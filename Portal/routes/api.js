@@ -3,6 +3,7 @@ var router = express.Router();
 var connection = require('./mysql');
 var uuid = require('node-uuid');
 var crypto = require('crypto');
+var async = require('async');
 var encryption = require('../tools/encryption.js');
 var auth = require('./auth.js');
 
@@ -42,19 +43,16 @@ router.post('/signup', function(req,res){
     if(results[0].Active && results[0].Active != 0){
       return res.send({Success: false, Error: "Sorry, This user has already registered."});
     }
-    encryption.encrypt(body.password, function(err, data){
+    var salt = uuid.v4();
+    var shasum = crypto.createHash('sha256');
+    shasum.update(salt + body.password);
+    var passwordhash = shasum.digest('hex');
+    connection.query("Update Portal_Users set Salt=?, Password = ?, Active=1 where Email=?;", [salt, passwordhash, body.email], function(err, results){
       if(err){
         console.log(err);
-        return res.send({Success: false, Error: err});
+        return res.send({Success:false, Error: err});
       }
-      var passwordhash = data;
-      connection.query("Update Portal_Users set Password = ?, Active=1 where Email=?;", [passwordhash, body.email], function(err, results){
-        if(err){
-          console.log(err);
-          return res.send({Success:false, Error: err});
-        }
-        return res.send({Success: true, Message: 'Successfully registered'});
-      });
+      return res.send({Success: true, Message: 'Successfully registered'});
     });
   });
 });
@@ -65,7 +63,7 @@ router.post('/login', function(req,res){
   var now = ~~(new Date().getTime()/1000);
   //-----------------h-* m/h* s/m----------
   var later = now + (6 * 60 * 60);
-  connection.query("Select Email, Password from Portal_Users where (Email= ? and Active=1) LIMIT 1;", [body.email], function(err, results){
+  connection.query("Select Email, Salt, Password from Portal_Users where (Email= ? and Active=1) LIMIT 1;", [body.email], function(err, results){
     if(err){
       console.log(err);
       return res.send({Success:false, Message: "Error connecting to database", Error: err});
@@ -74,26 +72,50 @@ router.post('/login', function(req,res){
       console.log('Bad Login');
       return res.send({Success:false, Message: "Invalid username"});
     }
-    encryption.decrypt(results[0].Password, function(err, data){
-      if(err){
-        console.log(err);
-        return res.send({Success:false, Error:err});
+    var shasum = crypto.createHash('sha256');
+    shasum.update(results[0].Salt + body.password);
+    var passcheck = shasum.digest('hex');
+    if(results[0].Password != passcheck){
+      return res.send({Success: false, Error: "Incorrect Password"});
+    }
+    connection.query("Insert into Sessions (Session_ID, Expires) Values(?, ?)", [sessionid, later], function(error, results){
+      if(error){
+        console.log(error);
+        return res.send({Succes:false, Message: "Error generating session ID", Error: error});
       }
-      if(body.password!=data){
-        return res.send({Success: false, Error: "Incorrect Password"});
-      }
-      connection.query("Insert into Sessions (Session_ID, Expires) Values(?, ?)", [sessionid, later], function(error, results){
-        if(error){
-          console.log(error);
-          return res.send({Succes:false, Message: "Error generating session ID", Error: error});
-        }
-        res.cookie('rdsapit', sessionid, { maxAge: (6*60*60*1000)});
-        return res.send({Success:true, Message: 'Logged in successfuly as ' + body.email, Session: sessionid});
-      });
+      res.cookie('rdsapit', sessionid, { maxAge: (6*60*60*1000)});
+      return res.send({Success:true, Message: 'Logged in successfuly as ' + body.email, Session: sessionid});
     });
   });
 });
 
+router.get('/convert/', function(req, res){
+  connection.query("Select Email, Password from Portal_Users", function(err, results){
+    async.eachSeries(results, function(result, callback){
+      encryption.decrypt(result.Password, function(err, plainpass){
+        if(err){
+          callback(err);
+        }
+        var salt = uuid.v4();
+        var shasum = crypto.createHash('sha256');
+        shasum.update(salt + plainpass);
+        var passwordhash = shasum.digest('hex');
+        connection.query("Update users set Salt=?, Password=? where Email=?", [salt, passhash, result.email], function(err, success){
+          if(err){
+            callback(err);
+          }
+          callback(null, success);
+        });
+      });
+    }, function(errors, results){
+      if(errors){
+        console.log(errors);
+        return res.send({Success:false, Errors: errors});
+      }
+      return res.send({Success:true, Data: results});
+    });
+  });
+});
 
 //This acts as a gateway, prohibiting any traffic not containing a valid Session ID
 router.use(auth);
