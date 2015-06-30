@@ -1,5 +1,5 @@
-CREATE DATABASE `rdsad` /*!40100 DEFAULT CHARACTER SET utf8 */;
-use rdsad;
+CREATE DATABASE `deadbolt` /*!40100 DEFAULT CHARACTER SET utf8 */;
+use deadbolt;
 CREATE TABLE `databases` (
   `ID` int(11) NOT NULL AUTO_INCREMENT,
   `Name` varchar(45) NOT NULL,
