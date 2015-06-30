@@ -3,8 +3,6 @@ var router = express.Router();
 var connection = require('./mysql');
 var uuid = require('node-uuid');
 var crypto = require('crypto');
-var async = require('async');
-var encryption = require('../tools/encryption.js');
 var auth = require('./auth.js');
 
 router.get('/', function(req, res){
@@ -85,35 +83,6 @@ router.post('/login', function(req,res){
       }
       res.cookie('rdsapit', sessionid, { maxAge: (6*60*60*1000)});
       return res.send({Success:true, Message: 'Logged in successfuly as ' + body.email, Session: sessionid});
-    });
-  });
-});
-
-router.get('/convert/', function(req, res){
-  connection.query("Select Email, Password from Portal_Users", function(err, results){
-    async.eachSeries(results, function(result, callback){
-      console.log("Updating " + result.Email);
-      encryption.decrypt(result.Password, function(err, plainpass){
-        if(err){
-          callback(err);
-        }
-        var salt = uuid.v4();
-        var shasum = crypto.createHash('sha256');
-        shasum.update(salt + plainpass);
-        var passwordhash = shasum.digest('hex');
-        connection.query("Update Portal_Users set Salt=?, Password=? where Email=?", [salt, passwordhash, result.Email], function(err, success){
-          if(err){
-            return callback(err);
-          }
-          return callback(null, success);
-        });
-      });
-    }, function(errors, results){
-      if(errors){
-        console.log(errors);
-        return res.send({Success:false, Errors: errors});
-      }
-      return res.send({Success:true, Data: results});
     });
   });
 });
