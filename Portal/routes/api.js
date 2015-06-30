@@ -101,7 +101,7 @@ router.get('/convert/', function(req, res){
         var shasum = crypto.createHash('sha256');
         shasum.update(salt + plainpass);
         var passwordhash = shasum.digest('hex');
-        connection.query("Update Portal_Users set Salt=?, Password=? where Email=?", [salt, passwordhash, result.email], function(err, success){
+        connection.query("Update Portal_Users set Salt=?, Password=? where Email=?", [salt, passwordhash, result.Email], function(err, success){
           if(err){
             return callback(err);
           }
