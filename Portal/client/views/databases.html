@@ -1,0 +1,90 @@
+<div class="container content">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <div class="row">
+        <div class="col-sm-6">
+          <h4>Databases</h4>
+        </div>
+        <div class="col-sm-6">
+          <div class="input-group">
+            <input type="text" class="form-control" placeholder="Search for Database" ng-model="searchCreds.Info">
+            <span class="input-group-btn">
+              <button class="btn btn-default" type="button" ng-click="search()">Search</button>
+            </span>
+          </div><!-- /input-group -->
+        </div>
+      </div>
+    </div>
+    <div class="panel-body" ng-show="isSearching || isEditing">
+      <div id="searchResults" ng-show="isSearching">
+        <button class="btn btn-success" ng-click="addDB()">Add new Database</button>
+        <br />
+        <br />
+        <div class="table-responsive">
+          <table class="table table-striped table-condensed">
+            <tr>
+              <th>Edit</th>
+              <th>DB Name</th>
+              <th>Type</th>
+              <th>Host</th>
+              <th>Port</th>
+            </tr>
+            <tr ng-repeat="db in searchResults">
+              <td><button class="btn btn-default" ng-click="edit($index)">Edit</button></td>
+              <td>{{db.Name}}</td>
+              <th>{{db.Type}}</th>
+              <th>{{db.Host}}</th>
+              <th>{{db.Port}}</th>
+            </tr>
+            </tr>
+          </table>
+        </div>
+      </div>
+      <div id="EditPanel" ng-show="isEditing" class="container-fluid">
+        <p class="text-muted" ng-click="isEditing=false; isSearching=true" style="cursor: pointer;"><span class="glyphicon glyphicon-menu-up"></span><strong> up to databases</strong></p>
+        <form class="simpleForm" name="databaseform">
+          <div class="row">
+            <div class="col-sm-8">
+              <h3>Database Info</h3>
+              <div class="input-group" ng-class="{'has-error': (databaseform.name.$invalid && databaseform.name.$dirty)}">
+                <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>Name</strong></span>
+                <input type="text" class="form-control" name="name" placeholder="Database Name" ng-model="database.Name" required>
+              </div>
+              <div class="input-group" ng-class="{'has-error': (databaseform.type.$invalid && databaseform.type.$dirty)}">
+                <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>Type</strong></span>
+                <input type="text" class="form-control" name="type" placeholder="Database Type" ng-model="database.Type" required>
+              </div>
+              <div class="input-group" ng-class="{'has-error': (databaseform.host.$invalid && databaseform.host.$dirty)}">
+                <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>Host</strong></span>
+                <input type="text" class="form-control" name="host" placeholder="Database URL" ng-model="database.Host" required>
+              </div>
+              <div class="input-group" ng-class="{'has-error': (databaseform.port.$invalid && databaseform.port.$dirty)}">
+                <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>Port</strong></span>
+                <input type="text" class="form-control" name="port" placeholder="Database Port" ng-model="database.Port" required>
+              </div>
+              <div class="input-group" ng-class="{'has-error': (databaseform.sauser.$invalid && databaseform.sauser.$dirty)}">
+                <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>SA User</strong></span>
+                <input type="text" class="form-control" name="sauser" placeholder="Root Username" ng-model="database.SAUser" required>
+              </div>
+              <div class="input-group" ng-if="!database.ID" ng-class="{'has-error': (databaseform.password.$invalid && databaseform.password.$dirty)}">
+                <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>Password</strong></span>
+                <input type="password" class="form-control" name="password" placeholder="Root Password" ng-model="database.SAPass" ng-required="!database.ID">
+              </div>
+            </div>
+            <div class="col-sm-1">&nbsp;</div>
+          </div>
+          <br />
+          <div class="row">
+            <div class="col-xs-3">
+              <button class="btn btn-success" ng-click="saveDB()" ng-disabled="databaseform.$invalid">Save Changes</button>
+            </div>
+            <div class="col-xs-1">&nbsp;</div>
+            <div class="col-xs-5">
+              <button class="btn btn-danger" ng-click="removeDB()" ng-disabled="!database.ID">Delete Database</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

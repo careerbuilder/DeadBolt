@@ -1,0 +1,103 @@
+<div class="container content">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <div class="row">
+        <div class="col-sm-6">
+          <h4>Users</h4>
+        </div>
+        <div class="col-sm-6">
+          <div class="input-group">
+            <input type="text" class="form-control" placeholder="Search for user" ng-model="searchCreds.Info">
+            <span class="input-group-btn">
+              <button class="btn btn-default" type="button" ng-click="search(0)">Search</button>
+            </span>
+          </div><!-- /input-group -->
+        </div>
+      </div>
+    </div>
+    <div class="panel-body" ng-show="isSearching || isEditing">
+      <div id="searchResults" ng-show="isSearching" class="table-responsive">
+        <table class="table table-striped table-condensed">
+          <tr>
+            <th>Add/Edit</th>
+            <th>Username</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Email</th>
+          </tr>
+          <tr ng-repeat="user in searchResults | filter:exists track by $index">
+            <td><button class="btn btn-default" ng-click="edit($index)">{{user.User_ID ? 'Edit' : 'Add'}}</button></td>
+            <td>{{user.Username}}</td>
+            <td>{{user.FirstName}}</td>
+            <td>{{user.LastName}}</td>
+            <td>{{user.Email}}</td>
+          </tr>
+          <tr>
+            <td colspan="5"><hr></td>
+          </tr>
+          <tr ng-repeat="user in (searchResults | filter:notexists) track by $index">
+            <td><button class="btn btn-default" ng-click="edit($index)">{{user.User_ID ? 'Edit' : 'Add'}}</button></td>
+            <td>{{user.Username}}</td>
+            <td>{{user.FirstName}}</td>
+            <td>{{user.LastName}}</td>
+            <td>{{user.Email}}</td>
+          </tr>
+        </table>
+      </div>
+      <div id="EditPanel" ng-show="isEditing" class="container-fluid">
+        <p class="text-muted" ng-click="isEditing=false; isSearching=true" style="cursor: pointer;"><span class="glyphicon glyphicon-menu-up"></span><strong> up to users</strong></p>
+        <form class="simpleForm" name="userform">
+          <div class="row">
+            <div class="col-sm-6">
+              <h3>User Info</h3>
+              <div class="input-group" ng-class="{'has-error': (userform.username.$invalid && userform.username.$dirty)}">
+                <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>Username</strong></span>
+                <input type="text" class="form-control" name="username" placeholder="Username" ng-model="user.Username" disabled>
+              </div>
+              <div class="input-group" ng-class="{'has-error': (userform.firstname.$invalid && userform.firstname.$dirty)}">
+                <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>First Name</strong></span>
+                <input type="text" class="form-control" name="firstname" placeholder="First name" ng-model="user.FirstName" required>
+              </div>
+              <div class="input-group" ng-class="{'has-error': (userform.lastname.$invalid && userform.lastname.$dirty)}">
+                <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>Last Name</strong></span>
+                <input type="text" class="form-control" name="lastname" placeholder="Last name" ng-model="user.LastName" required>
+              </div>
+              <div class="input-group" ng-class="{'has-error': (userform.email.$invalid && userform.email.$dirty)}">
+                <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>Email</strong></span>
+                <input type="email" class="form-control" name="email" placeholder="Email" ng-model="user.Email" required>
+              </div>
+              <!--<p class="text-muted"><em>more user info will go here...</em></p>-->
+
+            </div>
+            <div class="col-sm-1">&nbsp;</div>
+            <div class="col-sm-5">
+              <h3>Groups</h3>
+              <div class="table-responsive" style="overflow-y: scroll;">
+                <table class="table table-striped table-condensed">
+                  <tr>
+                    <th class="col-sm-1">Add</th>
+                    <th>Name</th>
+                  </tr>
+                  <tr ng-repeat="group in groups">
+                    <td class="col-sm-1"><input type="checkbox" ng-model="group.Checked"></td>
+                    <td>{{group.Name}}</td>
+                  </tr>
+                </table>
+              </div>
+            </div>
+          </div>
+          <br />
+          <div class="row">
+            <div class="col-xs-5">
+              <button class="btn btn-success" ng-click="saveUser()" ng-disabled="userform.$invalid">{{user.User_ID ? 'Save Changes' : 'Add User'}}</button>
+            </div>
+            <div class="col-xs-1">&nbsp;</div>
+            <div class="col-xs-3">
+              <button class="btn btn-danger" ng-disabled="!user.User_ID" ng-click="removeUser()">Delete User</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

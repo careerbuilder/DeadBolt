@@ -1,0 +1,43 @@
+<div class="container-fluid">
+  <div class="jumbotron" >
+    <div class="page-header text-center">
+      <h1>Welcome to DeadBolt</h1>
+    </div>
+    <p align="center">Providing a Active directory solution to Databases in the AWS cloud</p>
+    <div class="row">
+      <div class="col-xs-2">&nbsp;</div>
+      <div class="col-xs-8" align="center">
+				<a class="btn btn-primary with-ripple" href="#/login" ng-hide="authentication">Log In</a>
+				<a class="btn btn-info with-ripple" href="#/signup" ng-hide="authentication">Sign Up</a>
+      </div>
+      <div class="col-xs-2">&nbsp;</div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-xs-12" style="text-align: center">
+      <h1>What is DeadBolt?</h1>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-4">
+      <p><strong>DeadBolt allows sytem admins to manage user-level access to all their deployed databases.</strong></p>
+      <p>Users are added to an Active Directory, and assigned to one or more groups. These groups in turn have lists of accessible databases on which all their members will have login credentials.
+        When a change in user-group-database mapping occurs, DeadBolt reaches out to any and all affected databases and enforces that the list of users is up to date with the new conditions.
+      </p>
+      <p><strong>DeadBolt is multi-platform!</strong></p>
+      <p>Or at least, it will be. Currently DeadBolt only supports user management on MySQL databases, but development is underway for hooks to Cassandra, MSSQL, Mongo, and Aurora.</p>
+    </div>
+    <div class="col-md-4" style="text-align:center;">
+      <img src="example.png"></img>
+    </div>
+    <div class="col-md-4">
+      <h2>Features</h2>
+      <ul>
+        <li>Backed by MySQL</li>
+        <li>Multi-platform</li>
+        <li>Secure</li>
+        <li>RDS auth capable</li>
+      </ul>
+    </div>
+  </div>
+</div>

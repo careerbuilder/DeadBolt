@@ -1,0 +1,19 @@
+<div class="container content">
+    <div class="row">
+    	<div class="col-xs-1">&nbsp;</div>
+    	<div class="col-xs-10" align="center">
+        <h3 align="left">Recent Activity</h3>
+        <table class="table table-striped">
+          <tr>
+            <th>Time</th>
+            <th>Activity</th>
+          </tr>
+          <tr ng-repeat="item in history track by $index">
+            <td>{{item.Time}}</td>
+            <td>{{item.Activity}}</td>
+          </tr>
+        </table>
+      </div>
+    	<div class="col-xs-1">&nbsp;</div>
+    </div>
+</div>
