@@ -74,7 +74,7 @@ router.post('/login', function(req,res){
     shasum.update(results[0].Salt + body.password);
     var passcheck = shasum.digest('hex');
     if(results[0].Password != passcheck){
-      return res.send({Success: false, Error: "Incorrect Password"});
+      return res.send({Success: false, Message: "Incorrect Password"});
     }
     connection.query("Insert into Sessions (Session_ID, Expires) Values(?, ?)", [sessionid, later], function(error, results){
       if(error){
