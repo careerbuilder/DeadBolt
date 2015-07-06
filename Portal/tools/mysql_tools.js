@@ -163,7 +163,7 @@ module.exports = {
             return callback();
           }
         },
-        function(errors){
+        function(err){
           console.log('-------------------\nEND OPERATIONS FOR ' + dbinfo.Name +'\n---------------------------');
           mysql_connection.release();
           return series_callback(null, errors);

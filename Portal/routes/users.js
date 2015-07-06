@@ -121,7 +121,6 @@ function update_user(body, callback){
             });
           }, function(err, result){
             console.log("All Databases Updated for " + body.Username);
-            console.log(result);
           });
           callback(null, body);
         });
