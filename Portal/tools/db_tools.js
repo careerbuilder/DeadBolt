@@ -14,9 +14,9 @@ function update_users(db, users, callback){
       return callback([err]);
     }
     var gospel_users = [];
-    results.forEach(res, i){
+    results.forEach(function(res, i){
       gospel_users.push(res.Username);
-    }
+    });
     switch(dbinfo.Type.toLowerCase().trim()){
       case 'mysql':
         mysql_tools.update_users(dbinfo, users, gospel_users, function(err){
