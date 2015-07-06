@@ -4,10 +4,10 @@ var connection = require('../routes/mysql');
 var encryption = require('./encryption');
 
 module.exports = {
-  update_users: function(db, all_users, gospel_users, top_callback){
+  update_users: function(db, affected_users, gospel_users, top_callback){
     var dbinfo = db;
     var errors = [];
-    var users = all_users;
+    var users = affected_users;
     var mysql_pool;
     async.waterfall([
       function(callback){
