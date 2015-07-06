@@ -57,7 +57,7 @@ module.exports = {
         console.log("Error on " + dbinfo.Name +": " + err);
         callback(err);
       }
-      update_users(dbinfo, all_users, gospel_users, function(errs){
+      update_users(dbinfo, all_users, function(errs){
         console.log(errs);
         callback(errs);
       });
@@ -65,7 +65,7 @@ module.exports = {
   },
   retry_users: function(db, users, callback){
     var dbinfo = db;
-    update_users(dbinfo, all_users, gospel_users, function(errs){
+    update_users(dbinfo, all_users, function(errs){
       console.log(errs);
       callback(errs);
     });
