@@ -20,6 +20,7 @@ function add_group(body, callback){
 
 function update_group(body, callback){
   var Group_ID = body.ID;
+  console.log(body);
   connection.query("Select * from `databases` where ID in (Select Database_ID from groups_databases where Group_ID = ?) ORDER BY ID ASC", [Group_ID], function(err, results){
     if(err){
       console.log(err);
