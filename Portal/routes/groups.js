@@ -20,14 +20,13 @@ function add_group(body, callback){
 
 function update_group(body, callback){
   var Group_ID = body.ID;
-  console.log(body);
   connection.query("Select * from `databases` where ID in (Select Database_ID from groups_databases where Group_ID = ?) ORDER BY ID ASC", [Group_ID], function(err, results){
     if(err){
       console.log(err);
       callback(err);
     }
     var old_dbs = results || [];
-    if(old_dbs.length==0 && (body.Databases && body.Databases.length==0)){
+    if(old_dbs.length==0 && body.Databases.length==0){
       console.log("No DB Changes");
       callback(null, body);
     }
@@ -50,7 +49,6 @@ function update_group(body, callback){
       add_group_query = 'Set @dummy=?;';
     }
     connection.query(del_group_query, [Group_ID].concat(body.Databases), function(err, results){
-      console.log("Deleting old groups");
       if(err){
         console.log(err);
         callback(err);
@@ -88,8 +86,8 @@ function update_group(body, callback){
             async.each(affected_dbs, function(db, inner_callback){
               db_tools.update_users(db, results, function(errs){
                 inner_callback();
-              },
-              function(err, results){
+              });
+              }, function(err, results){
                 console.log("Group updated");
                 callback(null, body);
               });
@@ -148,11 +146,8 @@ router.get('/:username', function(req, res){
   });
 });
 
-
-
 router.post('/', function(req, res){
   var body = req.body;
-  console.log(body);
   if(!body.ID){
     async.waterfall([
       function(callback){
