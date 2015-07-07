@@ -45,7 +45,9 @@ function update(db, init_users, callback){
               }
               if(rem_users.length > 0){
                 users = rem_users;
-                final_errors = final_errors.concat(rem_errors);
+                rem_errors.forEach(function(rerr, i){
+                  final_errors.push(rerr);
+                });
                 return cb(true);
               }
               return cb()
@@ -71,6 +73,10 @@ function update(db, init_users, callback){
           break;
       }
     }, function(err, results){
+      if(err){
+        console.log(err);
+      }
+      console.log(final_errors);
       callback(final_errors);
     });
   });
@@ -91,7 +97,6 @@ function save_errors(db, errors, callback){
       remaining_errors.push(error);
     }
   });
-  console.log(remaining_errors);
   callback(null, users, remaining_errors);
 }
 
