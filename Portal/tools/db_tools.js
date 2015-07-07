@@ -32,6 +32,9 @@ function update(db, init_users, callback){
               if(rem_users.lenth > 0){
                 users = rem_users;
                 final_errors = final_errors.concat(rem_errors);
+                console.log('------');
+                console.log('\tRETRYING');
+                console.log('------');
                 cb(true);
               }
               cb()
