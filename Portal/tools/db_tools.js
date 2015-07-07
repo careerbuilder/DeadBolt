@@ -20,7 +20,7 @@ function update(db, init_users, callback){
       gospel_users.push(res.Username);
     });
     var final_errors = [];
-    async.retry({times:3, interval:(60)}, function(cb, results){
+    async.retry({times:3, interval:30000}, function(cb, results){
       switch(dbinfo.Type.toLowerCase().trim()){
         case 'mysql':
           mysql_tools.update_users(dbinfo, users, gospel_users, function(errors){
@@ -87,7 +87,9 @@ function save_errors(db, errors, callback){
   var users = [];
   errors.forEach(function(error, i){
     if(error.Retryable){
-      if(usernames.indexOf(error.User.UserName)<=0){
+      console.log("Retryable error");
+      if(usernames.indexOf(error.User.UserName)<0){
+        console.log("Adding " + error.User.UserName +" to retry list");
         usernames.push(error.User.UserName);
         users.push(error.User);
       }
@@ -96,7 +98,7 @@ function save_errors(db, errors, callback){
       remaining_errors.push(error);
     }
   });
-  console.log(users);
+  console.log("Error users: " + JSON.stringify(users));
   callback(null, users, remaining_errors);
 }
 
