@@ -25,8 +25,8 @@ function update_group(body, callback){
       console.log(err);
       callback(err);
     }
-    var old_dbs = results;
-    if(old_dbs.length==0 && body.Databases.length==0){
+    var old_dbs = results || [];
+    if(old_dbs.length==0 && (body.Databases && body.Databases.length==0)){
       console.log("No DB Changes");
       callback(null, body);
     }
