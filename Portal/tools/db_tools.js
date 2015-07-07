@@ -35,9 +35,9 @@ function update(db, init_users, callback){
                 console.log('------');
                 console.log('\tRETRYING');
                 console.log('------');
-                cb(true);
+                return cb(true);
               }
-              cb()
+              return cb()
             });
           });
           break;
@@ -54,9 +54,9 @@ function update(db, init_users, callback){
                 console.log('------');
                 console.log('\tRETRYING');
                 console.log('------');
-                cb(true);
+                return cb(true);
               }
-              cb()
+              return cb()
             });
           });
           break;
