@@ -162,7 +162,10 @@ module.exports = {
         callback(err);
       }
       filter_users(all_users, dbinfo.Type, function(cleanusers){
-        console.log(cleanusers);
+        if(cleanusers.length <1){
+          console.log("No Users need updating");
+          return callback();
+        }
         update(dbinfo, cleanusers, function(errs){
           callback(errs);
         });
@@ -172,7 +175,10 @@ module.exports = {
   update_users: function(db, users, callback){
     var dbinfo = db;
     filter_users(users, dbinfo.Type, function(cleanusers){
-      console.log(cleanusers);
+      if(cleanusers.length <1){
+        console.log("No Users need updating");
+        return callback();
+      }
       update(dbinfo, cleanusers, function(errs){
         callback(errs);
       });
