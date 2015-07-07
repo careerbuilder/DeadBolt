@@ -24,7 +24,7 @@ function update(db, init_users, callback){
       switch(dbinfo.Type.toLowerCase().trim()){
         case 'mysql':
           mysql_tools.update_users(dbinfo, users, gospel_users, function(errors){
-            save_errors(dbinfo, errors, function(save_err, rem_users, rem_errors){
+            retry_errors(dbinfo, errors, function(save_err, rem_users, rem_errors){
               if(save_err){
                 console.log(save_err);
               }
@@ -38,7 +38,7 @@ function update(db, init_users, callback){
           break;
         case 'aurora':
           mysql_tools.update_users(dbinfo, users, gospel_users, function(err){
-            save_errors(dbinfo, err, function(save_err, rem_users, rem_errors){
+            retry_errors(dbinfo, err, function(save_err, rem_users, rem_errors){
               if(save_err){
                 console.log(save_err);
               }
@@ -53,13 +53,13 @@ function update(db, init_users, callback){
         /*
         case 'sqlserver':
           mssql_tools.update_users(dbinfo, users, gospel_users, function(err){
-            save_errors(dbinfo, err, callback);
+            retry_errors(dbinfo, err, callback);
             //callback(errs);
           });
           break;
         case 'mongo':
           mongo_tools.update_users(dbinfo, users, gospel_users, function(err){
-            save_errors(dbinfo, err, callback);
+            retry_errors(dbinfo, err, callback);
             //callback(errs);
           });
           break;
@@ -72,12 +72,12 @@ function update(db, init_users, callback){
       if(err){
         console.log(err);
       }
-      callback(results);
+      retry_errors(results, callback);
     });
   });
 }
 
-function save_errors(db, errors, callback){
+function retry_errors(db, errors, callback){
   var remaining_errors = [];
   var usernames = [];
   var users = [];
@@ -93,6 +93,23 @@ function save_errors(db, errors, callback){
     }
   });
   callback(null, users, remaining_errors);
+}
+
+function save_errors(errors, callback){
+  async.each(errors, function(error, cb){
+    connection.query("Insert into Errors (Username, Database, Title, Details) Values(?, ?, ?, ?)", [error.User.Username, error.Database.Name, error.Error.Title, error.Error.Details], function(err, results){
+      if(err){
+        console.log(err);
+        return cb(err);
+      }
+      return cb();
+    });
+  }, function(err, results){
+    if(err){
+      return callback(err);
+    }
+    return callback(results);
+  });
 }
 
 module.exports = {

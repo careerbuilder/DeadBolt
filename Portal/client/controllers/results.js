@@ -7,7 +7,6 @@ app.controller('ErrorCtrl', function($http, $scope, toastr){
                   {User: {Username: "ayost"}, Database:{Name:"Testdb"}, Error:{Title: "Testing Error Page", Details:"This is only a test"}, Retryable: false, Class:"Success"}
                   ];
   $scope.$emit('tabChanged', 4);
-  /*
   $http.get('https://deadbolt.cbsitedb.net/api/errors/').success(function(data){
     if(data.Success){
       $scope.results = data.Results;
@@ -16,9 +15,14 @@ app.controller('ErrorCtrl', function($http, $scope, toastr){
       console.log(data.Error);
     }
   });
-*/
-  $scope.dismiss=function(i){
-    $scope.results.splice(i, 1);
-  }
 
+  $scope.dismiss=function(i){
+    var chopid = $scope.results[i].ID
+    $scope.results.splice(i, 1);
+    $http.delete('https://deadbolt.cbsitedb.net/api/errors/'+chopid).success(function(data){
+      if(!data.Success){
+        console.log(data.Error);
+      }
+    });
+  }
 });

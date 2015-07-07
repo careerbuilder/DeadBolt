@@ -90,6 +90,27 @@ router.post('/login', function(req,res){
 //This acts as a gateway, prohibiting any traffic not containing a valid Session ID
 router.use(auth);
 
+router.get('/errors/', function(req, res){
+  connection.query("Select * from Errors where Acknowledged=0 Order by ID DESC", function(err, results){
+    if(err){
+      console.log(err);
+      return res.send({Success: false, Error: err});
+    }
+    return res.send({Success:true, Results: results});
+  })
+});
+
+router.delete('/errors/:id', function(req, res){
+  var id = req.params.id;
+  connection.query("Update Errors Set Acknowledged=1 where ID=?", [id], function(err, result){
+    if(err){
+      console.log(err);
+      return res.send({Success: false, Error: err});
+    }
+    return res.send({Success:true});
+  });
+});
+
 router.get('/history/:timelength', function(req,res){
   var past = req.params.timelength;
   connection.query('Select Time, Activity from History WHERE Time BETWEEN DATE_SUB(NOW(), INTERVAL ? DAY) AND NOW() ORDER BY ID DESC LIMIT 15;', [past], function(err, results){

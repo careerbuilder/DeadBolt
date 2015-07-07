@@ -93,4 +93,13 @@ CREATE TABLE `users_groups` (
   CONSTRAINT `User_ID` FOREIGN KEY (`User_ID`) REFERENCES `users` (`ID`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+CREATE TABLE `errors` (
+  `ID` INT NOT NULL AUTO_INCREMENT,
+  `Username` VARCHAR(45) NOT NULL,
+  `Database` VARCHAR(200) NOT NULL,
+  `Title` VARCHAR(256) NOT NULL,
+  `Details` LONGTEXT NULL,
+  `Acknowledged` TINYINT(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`ID`));
+
 Insert Into groups (ID, Name) Values(-1, "Admin");
