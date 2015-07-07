@@ -82,6 +82,7 @@ function save_errors(db, errors, callback){
   var usernames = [];
   var users = [];
   errors.forEach(function(error, i){
+    console.log(error);
     if(error.Retryable){
       if(usernames.indexOf(error.User.Name)<=0){
         usernames.push(error.User.Name);
