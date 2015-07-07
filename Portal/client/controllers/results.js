@@ -1,14 +1,7 @@
 'use strict';
 
 app.controller('ErrorCtrl', function($http, $scope, toastr){
-  $scope.results=[
-                  /*
-                  {User: {Username: "ayost"}, Database:{Name:"Testdb"}, Error:{Title: "Testing Error Page", Details:"This is only a test"}, Retryable: false, Class:"Info"},
-                  {User: {Username: "ayost"}, Database:{Name:"Testdb"}, Error:{Title: "Testing Error Page", Details:"This is only a test"}, Retryable: false, Class:"Warning"},
-                  {User: {Username: "ayost"}, Database:{Name:"Testdb"}, Error:{Title: "Testing Error Page", Details:"This is only a test"}, Retryable: false, Class:"Error"},
-                  {User: {Username: "ayost"}, Database:{Name:"Testdb"}, Error:{Title: "Testing Error Page", Details:"This is only a test"}, Retryable: false, Class:"Success"}
-                  */
-                  ];
+  $scope.results=[];
   $scope.$emit('tabChanged', 4);
   $http.get('https://deadbolt.cbsitedb.net/api/errors/').success(function(data){
     if(data.Success){
@@ -26,6 +19,12 @@ app.controller('ErrorCtrl', function($http, $scope, toastr){
       if(!data.Success){
         console.log(data.Error);
       }
+    });
+  }
+
+  $scope.dismissAll=function(){
+    $scope.results.forEach(function(res, i){
+      $scope.dismiss(i);
     });
   }
 });
