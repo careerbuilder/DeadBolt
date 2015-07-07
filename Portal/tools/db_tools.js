@@ -28,7 +28,6 @@ function update(db, init_users, callback){
               if(save_err){
                 console.log(save_err);
               }
-              console.log("rem_users: " + JSON.stringify(rem_users));
               if(rem_users.length > 0){
                 users = rem_users;
                 final_errors = final_errors.concat(rem_errors);
@@ -40,7 +39,6 @@ function update(db, init_users, callback){
           break;
         case 'aurora':
           mysql_tools.update_users(dbinfo, users, gospel_users, function(err){
-            console.log(dbinfo.Name + " Updated");
             save_errors(dbinfo, err, function(save_err, rem_users, rem_errors){
               if(save_err){
                 console.log(save_err);
@@ -84,9 +82,7 @@ function save_errors(db, errors, callback){
   var users = [];
   errors.forEach(function(error, i){
     if(error.Retryable){
-      console.log("Retryable error");
       if(usernames.indexOf(error.User.Username)<0){
-        console.log("Adding " + error.User.Username +" to retry list");
         usernames.push(error.User.Username);
         users.push(error.User);
       }

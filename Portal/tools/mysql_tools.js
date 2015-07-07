@@ -121,14 +121,14 @@ module.exports = {
                     errors.push({User: user, Database: dbinfo, Error:{Title: "Error Decrypting User password", Details: err}, Retryable:true, Class:"Error"});
                   }
                   var hash_pass = data;
-                  console.log(user_log);
+                  //console.log(user_log);
                   mysql_connection.query(user_query, [user.Username, hash_pass], function(err, result){
                     if(err){
                       console.log("User Operation Failed! Error on DB " + dbinfo.Name +": " + err);
                       errors.push({User: user, Database: dbinfo, Error:{Title:"Error on "+user_log, Details: err}, Retryable:true, Class:"Error"});
                       callback();
                     }
-                    console.log(user_log2);
+                    //console.log(user_log2);
                     mysql_connection.query(user_query2, [user.Username, hash_pass], function(err, result){
                       if(err){
                         console.log("Localhost User Operation Failed! Error on DB " + dbinfo.Name +": " + err);
@@ -160,7 +160,7 @@ module.exports = {
           }
           else{
             console.log("User " + user.Username + " lacks a MySQL_Password. Skipping...");
-            errors.push({User: user, Database: dbinfo, Error: {Title: "User lacks a MySQL_Password", Details:"The user has no MySQL_Password on record."}, Retryable:true, Class:"Warning"});
+            errors.push({User: user, Database: dbinfo, Error: {Title: "User lacks a MySQL_Password", Details:"The user has no MySQL_Password on record."}, Retryable:false, Class:"Warning"});
             return callback();
           }
         },
