@@ -96,20 +96,25 @@ function retry_errors(db, errors, callback){
 }
 
 function save_errors(errors, callback){
-  async.each(errors, function(error, cb){
-    connection.query("Insert into Errors (Username, Database, Title, Details) Values(?, ?, ?, ?)", [error.User.Username, error.Database.Name, error.Error.Title, error.Error.Details], function(err, results){
+  if(errors && errors.length > 0){
+    async.each(errors, function(error, cb){
+      connection.query("Insert into Errors (Username, Database, Title, Details) Values(?, ?, ?, ?)", [error.User.Username, error.Database.Name, error.Error.Title, error.Error.Details], function(err, results){
+        if(err){
+          console.log(err);
+          return cb(err);
+        }
+        return cb();
+      });
+    }, function(err, results){
       if(err){
-        console.log(err);
-        return cb(err);
+        return callback(err);
       }
-      return cb();
+      return callback(results);
     });
-  }, function(err, results){
-    if(err){
-      return callback(err);
-    }
-    return callback(results);
-  });
+  }
+  else{
+    callback([]);
+  }
 }
 
 module.exports = {
