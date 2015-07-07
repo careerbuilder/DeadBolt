@@ -30,6 +30,10 @@ app.config(['$routeProvider', '$httpProvider', function($routeProvider, $httpPro
 		controller: 'UserCtrl',
 		templateUrl: 'views/users.html'
 	})
+	.when('/errors', {
+		controller: 'ErrorCtrl',
+		templateUrl: 'views/results.html'
+	})
 	.otherwise({redirectTo: 'home'});
   $httpProvider.interceptors.push('httpRequestInterceptor');
 }]);

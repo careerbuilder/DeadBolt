@@ -29,6 +29,7 @@
     <script type="text/javascript" src="controllers/users.js"></script>
     <script type="text/javascript" src="controllers/groups.js"></script>
     <script type="text/javascript" src="controllers/databases.js"></script>
+    <script type="text/javascript" src="controllers/results.js"></script>
 
     <!-- decoration -->
     <link rel="shortcut icon" href="favicon.ico"/>
@@ -56,6 +57,7 @@
             <li ng-class="{'active': tab==1}" ng-show="authentication"><a href="#/users" ng-click="tab=1">Users</a></li>
             <li ng-class="{'active': tab==2}" ng-show="authentication"><a href="#/groups" ng-click="tab=2">Groups</a></li>
             <li ng-class="{'active': tab==3}" ng-show="authentication"><a href="#/databases" ng-click="tab=3">Databases</a></li>
+            <li ng-class="{'active': tab==4}" ng-show="authentication"><a href="#/errors" ng-click="tab=4">Results</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right" ng-show="authentication">
             <li><a href="#/" ng-click="logOut()">Log Out</a></li>
