@@ -96,7 +96,7 @@ function save_errors(db, errors, callback){
 }
 
 module.exports = {
-  update_database_users: function(db, callback){
+  update_all_users: function(db, callback){
     var dbinfo = db;
     connection.query("Select * from users;", function(err, all_users){
       if(err){

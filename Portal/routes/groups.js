@@ -80,7 +80,7 @@ function update_group(body, callback){
             }
           }
           async.each(affected_dbs, function(db, inner_callback){
-            db_tools.update_database_users(db, function(errs){
+            db_tools.update_all_users(db, function(errs){
               inner_callback();
             },
             function(err, results){
@@ -218,7 +218,7 @@ router.delete('/:id', function(req,res){
             return res.send({Success:false, Error: err});
           }
           databases.forEach(function(db, i){
-            db_tools.update_database_users(db, function(errors){
+            db_tools.update_all_users(db, function(errors){
               //console.log(errors);
             });
           });

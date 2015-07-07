@@ -116,7 +116,7 @@ function update_user(body, callback){
             }
           });
           async.each(affected_dbs,function(db, inner_callback){
-            db_tools.update_database_users(db, function(errs){
+            db_tools.update_users(db, [body], function(errs){
               inner_callback();
             });
           }, function(err, result){
@@ -225,13 +225,13 @@ router.post('/', function(req, res){
 
 router.delete('/:id', function(req,res){
   var user_id = req.params.id;
-  var username = "";
-  connection.query("Select Username from users where ID = ?", [user_id], function(err, results){
+  connection.query("Select * from users where ID = ?", [user_id], function(err, results){
     if(err){
       console.log(err);
       return res.send({Success: false, Error: err});
     }
-    username = results[0].Username;
+    var user = results[0];
+    var username = user.Username;
     var req_opts = {
       uri: "http://172.21.12.226:3000/api/removeUser/",
       method: 'POST',
@@ -257,7 +257,7 @@ router.delete('/:id', function(req,res){
           return res.send({Success:false, Error: err});
         }
         async.each(affected_dbs, function(db, i){
-          db_tools.update_database_users(db, function(errs){
+          db_tools.update_users(db, [user], function(errs){
             //console.log(errs);
           })
         }, function(err){

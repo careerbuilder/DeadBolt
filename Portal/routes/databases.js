@@ -73,7 +73,7 @@ router.post('/', function(req, res){
           return res.send({Success:false, Error: err});
         }
         var dbinfo = {Name: body.Name, Type: body.Type, Host: body.Host, Port: body.Port, SAUser: body.SAUser, SAPass: sacreds, ID:DB_ID};
-        db_tools.update_database_users(dbinfo, function(errors){
+        db_tools.update_all_users(dbinfo, function(errors){
           var errs = errors;
           connection.query('Insert into History (Activity) Value("Added Database: ?")', [body.Name], function(err, result){
             if(err){
@@ -93,7 +93,7 @@ router.delete('/:id', function(req,res){
   var db_id = req.params.id;
   connection.query("Select * from `databases` where ID = ? LIMIT 1;", [db_id], function(err, data){
     var dbinfo = data[0];
-    db_tools.update_database_users(dbinfo, function(errors){
+    db_tools.update_all_users(dbinfo, function(errors){
       if(errors){
         console.log(errors);
       }
