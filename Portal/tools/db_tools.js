@@ -20,7 +20,7 @@ function update(db, init_users, callback){
       gospel_users.push(res.Username);
     });
     var final_errors = [];
-    async.retry(3, function(cb, results){
+    async.retry({times:3, interval:30000}, function(cb, results){
       switch(dbinfo.Type.toLowerCase().trim()){
         case 'mysql':
           mysql_tools.update_users(dbinfo, users, gospel_users, function(errors){
@@ -32,9 +32,6 @@ function update(db, init_users, callback){
               if(rem_users.length > 0){
                 users = rem_users;
                 final_errors = final_errors.concat(rem_errors);
-                console.log('------');
-                console.log('\tRETRYING');
-                console.log('------');
                 return cb(true);
               }
               return cb()
@@ -51,9 +48,6 @@ function update(db, init_users, callback){
               if(rem_users.length > 0){
                 users = rem_users;
                 final_errors = final_errors.concat(rem_errors);
-                console.log('------');
-                console.log('\tRETRYING');
-                console.log('------');
                 return cb(true);
               }
               return cb()
@@ -79,7 +73,6 @@ function update(db, init_users, callback){
           break;
       }
     }, function(err, results){
-      console.log(final_errors);
       callback(final_errors);
     });
   });

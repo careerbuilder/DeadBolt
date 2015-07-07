@@ -31,6 +31,9 @@ module.exports = {
         mysql_pool.getConnection(function(err, connection) {
           if(err) {
             console.log("Connection Error on DB " + dbinfo.Name +": " + err);
+            users.forEach(function(err_user, i){
+              errors.push({User: err_user, Database: dbinfo, Error:{Title: "Connection Error", Details: err}, Retryable:true, Class:"Error"});
+            });
             return top_callback(err);
           }
           callback(null, connection);
@@ -43,7 +46,7 @@ module.exports = {
             mysql_connection.query(user_exists_query, [user.Username], function(err, results){
               if(err){
                 console.log("Select exists failed! Error on DB " + dbinfo.Name +": " + err);
-                errors.push({User: user, Database: dbinfo, Error:err, Retryable:true, Class:"Error"});
+                errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to query database", Details:err}, Retryable:true, Class:"Error"});
               }
               else {
                 var user_query = "";
@@ -148,7 +151,6 @@ module.exports = {
                           }
                         });
                       }
-                      console.log("Done processing for " + user.Username + " on " + dbinfo.Name);
                       callback();
                     });
                   });
