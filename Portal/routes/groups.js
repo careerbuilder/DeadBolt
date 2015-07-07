@@ -59,7 +59,6 @@ function update_group(body, callback){
           console.log(err);
           callback(err);
         }
-        console.log('Updated groups');
         connection.query("Select * from `databases` where ID in (Select Database_ID from groups_databases where Group_ID = ?) ORDER BY ID ASC", [Group_ID], function(err, results){
           if(err){
             console.log(err);
@@ -80,13 +79,19 @@ function update_group(body, callback){
               }
             }
           }
-          async.each(affected_dbs, function(db, inner_callback){
-            db_tools.update_all_users(db, function(errs){
-              inner_callback();
-            },
-            function(err, results){
-              console.log("Group updated");
-              callback(null, body);
+          connection.query("Select * from users where ID in (Select User_ID from users_groups where Group_ID=?)", [Group_ID], function(err, results){
+            if(err){
+              console.log(err);
+              callback(err);
+            }
+            async.each(affected_dbs, function(db, inner_callback){
+              db_tools.update_users(db, results, function(errs){
+                inner_callback();
+              },
+              function(err, results){
+                console.log("Group updated");
+                callback(null, body);
+              });
             });
           });
         });
@@ -173,7 +178,7 @@ router.post('/', function(req, res){
   else{
     async.waterfall([
       function(body, callback){
-        update_group(new_body, callback);
+        update_group(body, callback);
       },
       function(info, callback){
         connection.query('Insert into History (Activity) Value("Edited Databases for group: ?")', [info.Name], function(err, result){
@@ -201,34 +206,41 @@ router.delete('/:id', function(req,res){
       return res.send({Success:false, Error: err});
     }
     var databases = results;
-    console.log("removing group " + group_id);
-    var query = "Delete from groups_databases where Group_ID = ?";
-    connection.query(query, [group_id], function(err, result){
+    connection.query("Select * from users where ID in (Select User_ID from users_groups where Group_ID=?)", [group_id], function(err, results){
       if(err){
         console.log(err);
         return res.send({Success:false, Error: err});
       }
-      connection.query("Delete from users_groups where Group_ID = ?", [group_id], function(err, results){
+      var users = results;
+      console.log("removing group " + group_id);
+      var query = "Delete from groups_databases where Group_ID = ?";
+      connection.query(query, [group_id], function(err, result){
         if(err){
           console.log(err);
           return res.send({Success:false, Error: err});
         }
-        connection.query('Delete from groups where ID = ?', [group_id], function(err, result){
+        connection.query("Delete from users_groups where Group_ID = ?", [group_id], function(err, results){
           if(err){
             console.log(err);
             return res.send({Success:false, Error: err});
           }
-          databases.forEach(function(db, i){
-            db_tools.update_all_users(db, function(errors){
-              //console.log(errors);
-            });
-          });
-          connection.query('Insert into History (Activity) Value("Deleted group with ID: ?")', [group_id], function(err, result){
+          connection.query('Delete from groups where ID = ?', [group_id], function(err, result){
             if(err){
               console.log(err);
-              return res.send({Success: true, Error: "History error: " + err.toString(), });
+              return res.send({Success:false, Error: err});
             }
-            return res.send({Success: true});
+            databases.forEach(function(db, i){
+              db_tools.update_users(db, users, function(errors){
+                //console.log(errors);
+              });
+            });
+            connection.query('Insert into History (Activity) Value("Deleted group with ID: ?")', [group_id], function(err, result){
+              if(err){
+                console.log(err);
+                return res.send({Success: true, Error: "History error: " + err.toString(), });
+              }
+              return res.send({Success: true});
+            });
           });
         });
       });
