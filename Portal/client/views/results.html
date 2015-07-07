@@ -9,14 +9,14 @@
           <div class="panel-heading">
             <h3 class="panel-title">
               <span class="glyphicon glyphicon-remove" ng-click="dismiss($index)"></span>
-              {{info.Error.Title}}
+              {{info.Title}}
               <a class="pull-right" ng-click="info.Show=!info.Show" style="cursor:pointer;"><span class="text-muted">more info...</span></a>
             </h3>
           </div>
           <div class="panel-body" ng-show="info.Show">
-            <p><strong>User:</strong> {{info.User.Username}}</p>
-            <p><strong>Database:</strong> {{info.Database.Name}}</p>
-            <p>{{info.Error.Details}}</p>
+            <p><strong>User:</strong> {{info.Username}}</p>
+            <p><strong>Database:</strong> {{info.Database}}</p>
+            <p>{{info.Details}}</p>
           </div>
         </div>
       </div>
