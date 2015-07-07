@@ -120,6 +120,7 @@ function update_user(body, callback){
               console.log(err);
               return callback(err);
             }
+            console.log(results);
             var user = results[0];
             async.each(affected_dbs,function(db, inner_callback){
               db_tools.update_users(db, user, function(errs){
