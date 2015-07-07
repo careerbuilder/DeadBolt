@@ -8,6 +8,7 @@ function update(db, init_users, callback){
   var dbinfo = db;
   var gospel_users = [];
   var users = init_users;
+  var final_errors = [];
   //get gospel user list
   var get_users = "Select Distinct Username from users where users.ID in (Select User_ID from users_groups where users_groups.Group_ID in (Select Group_ID from groups_databases where Database_ID = ?))";
   connection.query(get_users, [dbinfo.ID], function(err, results){
@@ -19,7 +20,6 @@ function update(db, init_users, callback){
     results.forEach(function(res, i){
       gospel_users.push(res.Username);
     });
-    var final_errors = [];
     async.retry({times:3, interval:30000}, function(cb, results){
       switch(dbinfo.Type.toLowerCase().trim()){
         case 'mysql':
@@ -30,10 +30,9 @@ function update(db, init_users, callback){
               }
               if(rem_users.length > 0){
                 users = rem_users;
-                final_errors = final_errors.concat(rem_errors);
                 return cb(true);
               }
-              return cb()
+              return cb(null, rem_errors);
             });
           });
           break;
@@ -45,12 +44,9 @@ function update(db, init_users, callback){
               }
               if(rem_users.length > 0){
                 users = rem_users;
-                rem_errors.forEach(function(rerr, i){
-                  final_errors.push(rerr);
-                });
                 return cb(true);
               }
-              return cb()
+              return cb(null, rem_errors);
             });
           });
           break;
@@ -76,7 +72,7 @@ function update(db, init_users, callback){
       if(err){
         console.log(err);
       }
-      console.log(final_errors);
+      console.log(results);
       callback(final_errors);
     });
   });
