@@ -117,6 +117,42 @@ function save_errors(errors, callback){
   }
 }
 
+function filter_users(users, dbtype, cb){
+  var db_type = dbtype.toLowerCase().trim();
+  async.each(users, function(user, callback){
+    if(db_type==="mysql" || db_type==="aurora"){
+      if(user.MySQL_Password){
+        return callback(null, user);
+      }
+      return callback();
+    }
+    else if(db_type==="mssql"){
+      if(user.SQL_Server_Password){
+        return callback(null, user);
+      }
+      return callback();
+    }
+    else if(db_type==='cassandra'){
+      if(user.Cassandra_Password){
+        return callback(null, user);
+      }
+      return callback();
+    }
+    else if(db_type==='mongo'){
+      if(user.Mongo_Password){
+        return callback(null, user);
+      }
+      return callback();
+    }
+    else{
+      callback();
+    }
+  }, function(err, results){
+    console.log(results);
+    cb(results);
+  });
+}
+
 module.exports = {
   update_all_users: function(db, callback){
     var dbinfo = db;
@@ -125,15 +161,19 @@ module.exports = {
         console.log("Error on " + dbinfo.Name +": " + err);
         callback(err);
       }
-      update(dbinfo, all_users, function(errs){
-        callback(errs);
+      filter_users(all_users, dbinfo.Type, function(cleanusers){
+        update(dbinfo, cleanusers, function(errs){
+          callback(errs);
+        });
       });
     });
   },
   update_users: function(db, users, callback){
     var dbinfo = db;
-    update(dbinfo, users, function(errs){
-      callback(errs);
+    filter_users(users, dbinfo.Type, function(cleanusers){
+      update(dbinfo, cleanusers, function(errs){
+        callback(errs);
+      });
     });
   }
 };
