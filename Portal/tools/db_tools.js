@@ -72,7 +72,7 @@ function update(db, init_users, callback){
       if(err){
         console.log(err);
       }
-      retry_errors(results, callback);
+      save_errors(results, callback);
     });
   });
 }
