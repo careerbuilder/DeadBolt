@@ -29,7 +29,7 @@ function update(db, init_users, callback){
                 console.log(save_err);
               }
               console.log("rem_users: " + JSON.stringify(rem_users));
-              if(rem_users.lenth > 0){
+              if(rem_users.length > 0){
                 users = rem_users;
                 final_errors = final_errors.concat(rem_errors);
                 console.log('------');
@@ -48,7 +48,7 @@ function update(db, init_users, callback){
               if(save_err){
                 console.log(save_err);
               }
-              if(rem_users.lenth > 0){
+              if(rem_users.length > 0){
                 users = rem_users;
                 final_errors = final_errors.concat(rem_errors);
                 console.log('------');
