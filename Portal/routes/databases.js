@@ -54,14 +54,22 @@ router.get('/:groupname', function(req, res){
 router.post('/', function(req, res){
   var body = req.body;
   var DB_ID = null;
-  encryption.encrypt(body.SAPass, function(err, data){
+  encryption.encrypt(body.SAPass || "emptypass", function(err, data){
     if(err){
       console.log(err);
       return res.send({Success:false, Error:err});
     }
     var sacreds = data;
-    var query = 'Insert into `databases` (Name, Type, Host, Port, SAUser, SAPass) values (?, ?, ?, ?, ?, ?) On Duplicate key Update Name=Values(name), Host=Values(Host), Port=Values(Port), Type=Values(Type), SAUser=Values(SAUser), SAPass=Values(SAPass);';
-    connection.query(query, [body.Name, body.Type, body.Host, body.Port, body.SAUser, sacreds], function(err, result){
+    var query = "";
+    var args = [body.Name, body.Type, body.Host, body.Port, body.SAUser];
+    if(body.SAPass){
+      query = 'Insert into `databases` (Name, Type, Host, Port, SAUser, SAPass) values (?, ?, ?, ?, ?, ?) On Duplicate key Update Name=Values(name), Host=Values(Host), Port=Values(Port), Type=Values(Type), SAUser=Values(SAUser), SAPass=Values(SAPass);';
+      args.push(sacreds);
+    }
+    else{
+      query = 'Insert into `databases` (Name, Type, Host, Port, SAUser) values (?, ?, ?, ?, ?) On Duplicate key Update Name=Values(name), Host=Values(Host), Port=Values(Port), Type=Values(Type), SAUser=Values(SAUser), SAPass=SAPass;';
+    }
+    connection.query(query, args, function(err, result){
       if(err){
         console.log(err);
         return res.send({Success: false, Error: err});
