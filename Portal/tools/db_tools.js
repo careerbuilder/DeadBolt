@@ -171,7 +171,6 @@ module.exports = {
   update_users: function(db, users, callback){
     var dbinfo = db;
     filter_users(users, dbinfo.Type, function(cleanusers){
-      console.log(cleanusers);
       update(dbinfo, cleanusers, function(errs){
         callback(errs);
       });

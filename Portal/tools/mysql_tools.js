@@ -121,14 +121,14 @@ module.exports = {
                     errors.push({User: user, Database: dbinfo, Error:{Title: "Error Decrypting User password", Details: err}, Retryable:true, Class:"Error"});
                   }
                   var hash_pass = data;
-                  //console.log(user_log);
+                  console.log(user_log);
                   mysql_connection.query(user_query, [user.Username, hash_pass], function(err, result){
                     if(err){
                       console.log("User Operation Failed! Error on DB " + dbinfo.Name +": " + err);
                       errors.push({User: user, Database: dbinfo, Error:{Title:"Error on "+user_log, Details: err}, Retryable:true, Class:"Error"});
                       callback();
                     }
-                    //console.log(user_log2);
+                    console.log(user_log2);
                     mysql_connection.query(user_query2, [user.Username, hash_pass], function(err, result){
                       if(err){
                         console.log("Localhost User Operation Failed! Error on DB " + dbinfo.Name +": " + err);
