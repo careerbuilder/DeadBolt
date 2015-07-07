@@ -90,7 +90,6 @@ function update_group(body, callback){
               }, function(err, results){
                 console.log("Group updated");
                 callback(null, body);
-              });
             });
           });
         });
