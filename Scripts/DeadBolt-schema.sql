@@ -94,12 +94,15 @@ CREATE TABLE `users_groups` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `errors` (
-  `ID` INT NOT NULL AUTO_INCREMENT,
-  `Username` VARCHAR(45) NOT NULL,
-  `Database` VARCHAR(200) NOT NULL,
-  `Title` VARCHAR(256) NOT NULL,
-  `Details` LONGTEXT NULL,
-  `Acknowledged` TINYINT(1) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`ID`));
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `Username` varchar(45) NOT NULL,
+  `Database` varchar(200) NOT NULL,
+  `Title` varchar(256) NOT NULL,
+  `Details` longtext,
+  `Acknowledged` tinyint(1) NOT NULL DEFAULT '0',
+  `Retryable` tinyint(1) NOT NULL DEFAULT '0',
+  `Class` varchar(45) NOT NULL DEFAULT 'Info',
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 Insert Into groups (ID, Name) Values(-1, "Admin");
