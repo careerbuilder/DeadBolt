@@ -115,14 +115,21 @@ function update_user(body, callback){
               db_names.push(results[i].Name);
             }
           });
-          async.each(affected_dbs,function(db, inner_callback){
-            db_tools.update_users(db, [body], function(errs){
-              inner_callback();
+          connection.query("Select * from users where ID=?", [User_ID], function(err, results){
+            if(err){
+              console.log(err);
+              return callback(err);
+            }
+            var user = results[0];
+            async.each(affected_dbs,function(db, inner_callback){
+              db_tools.update_users(db, user, function(errs){
+                inner_callback();
+              });
+            }, function(err, result){
+              console.log("All Databases Updated for " + body.Username);
             });
-          }, function(err, result){
-            console.log("All Databases Updated for " + body.Username);
+            callback(null, body);
           });
-          callback(null, body);
         });
       });
     });

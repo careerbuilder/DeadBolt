@@ -111,7 +111,6 @@ module.exports = {
   update_users: function(db, users, callback){
     var dbinfo = db;
     update(dbinfo, users, function(errs){
-      console.log(errs);
       callback(errs);
     });
   }
