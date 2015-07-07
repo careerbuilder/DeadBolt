@@ -158,7 +158,7 @@ module.exports = {
           }
           else{
             console.log("User " + user.Username + " lacks a MySQL_Password. Skipping...");
-            errors.push({Username: user, Database: dbinfo, Error: {Title: "User lacks a MySQL_Password", Details:"The user has no MySQL_Password on record."}, Retryable:false, Class:"Warning"});
+            errors.push({Username: user, Database: dbinfo, Error: {Title: "User lacks a MySQL_Password", Details:"The user has no MySQL_Password on record."}, Retryable:true, Class:"Warning"});
             return callback();
           }
         },
