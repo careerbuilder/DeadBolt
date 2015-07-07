@@ -88,9 +88,9 @@ function save_errors(db, errors, callback){
   errors.forEach(function(error, i){
     if(error.Retryable){
       console.log("Retryable error");
-      if(usernames.indexOf(error.User.UserName)<0){
-        console.log("Adding " + error.User.UserName +" to retry list");
-        usernames.push(error.User.UserName);
+      if(usernames.indexOf(error.User.Username)<0){
+        console.log("Adding " + error.User.Username +" to retry list");
+        usernames.push(error.User.Username);
         users.push(error.User);
       }
     }
