@@ -119,37 +119,37 @@ function save_errors(errors, callback){
 
 function filter_users(users, dbtype, cb){
   var db_type = dbtype.toLowerCase().trim();
+  var good_users =[];
   async.each(users, function(user, callback){
     if(db_type==="mysql" || db_type==="aurora"){
       if(user.MySQL_Password){
-        return callback(null, user);
+        good_users.push(user);
       }
       return callback();
     }
     else if(db_type==="mssql"){
       if(user.SQL_Server_Password){
-        return callback(null, user);
+        good_users.push(user);
       }
       return callback();
     }
     else if(db_type==='cassandra'){
       if(user.Cassandra_Password){
-        return callback(null, user);
+        good_users.push(user);
       }
       return callback();
     }
     else if(db_type==='mongo'){
       if(user.Mongo_Password){
-        return callback(null, user);
+        good_users.push(user);
       }
       return callback();
     }
     else{
-      callback();
+      return callback();
     }
-  }, function(err, results){
-    console.log(results);
-    cb(results);
+  }, function(err){
+    cb(good_users);
   });
 }
 
