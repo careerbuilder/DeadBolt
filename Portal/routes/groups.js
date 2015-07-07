@@ -11,7 +11,7 @@ function add_group(body, callback){
   connection.query(query, [body.Name], function(err, result){
     if(err){
       console.log(err);
-      callback(err);
+      return callback(err);
     }
     body.ID = result.insertId;
     return callback(null, body);
@@ -23,12 +23,12 @@ function update_group(body, callback){
   connection.query("Select * from `databases` where ID in (Select Database_ID from groups_databases where Group_ID = ?) ORDER BY ID ASC", [Group_ID], function(err, results){
     if(err){
       console.log(err);
-      callback(err);
+      return callback(err);
     }
     var old_dbs = results || [];
     if(old_dbs.length==0 && body.Databases.length==0){
       console.log("No DB Changes");
-      callback(null, body);
+      return callback(null, body);
     }
     var del_group_query ="";
     var add_group_query = "";
@@ -51,17 +51,17 @@ function update_group(body, callback){
     connection.query(del_group_query, [Group_ID].concat(body.Databases), function(err, results){
       if(err){
         console.log(err);
-        callback(err);
+        return callback(err);
       }
       connection.query(add_group_query, [Group_ID].concat(body.Databases), function(err, results){
         if(err){
           console.log(err);
-          callback(err);
+          return callback(err);
         }
         connection.query("Select * from `databases` where ID in (Select Database_ID from groups_databases where Group_ID = ?) ORDER BY ID ASC", [Group_ID], function(err, results){
           if(err){
             console.log(err);
-            callback(err);
+            return callback(err);
           }
           var new_dbs = results;
           var lim = Math.max(old_dbs.length, new_dbs.length);
@@ -78,10 +78,13 @@ function update_group(body, callback){
               }
             }
           }
+          if(affected_dbs.length < 1){
+            return callback(null, body);
+          }
           connection.query("Select * from users where ID in (Select User_ID from users_groups where Group_ID=?)", [Group_ID], function(err, results){
             if(err){
               console.log(err);
-              callback(err);
+              return callback(err);
             }
             async.each(affected_dbs, function(db, inner_callback){
               db_tools.update_users(db, results, function(errs){

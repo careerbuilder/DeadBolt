@@ -84,7 +84,6 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
         groupdata.Databases.push($scope.databases[i].Name);
       }
     }
-    //Add to MySQL
     $http.post('https://deadbolt.cbsitedb.net/api/groups', groupdata).success(function(data){
       if(data.Success){
         $scope.group.ID = data.ID;
