@@ -20,7 +20,7 @@ function update(db, init_users, callback){
       gospel_users.push(res.Username);
     });
     var final_errors = [];
-    async.retry({times:3, interval:30000}, function(cb, results){
+    async.retry(3, function(cb, results){
       switch(dbinfo.Type.toLowerCase().trim()){
         case 'mysql':
           mysql_tools.update_users(dbinfo, users, gospel_users, function(errors){
@@ -28,12 +28,13 @@ function update(db, init_users, callback){
               if(save_err){
                 console.log(save_err);
               }
+              console.log("rem_users: " + JSON.stringify(rem_users));
               if(rem_users.lenth > 0){
                 users = rem_users;
                 final_errors = final_errors.concat(rem_errors);
-                cb(true, final_errors);
+                cb(true);
               }
-              cb(null, final_errors)
+              cb()
             });
           });
           break;
@@ -98,7 +99,6 @@ function save_errors(db, errors, callback){
       remaining_errors.push(error);
     }
   });
-  console.log("Error users: " + JSON.stringify(users));
   callback(null, users, remaining_errors);
 }
 
