@@ -79,7 +79,7 @@ function update_group(body, callback){
               }
             }
           }
-          async.eachSeries(affected_dbs, function(db, inner_callback){
+          async.each(affected_dbs, function(db, inner_callback){
             db_tools.update_database_users(db, function(errs){
               inner_callback();
             },
