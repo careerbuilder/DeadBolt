@@ -91,6 +91,7 @@ function save_errors(db, errors, callback){
       remaining_errors.push(error);
     }
   });
+  console.log(remaining_errors);
   callback(null, users, remaining_errors);
 }
 
@@ -103,7 +104,6 @@ module.exports = {
         callback(err);
       }
       update(dbinfo, all_users, function(errs){
-        console.log(errs);
         callback(errs);
       });
     });
