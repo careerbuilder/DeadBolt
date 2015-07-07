@@ -7,9 +7,9 @@
         ng-class="{'panel-success': info.Class=='Success','panel-warning': info.Class=='Warning','panel-danger': info.Class=='Error','panel-info': info.Class=='Info'}">
           <div class="panel-heading">
             <h3 class="panel-title">
-              <button type="button" class="glyphicon glyphicon-remove" ng-click="dismiss($index)"></button>
+              <span class="glyphicon glyphicon-remove" ng-click="dismiss($index)"></span>
               {{info.Error.Title}}
-              <a class="pull-right" ng-click="info.Show = !info.Show"><span class="text-muted">more info...</span></a>
+              <a class="pull-right" ng-click="info.Show=!info.Show" style="cursor:pointer;"><span class="text-muted">more info...</span></a>
             </h3>
           </div>
           <div class="panel-body" ng-show="info.Show">
