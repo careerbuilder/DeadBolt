@@ -34,7 +34,7 @@ module.exports = {
             users.forEach(function(err_user, i){
               errors.push({User: err_user, Database: dbinfo, Error:{Title: "Connection Error", Details: err}, Retryable:true, Class:"Error"});
             });
-            return top_callback(err);
+            return top_callback(errors);
           }
           callback(null, connection);
         });
