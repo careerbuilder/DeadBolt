@@ -41,6 +41,7 @@ module.exports = {
       },
       function(mysql_connection, series_callback){
         async.eachSeries(users, function(user, callback){
+          console.log(user);
           if(user.MySQL_Password && user.MySQL_Password.length > 0){
             var user_exists_query = 'SELECT Host, Count(*) as `Exists` from mysql.user where User=? Group by Host;';
             mysql_connection.query(user_exists_query, [user.Username], function(err, results){
