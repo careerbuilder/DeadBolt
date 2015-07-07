@@ -20,7 +20,7 @@ function update(db, init_users, callback){
       gospel_users.push(res.Username);
     });
     var final_errors = [];
-    async.retry({times:3, interval:(60*1000)}, function(err, cb){
+    async.retry({times:3, interval:(60*1000)}, function(cb, results){
       switch(dbinfo.Type.toLowerCase().trim()){
         case 'mysql':
           mysql_tools.update_users(dbinfo, users, gospel_users, function(errors){
