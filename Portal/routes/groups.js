@@ -152,6 +152,7 @@ router.get('/:username', function(req, res){
 
 router.post('/', function(req, res){
   var body = req.body;
+  console.log(body);
   if(!body.ID){
     async.waterfall([
       function(callback){
@@ -178,7 +179,7 @@ router.post('/', function(req, res){
   }
   else{
     async.waterfall([
-      function(body, callback){
+      function(callback){
         update_group(body, callback);
       },
       function(info, callback){
