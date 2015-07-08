@@ -13,7 +13,7 @@ app.controller('ErrorCtrl', function($http, $scope, toastr){
   });
 
   $scope.dismiss=function(i){
-    var chopid = $scope.results[i].ID
+    var chopid = $scope.results[i].ID;
     $scope.results.splice(i, 1);
     $http.delete('https://deadbolt.cbsitedb.net/api/errors/'+chopid).success(function(data){
       if(!data.Success){
@@ -22,10 +22,27 @@ app.controller('ErrorCtrl', function($http, $scope, toastr){
     });
   }
 
+  $scope.retry = function(i){
+    var id = $scope.results[i].ID;
+    $scope.results.splice(i, 1);
+    $http.post('https://deadbolt.cbsitedb.net/api/errors/retry/'+id).success(function(data){
+      if(!data.Success){
+        console.log(data.Error);
+      }
+    });
+  }
+
   $scope.dismissAll=function(){
-    console.log("Dismissing");
     for(var i=$scope.results.length-1; i>=0; i--){
       $scope.dismiss(i);
     }
+  }
+
+  $scope.retryAll=function(){
+    $http.post('https://deadbolt.cbsitedb.net/api/errors/retry/').success(function(data){
+      if(data.Success){
+        $scope.results.clear();
+      }
+    });
   }
 });

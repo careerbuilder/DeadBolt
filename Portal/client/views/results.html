@@ -8,7 +8,13 @@
             <h4 ng-show="results.length<1">No Errors Here!</h4>
           </div>
           <div class="col-xs-6 pull-right">
-            <button class="btn btn-danger" ng-click="dismissAll()" ng-disabled="results.length<1">Dismiss All</button>
+            <div class="col-xs-5">
+              <button class="btn btn-danger" ng-click="dismissAll()" ng-disabled="results.length<1">Dismiss All</button>
+            </div>
+            <div class="col-xs-1">&nbsp;</div>
+            <div class="col-xs-5">
+              <button class="btn btn-success" ng-click="retryAll()" ng-disabled="results.length<1">Retry All</button>
+            </div>
           </div>
         </div>
         <hr>
