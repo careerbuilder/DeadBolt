@@ -43,6 +43,7 @@ router.post('/retry/:id', function(req, res){
       }
       db_tools.update_users(data[0], data, function(errs){});
     });
+    return res.send({Success:true});
   });
 });
 
