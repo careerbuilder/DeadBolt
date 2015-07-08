@@ -4,6 +4,62 @@ var connection = require('./mysql');
 var encryption = require('../tools/encryption');
 var db_tools = require('../tools/db_tools');
 
+function add_database(body, callback){
+  encryption.encrypt(body.SAPass, function(err, data){
+    if(err){
+      console.log(err);
+      return callback(err);
+    }
+    var sacreds = data;
+    var args = [body.Name, body.Type, body.Host, body.Port, body.SAUser, sacreds];
+    var query = 'Insert into `databases` (Name, Type, Host, Port, SAUser, SAPass) values (?, ?, ?, ?, ?, ?) On Duplicate key Update Name=Values(name), Host=Values(Host), Port=Values(Port), Type=Values(Type), SAUser=Values(SAUser), SAPass=Values(SAPass);';
+    connection.query(query, args, function(err, result){
+      if(err){
+        console.log(err);
+        return callback(err);
+      }
+      var DB_ID = result.insertId;
+      connection.query("Insert into groups_databases (Group_ID, Database_ID) Values(-1, ?) ON DUPLICATE KEY UPDATE Database_ID=Database_ID;", [DB_ID], function(err, result){
+        if(err){
+          console.log(err);
+          return callback(err);
+        }
+        var dbinfo = {Name: body.Name, Type: body.Type, Host: body.Host, Port: body.Port, SAUser: body.SAUser, SAPass: sacreds, ID:DB_ID};
+        db_tools.update_all_users(dbinfo, function(errs){
+          connection.query('Insert into History (Activity) Value("Added Database: ?")', [body.Name], function(err, result){
+            if(err){
+              console.log(err);
+            }
+            return callback(null, DB_ID);
+          });
+        });
+      });
+    });
+  });
+}
+
+function update_database(body, callback){
+  var DB_ID = body.ID;
+  var args = [body.Name, body.Type, body.Host, body.Port, body.SAUser];
+  var query = 'Insert into `databases` (Name, Type, Host, Port, SAUser) values (?, ?, ?, ?, ?) On Duplicate key Update Name=Values(name), Host=Values(Host), Port=Values(Port), Type=Values(Type), SAUser=Values(SAUser), SAPass=SAPass;';
+  connection.query(query, args, function(err, result){
+    if(err){
+      console.log(err);
+      return callback(err);
+    }
+    var dbinfo = {Name: body.Name, Type: body.Type, Host: body.Host, Port: body.Port, SAUser: body.SAUser, SAPass: sacreds, ID:DB_ID};
+    db_tools.update_all_users(dbinfo, function(errs){
+      connection.query('Insert into History (Activity) Value("Edited Database: ?")', [body.Name], function(err, result){
+        if(err){
+          console.log(err);
+        }
+        return callback(null, DB_ID);
+      });
+    });
+  });
+}
+
+
 router.get('/', function(req, res){
   connection.query('Select ID, Name, Type, Host, Port from `databases`;', function(err, results){
     if(err){
@@ -53,47 +109,19 @@ router.get('/:groupname', function(req, res){
 
 router.post('/', function(req, res){
   var body = req.body;
-  var DB_ID = null;
-  encryption.encrypt(body.SAPass || "emptypass", function(err, data){
-    if(err){
-      console.log(err);
-      return res.send({Success:false, Error:err});
-    }
-    var sacreds = data;
-    var query = "";
-    var args = [body.Name, body.Type, body.Host, body.Port, body.SAUser];
-    if(body.SAPass){
-      query = 'Insert into `databases` (Name, Type, Host, Port, SAUser, SAPass) values (?, ?, ?, ?, ?, ?) On Duplicate key Update Name=Values(name), Host=Values(Host), Port=Values(Port), Type=Values(Type), SAUser=Values(SAUser), SAPass=Values(SAPass);';
-      args.push(sacreds);
-    }
-    else{
-      query = 'Insert into `databases` (Name, Type, Host, Port, SAUser) values (?, ?, ?, ?, ?) On Duplicate key Update Name=Values(name), Host=Values(Host), Port=Values(Port), Type=Values(Type), SAUser=Values(SAUser), SAPass=SAPass;';
-    }
-    connection.query(query, args, function(err, result){
+  if(body.SAPass){
+    add_database(body, function(err, result){
       if(err){
-        console.log(err);
-        return res.send({Success: false, Error: err});
+        return res.send({Success: false, Error:err});
       }
-      DB_ID = result.insertId;
-      connection.query("Insert into groups_databases (Group_ID, Database_ID) Values(-1, ?) ON DUPLICATE KEY UPDATE Database_ID=Database_ID;", [DB_ID], function(err, result){
-        if(err){
-          console.log(err);
-          return res.send({Success:false, Error: err});
-        }
-        var dbinfo = {Name: body.Name, Type: body.Type, Host: body.Host, Port: body.Port, SAUser: body.SAUser, SAPass: sacreds, ID:DB_ID};
-        db_tools.update_all_users(dbinfo, function(errors){
-          var errs = errors;
-          connection.query('Insert into History (Activity) Value("Added Database: ?")', [body.Name], function(err, result){
-            if(err){
-              console.log(err);
-              errs.push(err);
-              return res.send({Success: true, ID: DB_ID, Errors: "History Error: " + errs.toString()});
-            }
-            return res.send({Success:true, ID: DB_ID, Errors: errs});
-          });
-        });
-      });
+      return res.send({Success:true, ID: result});
     });
+  }
+  update_database(body, function(err, result){
+    if(err){
+      return res.send({Success: false, Error:err});
+    }
+    return res.send({Success:true, ID: result});
   });
 });
 

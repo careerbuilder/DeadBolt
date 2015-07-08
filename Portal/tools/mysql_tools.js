@@ -164,7 +164,7 @@ module.exports = {
           }
         },
         function(err){
-          console.log('-------------------\nEND OPERATIONS FOR ' + dbinfo.Name +'\n---------------------------');
+          console.log('---------------------------\nEND OPERATIONS FOR ' + dbinfo.Name +'\n---------------------------');
           mysql_connection.release();
           return series_callback(null, errors);
         });
