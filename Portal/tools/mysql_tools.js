@@ -1,6 +1,5 @@
 var mysql = require('mysql');
 var async = require('async');
-var connection = require('../routes/mysql');
 var encryption = require('./encryption');
 
 module.exports = {

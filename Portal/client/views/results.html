@@ -8,9 +8,10 @@
             <h4 ng-show="results.length<1">No Errors Here!</h4>
           </div>
           <div class="col-xs-6 pull-right">
-            <button class="btn btn-danger" ng-click="dismissAll()" ng-disabled="results.length<1">Dissmiss All</button>
+            <button class="btn btn-danger" ng-click="dismissAll()" ng-disabled="results.length<1">Dismiss All</button>
           </div>
         </div>
+        <hr>
         <div class="panel" ng-repeat="info in results track by $index"
         ng-class="{'panel-success': info.Class=='Success','panel-warning': info.Class=='Warning','panel-danger': info.Class=='Error','panel-info': info.Class=='Info'}">
           <div class="panel-heading">

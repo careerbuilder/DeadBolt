@@ -23,6 +23,7 @@ app.controller('ErrorCtrl', function($http, $scope, toastr){
   }
 
   $scope.dismissAll=function(){
+    console.log("Dismissing");
     $scope.results.forEach(function(res, i){
       $scope.dismiss(i);
     });
