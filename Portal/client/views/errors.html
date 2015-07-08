@@ -31,6 +31,8 @@
             <p><strong>User:</strong> {{info.Username}}</p>
             <p><strong>Database:</strong> {{info.Database}}</p>
             <p>{{info.Details}}</p>
+            <hr>
+            <button class="btn btn-success" ng-click="retry($index)" ng-disabled="!info.Retryable">Retry</button>
           </div>
         </div>
       </div>
