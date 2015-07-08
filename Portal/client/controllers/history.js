@@ -7,7 +7,7 @@ app.controller('HistoryCtrl', function($http, $scope, $cookies, $cookieStore, to
     if(data.Success){
       data.History.forEach(function(hist, i){
         var timestring = hist.Time.toString();
-        var parts = timestring.split('t');
+        var parts = timestring.split('T');
         var dateparts = parts[0].split('-');
         var timeparts = parts[1].split('.')[0];
         var date = dateparts[1]+"/"+dateparts[2]+"/"+dateparts[0];
