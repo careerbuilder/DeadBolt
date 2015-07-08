@@ -24,8 +24,8 @@ app.controller('ErrorCtrl', function($http, $scope, toastr){
 
   $scope.dismissAll=function(){
     console.log("Dismissing");
-    $scope.results.forEach(function(res, i){
+    for(var i=0; i<$scope.results.length; i++){
       $scope.dismiss(i);
-    });
+    }
   }
 });
