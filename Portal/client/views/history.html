@@ -9,7 +9,7 @@
             <th>Activity</th>
           </tr>
           <tr ng-repeat="item in history track by $index">
-            <td>{{item.Time}}</td>
+            <td>{{item.Date}} <strong>{{item.Time}}</strong></td>
             <td>{{item.Activity}}</td>
           </tr>
         </table>
