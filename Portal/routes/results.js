@@ -72,6 +72,7 @@ router.post('/retry/', function(req, res){
           db_tools.update_users(databases[db][0], databases[db], function(errs){});
         }
       }
+      return res.send({Success:true});
     });
   });
 });
