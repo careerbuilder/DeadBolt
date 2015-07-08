@@ -24,7 +24,7 @@ app.controller('ErrorCtrl', function($http, $scope, toastr){
 
   $scope.dismissAll=function(){
     console.log("Dismissing");
-    for(var i=scope.length-1; i>=0; i--){
+    for(var i=$scope.length-1; i>=0; i--){
       $scope.dismiss(i);
     }
   }
