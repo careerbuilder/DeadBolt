@@ -47,14 +47,11 @@ function update_database(body, callback){
       console.log(err);
       return callback(err);
     }
-    var dbinfo = {Name: body.Name, Type: body.Type, Host: body.Host, Port: body.Port, SAUser: body.SAUser, SAPass: sacreds, ID:DB_ID};
-    db_tools.update_all_users(dbinfo, function(errs){
-      connection.query('Insert into History (Activity) Value("Edited Database: ?")', [body.Name], function(err, result){
-        if(err){
-          console.log(err);
-        }
-        return callback(null, DB_ID);
-      });
+    connection.query('Insert into History (Activity) Value("Edited Database: ?")', [body.Name], function(err, result){
+      if(err){
+        console.log(err);
+      }
+      return callback(null, DB_ID);
     });
   });
 }
