@@ -32,7 +32,7 @@ app.config(['$routeProvider', '$httpProvider', function($routeProvider, $httpPro
 	})
 	.when('/errors', {
 		controller: 'ErrorCtrl',
-		templateUrl: 'views/results.html'
+		templateUrl: 'views/errors.html'
 	})
 	.otherwise({redirectTo: 'home'});
   $httpProvider.interceptors.push('httpRequestInterceptor');

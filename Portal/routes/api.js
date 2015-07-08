@@ -101,7 +101,7 @@ router.get('/history/:timelength', function(req,res){
   });
 });
 
-router.use('/errors/', require('./results.js'))
+router.use('/errors/', require('./errors.js'))
 router.use('/users/', require('./users.js'));
 router.use('/groups/', require('./groups.js'));
 router.use('/databases/', require('./databases.js'));
