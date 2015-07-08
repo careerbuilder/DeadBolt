@@ -41,7 +41,7 @@ app.controller('ErrorCtrl', function($http, $scope, toastr){
   $scope.retryAll=function(){
     $http.post('https://deadbolt.cbsitedb.net/api/errors/retry/').success(function(data){
       if(data.Success){
-        $scope.results.clear();
+        $scope.results = [];
       }
     });
   }
