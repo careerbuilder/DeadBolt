@@ -76,7 +76,7 @@
           <br />
           <div class="row">
             <div class="col-xs-3">
-              <button class="btn btn-success" ng-click="saveDB()" ng-disabled="databaseform.$invalid">Save Changes</button>
+              <button class="btn btn-success" ng-click="saveDB()" ng-disabled="databaseform.$invalid || nochange()">Save Changes</button>
             </div>
             <div class="col-xs-1">&nbsp;</div>
             <div class="col-xs-5">

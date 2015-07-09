@@ -37,10 +37,21 @@ app.controller('DBCtrl', function($http, $scope, $cookies, $cookieStore, $locati
     $scope.isSearching=false;
     $scope.isEditing = true;
     $scope.database = $scope.searchResults[index];
+    $scope.dbRef = JSON.stringify($scope.searchResults[index]);
+  }
+
+  $scope.nochange=function(){
+    if($scope.dbRef){
+      return ($scope.dbRef===JSON.stringify($scope.database));
+    }
+    else{
+      return false;
+    }
   }
 
   $scope.addDB=function(){
     $scope.database = {};
+    $scope.dbRef=null;
     $scope.isEditing = true;
     $scope.isSearching = false;
   }

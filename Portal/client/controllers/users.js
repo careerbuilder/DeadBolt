@@ -95,14 +95,13 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
         $scope.groups[i].Checked = false;
       }
     }
-    $scope.userRef = JSON.parse(JSON.stringify(userinfo));
+    $scope.userRef = JSON.stringify(userinfo);
     $scope.user = userinfo;
   }
 
   $scope.nochange=function(){
     if($scope.userRef){
-      console.log((JSON.stringify($scope.userRef)===JSON.stringify($scope.user)))
-      return (JSON.stringify($scope.userRef)===JSON.stringify($scope.user));
+      return ($scope.userRef===JSON.stringify($scope.user));
     }
     else{
       return false;

@@ -76,7 +76,7 @@
           <br />
           <div class="row">
             <div class="col-sm-12">
-              <button class="btn btn-success" ng-click="saveGroup()" ng-disabled="groupform.$invalid">Save Changes</button>
+              <button class="btn btn-success" ng-click="saveGroup()" ng-disabled="groupform.$invalid || nochange()">Save Changes</button>
               <button class="btn btn-danger pull-right" ng-click="removeGroup()" ng-disabled="!group.ID || group.ID<0">Delete Group</button>
             </div>
           </div>

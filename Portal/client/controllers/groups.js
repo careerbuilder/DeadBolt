@@ -66,12 +66,23 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
       }
     });
     $scope.group = groupinfo;
+    $scope.groupRef = JSON.stringify(groupinfo);
     $scope.isSearching=false;
     $scope.isEditing = true;
   }
 
+  $scope.nochange=function(){
+    if($scope.groupRef){
+      return ($scope.groupRef===JSON.stringify($scope.group));
+    }
+    else{
+      return false;
+    }
+  }
+
   $scope.addGroup=function(){
     $scope.group = {};
+    $scope.groupRef=null;
     $scope.isEditing = true;
     $scope.isSearching = false;
   }
