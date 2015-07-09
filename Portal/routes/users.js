@@ -67,7 +67,7 @@ function update_user(body, callback){
   var User_ID = body.User_ID;
   var group_where = 'where (';
   var values = "";
-  var args = [User_ID];
+  var group_ids = [];
   for(key in body.Groups){
     group_where += 'groups.ID = ? OR ';
     values +='(?,?,"'+body.Groups[key]+'"), ';
@@ -77,7 +77,6 @@ function update_user(body, callback){
   group_where+='0=1)';
   var del_group_query = 'Delete from users_groups where User_ID= ? and Group_ID not in (Select ID from groups '+group_where+');';
   var add_group_query = 'Insert into users_groups (User_ID, Group_ID, Permissions) '+values+' ON DUPLICATE KEY UPDATE Permissions=Values(Permissions);';
-  console.log(add_group_query);
   var db_query = "Select * from `databases` where ID in (Select Database_ID from groups_databases where Group_ID in (Select Group_ID from users_groups where User_ID = ?))";
   connection.query(db_query, [User_ID], function(err, results){
     if(err){
@@ -89,13 +88,12 @@ function update_user(body, callback){
     affected_dbs.forEach(function(db, i){
       db_names.push(db.Name);
     });
-    connection.query(del_group_query, args, function(err, results){
+    connection.query(del_group_query, [User_ID].concat(group_ids), function(err, results){
       if(err){
         console.log(err);
         return callback(err);
       }
-      var q = connection.query(add_group_query, args, function(err, results){
-        console.log(q.sql);
+      connection.query(add_group_query, group_ids.concat([User_ID]), function(err, results){
         if(err){
           console.log(err);
           return callback(err);
