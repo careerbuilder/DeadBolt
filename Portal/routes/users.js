@@ -73,7 +73,7 @@ function update_user(body, callback){
     values +='(?,?,"'+body.Groups[key]+'"), ';
     args.push(key);
   }
-  values = "VALUES"+(values.substring(0,values.length-1));
+  values = "VALUES"+(values.substring(0,values.length-2));
   group_where+='0=1)';
   var del_group_query = 'Delete from users_groups where User_ID= ? and Group_ID not in (Select ID from groups '+group_where+');';
   var add_group_query = 'Insert into users_groups (User_ID, Group_ID, Permissions) '+values+' ON DUPLICATE KEY UPDATE Permissions=Values(Permissions);';
