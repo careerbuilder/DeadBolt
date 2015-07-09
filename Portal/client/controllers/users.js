@@ -74,6 +74,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
     var userinfo = $scope.searchResults[index];
     var usergroups = [];
     if(userinfo.User_ID){
+      $scope.userRef = JSON.stringify(userinfo);
       $http.get('https://deadbolt.cbsitedb.net/api/groups/'+userinfo.Username).success(function(data){
         if(data.Success){
           usergroups = data.Results;
@@ -95,7 +96,6 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
         $scope.groups[i].Checked = false;
       }
     }
-    $scope.userRef = JSON.stringify(userinfo);
     $scope.user = userinfo;
   }
 

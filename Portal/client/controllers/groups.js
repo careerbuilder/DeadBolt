@@ -72,6 +72,8 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
   }
 
   $scope.nochange=function(){
+    console.log($scope.group);
+    console.log($scope.groupRef);
     if($scope.groupRef){
       return ($scope.groupRef===JSON.stringify($scope.group));
     }
@@ -83,6 +85,9 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
   $scope.addGroup=function(){
     $scope.group = {};
     $scope.groupRef=null;
+    $scope.databases.forEach(function(db, i){
+      db.Checked=false;
+    });
     $scope.isEditing = true;
     $scope.isSearching = false;
   }
@@ -111,6 +116,7 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
       $scope.refreshSearch();
       $scope.isSearching = true;
       $scope.group = {};
+      $scope.groupRef=null;
       toastr.success("Group removed");
     });
   }
