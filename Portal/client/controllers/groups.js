@@ -63,6 +63,7 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
     });
     $http.get('https://deadbolt.cbsitedb.net/api/users/'+groupinfo.ID).success(function(data){
       if(data.Success){
+        console.log(data);
         groupinfo.Users = data.Data;
         $scope.groupRef = JSON.stringify(groupinfo);
       }
