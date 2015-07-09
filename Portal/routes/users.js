@@ -94,7 +94,8 @@ function update_user(body, callback){
         console.log(err);
         return callback(err);
       }
-      connection.query(add_group_query, args, function(err, results){
+      var q = connection.query(add_group_query, args, function(err, results){
+        console.log(q.sql);
         if(err){
           console.log(err);
           return callback(err);
