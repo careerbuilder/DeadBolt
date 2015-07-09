@@ -68,17 +68,15 @@ function update_user(body, callback){
   var group_where = 'where (';
   var values = "";
   var group_ids = [];
-  console.log(body.Groups);
   for(key in body.Groups){
     group_where += 'groups.ID = ? OR ';
-    values +='('+User_ID+','+key+',"'+body.Groups[key]+'"), ';
+    values +='('+User_ID+',?,"'+body.Groups[key]+'"), ';
     group_ids.push(key);
   }
   values = "VALUES"+(values.substring(0,values.length-2));
   group_where+='0=1)';
   var del_group_query = 'Delete from users_groups where User_ID= ? and Group_ID not in (Select ID from groups '+group_where+');';
   var add_group_query = 'Insert into users_groups (User_ID, Group_ID, Permissions) '+values+' ON DUPLICATE KEY UPDATE Permissions=Values(Permissions);';
-  console.log(add_group_query);
   var db_query = "Select * from `databases` where ID in (Select Database_ID from groups_databases where Group_ID in (Select Group_ID from users_groups where User_ID = ?))";
   connection.query(db_query, [User_ID], function(err, results){
     if(err){
@@ -111,7 +109,7 @@ function update_user(body, callback){
               db_names.push(results[i].Name);
             }
           });
-          connection.query("Select users.*, users_groups.Permissions from users Join users_groups on users_groups.User_ID=users.ID where ID=?", [User_ID], function(err, results){
+          connection.query("Select users.*, users_groups.Permissions from users Join users_groups on users_groups.User_ID=users.ID where users.ID=?", [User_ID], function(err, results){
             if(err){
               console.log(err);
               return callback(err);
