@@ -71,7 +71,7 @@ function update_user(body, callback){
   for(key in body.Groups){
     group_where += 'groups.ID = ? OR ';
     values +='(?,?,"'+body.Groups[key]+'"), ';
-    args.push(key);
+    group_ids.push(key);
   }
   values = "VALUES"+(values.substring(0,values.length-2));
   group_where+='0=1)';
