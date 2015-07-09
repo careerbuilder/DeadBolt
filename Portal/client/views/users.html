@@ -26,7 +26,7 @@
             <th>Email</th>
           </tr>
           <tr ng-repeat="user in searchResults track by $index" ng-class="{'success':user.User_ID, 'warning':!user.User_ID}" >
-            <td><button class="btn" ng-click="edit($index)" role="button">{{user.User_ID ? 'Edit' : 'Add'}}</button></td>
+            <td><button class="btn" ng-click="edit($index)" role="button" ng-class="{'btn-success':user.User_ID, 'btn-warning':!user.User_ID}">{{user.User_ID ? 'Edit' : 'Add'}}</button></td>
             <td>{{user.Username}}</td>
             <td>{{user.FirstName}}</td>
             <td>{{user.LastName}}</td>
