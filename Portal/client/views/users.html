@@ -67,10 +67,20 @@
                   <tr>
                     <th class="col-sm-1">Add</th>
                     <th>Name</th>
+                    <th>SU</th>
+                    <th>DBA</th>
+                    <th>RW</th>
+                    <th>RO</th>
                   </tr>
                   <tr ng-repeat="group in groups">
                     <td class="col-sm-1"><input type="checkbox" ng-model="group.Checked"></td>
                     <td>{{group.Name}}</td>
+                    <td colspan="4">
+                      <label class="radio-inline"><input type="radio" name="inlineRadioOptions" value="SU"></label>
+                      <label class="radio-inline"><input type="radio" name="inlineRadioOptions" value="DBA"></label>
+                      <label class="radio-inline"><input type="radio" name="inlineRadioOptions" value="RW"></label>
+                      <label class="radio-inline"><input type="radio" name="inlineRadioOptions" value="RO"></label>
+                    </td>
                   </tr>
                 </table>
               </div>
