@@ -70,7 +70,7 @@ function update_user(body, callback){
   var group_ids = [];
   for(key in body.Groups){
     group_where += 'groups.ID = ? OR ';
-    values +='(?,?,"'+body.Groups[key]+'"), ';
+    values +='('+User_ID+',?,"'+body.Groups[key]+'"), ';
     group_ids.push(key);
   }
   values = "VALUES"+(values.substring(0,values.length-2));
@@ -93,7 +93,7 @@ function update_user(body, callback){
         console.log(err);
         return callback(err);
       }
-      connection.query(add_group_query, group_ids.concat([User_ID]), function(err, results){
+      connection.query(add_group_query, group_ids, function(err, results){
         if(err){
           console.log(err);
           return callback(err);
