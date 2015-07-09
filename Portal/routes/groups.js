@@ -130,17 +130,17 @@ router.post('/search', function(req, res){
 
 router.get('/:username', function(req, res){
   var username = req.params.username;
-  var query = 'Select Name from groups where ID in (Select Group_ID from users_groups where User_ID=(Select Users.ID from Users where Username=? LIMIT 1));'
+  var query = 'Select groups.Name, users_groups.Permissions from groups Join users_groups on users_groups.Group_ID=groups.ID where users_groups.User_ID=(Select ID from users where Username=?);'
   connection.query(query, [username], function(err, results){
     if(err){
       console.log(err);
       return res.send({Success:false, Error:err});
     }
-    var gnames = [];
+    var groups = {};
     for(var i=0; i<results.length; i++){
-      gnames.push(results[i].Name)
+      groups[results[i].Name] = results[i].Permissions;
     }
-    return res.send({Success:true, Results:gnames});
+    return res.send({Success:true, Results:groups});
   });
 });
 
