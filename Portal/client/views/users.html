@@ -65,7 +65,7 @@
               <div class="table-responsive" style="overflow-y: scroll;">
                 <table class="table table-striped table-condensed">
                   <tr>
-                    <th class="col-sm-1">Add</th>
+                    <th class="col-xs-1">Add</th>
                     <th>Name</th>
                     <th>SU</th>
                     <th>DBA</th>
@@ -73,12 +73,12 @@
                     <th>RO</th>
                   </tr>
                   <tr ng-repeat="group in groups">
-                    <td class="col-sm-1"><input type="checkbox" ng-model="group.Checked"></td>
-                    <td>{{group.Name}}</td>
-                    <td><input type="radio" name="inlineRadioOptions" value="SU"></td>
-                    <td><input type="radio" name="inlineRadioOptions" value="DBA"></td>
-                    <td><input type="radio" name="inlineRadioOptions" value="RW"></td>
-                    <td><input type="radio" name="inlineRadioOptions" value="RO"></td>
+                    <td class="col-xs-1"><input type="checkbox" ng-model="group.Checked"></td>
+                    <td class="col-xs-7">{{group.Name}}</td>
+                    <td class="col-xs-1"><input type="radio" name="inlineRadioOptions" value="SU"></td>
+                    <td class="col-xs-1"><input type="radio" name="inlineRadioOptions" value="DBA"></td>
+                    <td class="col-xs-1"><input type="radio" name="inlineRadioOptions" value="RW"></td>
+                    <td class="col-xs-1"><input type="radio" name="inlineRadioOptions" value="RO"></td>
                     </td>
                   </tr>
                 </table>
