@@ -89,7 +89,7 @@
           <br />
           <div class="row">
             <div class="col-xs-5">
-              <button class="btn btn-success" ng-click="saveUser()" ng-disabled="userform.$invalid">{{user.User_ID ? 'Save Changes' : 'Add User'}}</button>
+              <button class="btn btn-success" ng-click="saveUser()" ng-disabled="userform.$invalid || nochange()">{{user.User_ID ? 'Save Changes' : 'Add User'}}</button>
             </div>
             <div class="col-xs-1">&nbsp;</div>
             <div class="col-xs-3">
