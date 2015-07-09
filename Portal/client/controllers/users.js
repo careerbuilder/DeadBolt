@@ -66,11 +66,13 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
           usergroups = data.Results;
           for(var i=0; i<$scope.groups.length; i++){
             var g = $scope.groups[i];
-            if(usergroups.indexOf(g.Name)>=0){
+            if(g.Name in usergroups){
               $scope.groups[i].Checked = true;
+              $scope.groups[i].Permissions = usergroups[g.Name];
             }
             else{
               $scope.groups[i].Checked = false;
+              $scope.groups[i].Permissions = "";
             }
           }
           $scope.groupsRef = JSON.stringify($scope.groups);
@@ -98,12 +100,12 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
 
   $scope.saveUser=function(){
     var userdata = JSON.parse(JSON.stringify($scope.user));
-    userdata.Groups = [];
-    for(var i=0; i<$scope.groups.length; i++){
-      if($scope.groups[i].Checked){
-        userdata.Groups.push($scope.groups[i].Name);
+    userdata.Groups = {};
+    $scope.groups.forEach(function(group, i){
+      if(group.Checked){
+        userdata.Groups[group.ID]=group.Permissions;
       }
-    }
+    });
     $http.post('https://deadbolt.cbsitedb.net/api/users', userdata).success(function(data){
       if(data.Success){
         $scope.user.User_ID = data.ID;

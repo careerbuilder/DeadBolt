@@ -26,10 +26,6 @@ function update_group(body, callback){
       return callback(err);
     }
     var old_dbs = results || [];
-    if(old_dbs.length==0 && body.Databases.length==0){
-      console.log("No DB Changes");
-      return callback(null, body);
-    }
     var del_group_query ="";
     var add_group_query = "";
     if(body.Databases.length>0){
