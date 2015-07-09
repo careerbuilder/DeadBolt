@@ -87,11 +87,13 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
               $scope.groups[i].Checked = false;
             }
           }
+          $scope.groupsRef = JSON.stringify($scope.groups);
         }
       });
     }
     else{
       $scope.userRef = null;
+      $scope.groupsRef = null;
       for(var i=0; i<$scope.groups.length; i++){
         $scope.groups[i].Checked = false;
       }
@@ -101,7 +103,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
 
   $scope.nochange=function(){
     if($scope.userRef){
-      return ($scope.userRef===JSON.stringify($scope.user));
+      return ($scope.userRef===JSON.stringify($scope.user) && ($scope.groupsRef === JSON.stringify($scope.groups)));
     }
     else{
       return false;

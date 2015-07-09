@@ -58,24 +58,23 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
             $scope.databases[i].Checked = false;
           }
         }
+        $scope.dbRef = JSON.stringify($scope.databases);
       }
     });
     $http.get('https://deadbolt.cbsitedb.net/api/users/'+groupinfo.ID).success(function(data){
       if(data.Success){
         groupinfo.Users = data.Data;
+        $scope.groupRef = JSON.stringify(groupinfo);
       }
     });
     $scope.group = groupinfo;
-    $scope.groupRef = JSON.stringify(groupinfo);
     $scope.isSearching=false;
     $scope.isEditing = true;
   }
 
   $scope.nochange=function(){
-    console.log($scope.group);
-    console.log($scope.groupRef);
-    if($scope.groupRef){
-      return ($scope.groupRef===JSON.stringify($scope.group));
+    if($scope.groupRef && $scope.dbRef){
+      return (($scope.groupRef===JSON.stringify($scope.group))&&($scope.dbRef === JSON.stringify($scope.databases)));
     }
     else{
       return false;
@@ -85,6 +84,7 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
   $scope.addGroup=function(){
     $scope.group = {};
     $scope.groupRef=null;
+    $scope.dbRef = null;
     $scope.databases.forEach(function(db, i){
       db.Checked=false;
     });
@@ -104,6 +104,8 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
       if(data.Success){
         $scope.group.ID = data.ID;
         $scope.refreshSearch();
+        $scope.groupRef=null;
+        $scope.dbRef = null;
         toastr.success("Group updated successfuly!");
       }
     });
@@ -117,6 +119,7 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
       $scope.isSearching = true;
       $scope.group = {};
       $scope.groupRef=null;
+      $scope.dbRef = null;
       toastr.success("Group removed");
     });
   }
