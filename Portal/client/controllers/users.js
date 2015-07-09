@@ -18,7 +18,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
   $http.get('https://deadbolt.cbsitedb.net/api/groups').success(function(data){
     if(data.Success){
       for(var i=0; i<data.Results.length; i++){
-        $scope.groups.push({Checked:false, Name:data.Results[i].Name});
+        $scope.groups.push({Checked:false, Name:data.Results[i].Name, ID:data.Results[i].ID});
       }
     }
   });
