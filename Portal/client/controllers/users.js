@@ -23,20 +23,6 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
     }
   });
 
-  $scope.exists=function(user){
-    if(user.User_ID){
-      return true;
-    }
-    return false;
-  }
-
-  $scope.notexists=function(user){
-    if(user.User_ID){
-      return false;
-    }
-    return true;
-  }
-
   $scope.search=function(pagenum){
     $http.post('https://deadbolt.cbsitedb.net/api/users/search/'+pagenum, $scope.searchCreds).success(function(data){
       if(data.Success){
