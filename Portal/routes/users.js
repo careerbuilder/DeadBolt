@@ -68,6 +68,7 @@ function update_user(body, callback){
   var group_where = 'where (';
   var values = "";
   var group_ids = [];
+  console.log(body.Groups);
   for(key in body.Groups){
     group_where += 'groups.ID = ? OR ';
     values +='('+User_ID+','+key+',"'+body.Groups[key]+'"), ';
