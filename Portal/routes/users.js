@@ -111,7 +111,7 @@ function update_user(body, callback){
               db_names.push(results[i].Name);
             }
           });
-          connection.query("Select users.*, users_groups.Permissions from users Join user_groups on users_groups.User_ID=users.ID where ID=?", [User_ID], function(err, results){
+          connection.query("Select users.*, users_groups.Permissions from users Join users_groups on users_groups.User_ID=users.ID where ID=?", [User_ID], function(err, results){
             if(err){
               console.log(err);
               return callback(err);
