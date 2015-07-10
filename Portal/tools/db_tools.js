@@ -10,16 +10,13 @@ function update(db, init_users, callback){
   var users = init_users;
   var final_errors = [];
   //get gospel user list
-  var get_users = "Select Distinct Username from users where users.ID in (Select User_ID from users_groups where users_groups.Group_ID in (Select Group_ID from groups_databases where Database_ID = ?))";
+  var get_users = "Select Users.*, MAX(users_groups.Permissions) as Permissions from users join users_groups on users_groups.User_ID = users.ID join groups_databases on groups_databases.Group_ID = users_groups.Group_ID where groups_databases.Database_ID = 1 group by users.Username;";
   connection.query(get_users, [dbinfo.ID], function(err, results){
     if(err){
       console.log("Error on " + dbinfo.Name +": " + err);
       return callback([err]);
     }
-    var gospel_users = [];
-    results.forEach(function(res, i){
-      gospel_users.push(res.Username);
-    });
+    var gospel_users = results;
     async.retry({times:3, interval:30000}, function(cb, results){
       switch(dbinfo.Type.toLowerCase().trim()){
         case 'mysql':
