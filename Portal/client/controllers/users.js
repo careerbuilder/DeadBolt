@@ -43,7 +43,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
     });
   }
 
-  $scope.groupChanged=function(){
+  $scope.groupChanged=function(group){
     if(!group.Checked){
       group.Permissions='';
     }
