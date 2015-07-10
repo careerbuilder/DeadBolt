@@ -47,7 +47,7 @@
               <h3>Users</h3>
               <ul class="list-group">
                 <li class="list-group-item" ng-show="group.Users.length <1">No Users</li>
-                <li class="list-group-item" ng-repeat="user in group.Users track by $index">{{user.Username}} <strong>{{user.Permissions}}</strong></li>
+                <li class="list-group-item" ng-repeat="user in group.Users track by $index">{{user.Username}} <strong class="pull-right">{{user.Permissions}}</strong></li>
               </ul>
             </div>
             <div class="col-sm-1">&nbsp;</div>
