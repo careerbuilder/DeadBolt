@@ -161,7 +161,7 @@ module.exports = {
                 },
                 function(cb){
                   if(!dropped){
-                    mysql_connection.query("Revoke ALL PRIVILEGES GRANT OPTION FROM ?, ?@'localhost'", [user.Username, user.Username], function(err, results){
+                    mysql_connection.query("Revoke ALL PRIVILEGES, GRANT OPTION FROM ?, ?@'localhost'", [user.Username, user.Username], function(err, results){
                       if(err){
                         console.log("Privileges Error on DB " + dbinfo.Name +": " + err);
                         errors.push({User: user, Database: dbinfo, Error:{Title:"Error revoking permissions", Details: err}, Retryable:true, Class:"Error"});
