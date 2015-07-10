@@ -180,7 +180,7 @@ module.exports = {
                         permissions_query = "Grant SELECT ON *.* TO ?, ?@'localhost'";
                       }
                       else{
-                        permissions_query = "Grant USAGE ON *.* TO ?, ??@'localhost'";
+                        permissions_query = "Grant USAGE ON *.* TO ?, ?@'localhost'";
                       }
                       mysql_connection.query(permissions_query, [user.Username, user.Username], function(err, result){
                         if(err){
@@ -193,7 +193,7 @@ module.exports = {
                   }
                   else{
                     cb();
-                  }  
+                  }
                 }
               ], function(err, results){
                 callback();
