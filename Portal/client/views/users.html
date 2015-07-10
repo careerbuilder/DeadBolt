@@ -73,7 +73,7 @@
                     <th>RO</th>
                   </tr>
                   <tr ng-repeat="group in groups">
-                    <td class="col-xs-1"><input type="checkbox" ng-model="group.Checked" ng-change="if(!group.Checked){group.Permissions=''}"></td>
+                    <td class="col-xs-1"><input type="checkbox" ng-model="group.Checked" ng-change="groupChanged()"></td>
                     <td class="col-xs-5">{{group.Name}}</td>
                     <td class="col-xs-1"><input type="radio" name="{{group}}" value="SU" ng-disabled="!group.Checked" ng-model="group.Permissions"></td>
                     <td class="col-xs-1"><input type="radio" name="{{group}}" value="DBA" ng-disabled="!group.Checked" ng-model="group.Permissions"></td>

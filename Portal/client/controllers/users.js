@@ -43,6 +43,12 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
     });
   }
 
+  $scope.groupChanged=function(){
+    if(!group.Checked){
+      group.Permissions='';
+    }
+  }
+
   $scope.page_array=function(){
     var quick_pages = [];
     var bottom = Math.max($scope.page-2, 0);
