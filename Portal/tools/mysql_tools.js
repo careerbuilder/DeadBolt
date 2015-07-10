@@ -125,62 +125,77 @@ module.exports = {
                   }
                 }
               }
-              encryption.decrypt(user.MySQL_Password || "dummypassword", function(err, data){
-                if(err && user.MySQL_Password){
-                  console.log(err);
-                  errors.push({User: user, Database: dbinfo, Error:{Title: "Error Decrypting User password", Details: err}, Retryable:true, Class:"Error"});
-                  callback();
-                }
-                var hash_pass = data || "";
-                console.log(user_log);
-                mysql_connection.query(user_query, [user.Username, hash_pass], function(err, result){
-                  if(err){
-                    console.log("User Operation Failed! Error on DB " + dbinfo.Name +": " + err);
-                    errors.push({User: user, Database: dbinfo, Error:{Title:"Error on "+user_log, Details: err}, Retryable:true, Class:"Error"});
-                    callback();
+              var hash_pass = "";
+              async.series([
+                function(cb){
+                  if(user.MySQL_Password){
+                    encryption.decrypt(user.MySQL_Password || "dummypassword", function(err, data){
+                      if(err){
+                        console.log(err);
+                        errors.push({User: user, Database: dbinfo, Error:{Title: "Error Decrypting User password", Details: err}, Retryable:true, Class:"Error"});
+                      }
+                      hash_pass = data;
+                      cb();
+                    });
                   }
+                },
+                function(cb){
+                  console.log(user_log);
+                  mysql_connection.query(user_query, [user.Username, hash_pass], function(err, result){
+                    if(err){
+                      console.log("User Operation Failed! Error on DB " + dbinfo.Name +": " + err);
+                      errors.push({User: user, Database: dbinfo, Error:{Title:"Error on "+user_log, Details: err}, Retryable:true, Class:"Error"});
+                    }
+                    cb();
+                  });
+                },
+                function(cb){
                   console.log(user_log2);
                   mysql_connection.query(user_query2, [user.Username, hash_pass], function(err, result){
                     if(err){
                       console.log("Localhost User Operation Failed! Error on DB " + dbinfo.Name +": " + err);
                       errors.push({User: user, Database: dbinfo, Error:{Title:"Error on "+user_log2, Details: err}, Retryable:true, Class:"Error"});
-                      callback();
                     }
-                    if(!dropped){
-                      mysql_connection.query("Revoke ALL PRIVILEGES GRANT OPTION FROM ?, ?", [user.Username, user.Username+"@'localhost'"], function(err, results){
+                    cb();
+                  });
+                },
+                function(cb){
+                  if(!dropped){
+                    mysql_connection.query("Revoke ALL PRIVILEGES GRANT OPTION FROM ?, ?", [user.Username, user.Username+"@'localhost'"], function(err, results){
+                      if(err){
+                        console.log("Privileges Error on DB " + dbinfo.Name +": " + err);
+                        errors.push({User: user, Database: dbinfo, Error:{Title:"Error revoking permissions", Details: err}, Retryable:true, Class:"Error"});
+                        cb();
+                      }
+                      var permissions_query;
+                      if(user.Permissions === "SU"){
+                        permissions_query = "Grant SUPER ON *.* TO ?, ?";
+                      }
+                      else if(user.Permissions === "DBA"){
+                        permissions_query = "Grant ALL ON *.* TO ?, ?";
+                      }
+                      else if(user.Permissions === "RW"){
+                        permissions_query = "Grant SELECT, INSERT, UPDATE, DELETE ON *.* TO ?, ?";
+                      }
+                      else if(user.Permissions === "RO"){
+                        permissions_query = "Grant SELECT ON *.* TO ?, ?";
+                      }
+                      else{
+                        permissions_query = "Grant USAGE ON *.* TO ?, ?";
+                      }
+                      mysql_connection.query(permissions_query, [user.Username, user.Username+"@'localhost'"], function(err, result){
                         if(err){
                           console.log("Privileges Error on DB " + dbinfo.Name +": " + err);
-                          errors.push({User: user, Database: dbinfo, Error:{Title:"Error revoking permissions", Details: err}, Retryable:true, Class:"Error"});
-                          callback();
+                          errors.push({User: user, Database: dbinfo, Error:{Title:"Error granting permissions", Details: err}, Retryable:true, Class:"Error"});
                         }
-                        var permissions_query;
-                        if(user.Permissions === "SU"){
-                          permissions_query = "Grant SUPER ON *.* TO ?, ?";
-                        }
-                        else if(user.Permissions === "DBA"){
-                          permissions_query = "Grant ALL ON *.* TO ?, ?";
-                        }
-                        else if(user.Permissions === "RW"){
-                          permissions_query = "Grant SELECT, INSERT, UPDATE, DELETE ON *.* TO ?, ?";
-                        }
-                        else if(user.Permissions === "RO"){
-                          permissions_query = "Grant SELECT ON *.* TO ?, ?";
-                        }
-                        else{
-                          permissions_query = "Grant USAGE ON *.* TO ?, ?";
-                        }
-                        mysql_connection.query(permissions_query, [user.Username, user.Username+"@'localhost'"], function(err, result){
-                          if(err){
-                            console.log("Privileges Error on DB " + dbinfo.Name +": " + err);
-                            errors.push({User: user, Database: dbinfo, Error:{Title:"Error granting permissions", Details: err}, Retryable:true, Class:"Error"});
-                          }
-                          callback();
-                        });
+                        cb();
                       });
-                    }
-                    callback();
-                  });
-                });
+                    });
+                  }
+                  cb();
+                }
+              ], function(err, results){
+                callback();
               });
             }
           });
