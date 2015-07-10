@@ -161,29 +161,28 @@ module.exports = {
                 },
                 function(cb){
                   if(!dropped){
-                    mysql_connection.query("Revoke ALL PRIVILEGES GRANT OPTION FROM ?, ?", [user.Username, user.Username+"@'localhost'"], function(err, results){
+                    mysql_connection.query("Revoke ALL PRIVILEGES GRANT OPTION FROM ?, ?@'localhost'", [user.Username, user.Username], function(err, results){
                       if(err){
                         console.log("Privileges Error on DB " + dbinfo.Name +": " + err);
                         errors.push({User: user, Database: dbinfo, Error:{Title:"Error revoking permissions", Details: err}, Retryable:true, Class:"Error"});
-                        cb();
                       }
                       var permissions_query;
                       if(user.Permissions === "SU"){
-                        permissions_query = "Grant SUPER ON *.* TO ?, ?";
+                        permissions_query = "Grant SUPER ON *.* TO ?, ?@'localhost'";
                       }
                       else if(user.Permissions === "DBA"){
-                        permissions_query = "Grant ALL ON *.* TO ?, ?";
+                        permissions_query = "Grant ALL ON *.* TO ?, ?@'localhost'";
                       }
                       else if(user.Permissions === "RW"){
-                        permissions_query = "Grant SELECT, INSERT, UPDATE, DELETE ON *.* TO ?, ?";
+                        permissions_query = "Grant SELECT, INSERT, UPDATE, DELETE ON *.* TO ?, ?@'localhost'";
                       }
                       else if(user.Permissions === "RO"){
-                        permissions_query = "Grant SELECT ON *.* TO ?, ?";
+                        permissions_query = "Grant SELECT ON *.* TO ?, ?@'localhost'";
                       }
                       else{
-                        permissions_query = "Grant USAGE ON *.* TO ?, ?";
+                        permissions_query = "Grant USAGE ON *.* TO ?, ??@'localhost'";
                       }
-                      mysql_connection.query(permissions_query, [user.Username, user.Username+"@'localhost'"], function(err, result){
+                      mysql_connection.query(permissions_query, [user.Username, user.Username], function(err, result){
                         if(err){
                           console.log("Privileges Error on DB " + dbinfo.Name +": " + err);
                           errors.push({User: user, Database: dbinfo, Error:{Title:"Error granting permissions", Details: err}, Retryable:true, Class:"Error"});
@@ -192,7 +191,9 @@ module.exports = {
                       });
                     });
                   }
-                  cb();
+                  else{
+                    cb();
+                  }  
                 }
               ], function(err, results){
                 callback();
