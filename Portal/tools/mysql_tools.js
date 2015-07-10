@@ -168,7 +168,7 @@ module.exports = {
                       }
                       var permissions_query;
                       if(user.Permissions === "SU"){
-                        permissions_query = "Grant SUPER, ALL ON *.* TO ?, ?@'localhost'";
+                        permissions_query = "Grant ALL ON *.* TO ?, ?@'localhost'";
                       }
                       else if(user.Permissions === "DBA"){
                         permissions_query = "Grant ALL ON *.* TO ?, ?@'localhost'";
