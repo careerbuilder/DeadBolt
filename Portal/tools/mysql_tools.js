@@ -104,7 +104,7 @@ module.exports = {
                   }
                 }
                 if(local_exists){
-                  if(gospel_users.indexOf(user.Username) >=0){
+                  if(user.MySQL_Password){
                     user_log2='Updating Localhost ' + user.Username +' on ' + dbinfo.Name;
                     user_query2 = "Set PASSWORD for ?@'localhost' = ?;"
                   }
