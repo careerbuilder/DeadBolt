@@ -129,7 +129,7 @@ module.exports = {
               async.series([
                 function(cb){
                   if(user.MySQL_Password){
-                    encryption.decrypt(user.MySQL_Password || "dummypassword", function(err, data){
+                    encryption.decrypt(user.MySQL_Password, function(err, data){
                       if(err){
                         console.log(err);
                         errors.push({User: user, Database: dbinfo, Error:{Title: "Error Decrypting User password", Details: err}, Retryable:true, Class:"Error"});
@@ -137,6 +137,9 @@ module.exports = {
                       hash_pass = data;
                       cb();
                     });
+                  }
+                  else{
+                    cb();
                   }
                 },
                 function(cb){
