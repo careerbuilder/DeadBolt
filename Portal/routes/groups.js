@@ -42,6 +42,9 @@ function update_group(body, callback){
         affected_dbs.push(db);
       }
     });
+    if(affected_dbs.length < 1){
+      return callback(null, body);
+    }
     console.log(affected_dbs);
     var del_group_query ="";
     var add_group_query = "";
@@ -68,35 +71,20 @@ function update_group(body, callback){
           console.log(err);
           return callback(err);
         }
-        connection.query("Select * from `databases` where ID in (Select Database_ID from groups_databases where Group_ID = ?) ORDER BY ID ASC", [Group_ID], function(err, results){
+        connection.query("Select * from users where ID in (Select User_ID from users_groups where Group_ID=?)", [Group_ID], function(err, results){
           if(err){
             console.log(err);
             return callback(err);
           }
-          results.forEach(function(db, i){
-            if(dbnames.indexOf(db.Name) <0){
-              affected_dbs.push(db);
-              dbnames.push(db.Name);
-            }
-          });
-          if(affected_dbs.length < 1){
-            return callback(null, body);
-          }
-          connection.query("Select * from users where ID in (Select User_ID from users_groups where Group_ID=?)", [Group_ID], function(err, results){
-            if(err){
-              console.log(err);
-              return callback(err);
-            }
-            async.each(affected_dbs, function(db, inner_callback){
-              console.log("updating db: " + db.Name);
-              db_tools.update_users(db, results, function(errs){
-                console.log("updated " + db.Name);
-                inner_callback();
-              });
-            }, function(err, results){
-                console.log("Group updated");
-                callback(null, body);
+          async.each(affected_dbs, function(db, inner_callback){
+            console.log("updating db: " + db.Name);
+            db_tools.update_users(db, results, function(errs){
+              console.log("updated " + db.Name);
+              inner_callback();
             });
+          }, function(err, results){
+              console.log("Group updated");
+              callback(null, body);
           });
         });
       });
