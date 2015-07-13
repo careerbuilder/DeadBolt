@@ -19,6 +19,7 @@ function add_group(body, callback){
 }
 
 function update_group(body, callback){
+  console.log(body);
   var Group_ID = body.ID;
   connection.query("Select * from `databases` where ID in (Select Database_ID from groups_databases where Group_ID = ?) ORDER BY ID ASC", [Group_ID], function(err, results){
     if(err){
@@ -31,12 +32,10 @@ function update_group(body, callback){
     if(body.Databases.length>0){
       var db_where = 'where (';
       for(var i =0; i<body.Databases.length; i++){
-        db_where += '`databases`.Name = ?';
-        if(i<body.Databases.length-1){
-          db_where += ' OR ';
+        db_where += '`databases`.Name = ? OR ';
         }
       }
-      db_where+=')';
+      db_where+='0=1)';
       del_group_query = 'Delete from groups_databases where Group_ID= ? and Database_ID not in (Select ID from `databases` '+db_where+');';
       add_group_query = 'Insert into groups_databases (Group_ID, Database_ID) Select ?, `databases`.ID from `databases` ' + db_where +' ON DUPLICATE KEY UPDATE Group_ID=Group_ID;';
     }

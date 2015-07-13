@@ -97,7 +97,7 @@ function save_errors(errors, callback){
     async.each(errors, function(error, cb){
       connection.query("Insert into Errors(Username, `Database`, Title, Details, Retryable, Class) Values(?, ?, ?, ?, ?, ?);", [error.User.Username, error.Database.Name, error.Error.Title, error.Error.Details, error.Retryable, error.Class], function(err, results){
         if(err){
-          console.log(err);
+          console.log("insert in to errors error: " + err);
           return cb(err);
         }
         return cb();
