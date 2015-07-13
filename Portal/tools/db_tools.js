@@ -27,7 +27,7 @@ function update(db, init_users, callback){
               }
               if(rem_users.length > 0){
                 users = rem_users;
-                return cb(true);
+                return cb({Error: "update failed for some users", Users: users});
               }
               return cb(null, rem_errors);
             });
@@ -67,7 +67,7 @@ function update(db, init_users, callback){
       }
     }, function(err, results){
       if(err){
-        console.log(err);
+        console.log("Retry error", err);
       }
       save_errors(results, callback);
     });
