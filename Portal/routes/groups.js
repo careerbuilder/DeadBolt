@@ -30,7 +30,7 @@ function update_group(body, callback){
     var e_dbnames = [];
     results.forEach(function(db, i){
       if(g_dbnames.indexOf(db.Name)<0){
-        affected_dbnames.push(db.Namr);
+        affected_dbnames.push(db.Name);
       }
       e_dbnames.push(db.Name);
     });
