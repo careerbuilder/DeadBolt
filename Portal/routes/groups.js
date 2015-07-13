@@ -80,9 +80,10 @@ function update_group(body, callback){
             async.each(affected_dbs, function(db, inner_callback){
               console.log("updating db: " + db.Name);
               db_tools.update_users(db, results, function(errs){
+                console.log("updated " + db.Name);
                 inner_callback();
               });
-              }, function(err, results){
+            }, function(err, results){
                 console.log("Group updated");
                 callback(null, body);
             });
