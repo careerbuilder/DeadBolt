@@ -159,11 +159,11 @@ module.exports = {
         callback(err);
       }
       filter_users(all_users, dbinfo.Type, function(cleanusers){
+        console.log("dbinfo ", dbinfo);
+        console.log("users ", cleanusers);
         if(cleanusers.length <1){
           return callback();
         }
-        console.log("dbinfo ", dbinfo);
-        console.log("users ", cleanusers);
         update(dbinfo, cleanusers, function(errs){
           callback(errs);
         });
