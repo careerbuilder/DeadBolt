@@ -79,16 +79,18 @@ function update_group(body, callback){
             return callback(err);
           }
           var affected_dbs = results;
+          console.log('dbs: ', affected_dbs);
           connection.query("Select * from users where ID in (Select User_ID from users_groups where Group_ID=?)", [Group_ID], function(err, results){
             if(err){
               console.log(err);
               return callback(err);
             }
+            var users = results;
             async.each(affected_dbs, function(db, inner_callback){
-              db_tools.update_users(db, results, function(errs){
+              db_tools.update_users(db, users, function(errs){
                 inner_callback();
               });
-            }, function(err, results){
+            }, function(err){
                 console.log("Group updated");
                 callback(null, body);
             });
