@@ -27,7 +27,7 @@ function update(db, init_users, callback){
               }
               if(rem_users.length > 0){
                 users = rem_users;
-                return cb(true);
+                return cb({Error: "Operation failed for at least one user", Users: rem_users});
               }
               return cb(null, rem_errors);
             });
