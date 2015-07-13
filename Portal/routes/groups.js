@@ -20,23 +20,36 @@ function add_group(body, callback){
 
 function update_group(body, callback){
   var Group_ID = body.ID;
-  connection.query("Select * from `databases` where ID in (Select Database_ID from groups_databases where Group_ID = ?) ORDER BY ID ASC", [Group_ID], function(err, results){
+  var g_dbnames = body.Databases;
+  var affected_dbnames = [];
+  connection.query("Select Name from `databases` where ID in (Select Database_ID from groups_databases where Group_ID = ?)", [Group_ID], function(err, results){
     if(err){
       console.log(err);
       return callback(err);
     }
-    var old_dbs = results || [];
+    var e_dbnames = [];
+    results.forEach(function(db, i){
+      if(g_dbnames.indexOf(db.Name)<0){
+        affected_dbnames.push(db.Name);
+      }
+      e_dbnames.push(db.Name);
+    });
+    body.Databases.forEach(function(dbname, i){
+      if(e_dbnames.indexOf(dbname)<0){
+        affected_dbnames.push(dbname);
+      }
+    });
+    if(affected_dbnames.length < 1){
+      return callback(null, body);
+    }
     var del_group_query ="";
     var add_group_query = "";
     if(body.Databases.length>0){
       var db_where = 'where (';
       for(var i =0; i<body.Databases.length; i++){
-        db_where += '`databases`.Name = ?';
-        if(i<body.Databases.length-1){
-          db_where += ' OR ';
-        }
+        db_where += '`databases`.Name = ? OR ';
       }
-      db_where+=')';
+      db_where+='0=1)';
       del_group_query = 'Delete from groups_databases where Group_ID= ? and Database_ID not in (Select ID from `databases` '+db_where+');';
       add_group_query = 'Insert into groups_databases (Group_ID, Database_ID) Select ?, `databases`.ID from `databases` ' + db_where +' ON DUPLICATE KEY UPDATE Group_ID=Group_ID;';
     }
@@ -54,29 +67,17 @@ function update_group(body, callback){
           console.log(err);
           return callback(err);
         }
-        connection.query("Select * from `databases` where ID in (Select Database_ID from groups_databases where Group_ID = ?) ORDER BY ID ASC", [Group_ID], function(err, results){
+        var aff_dbs_query = "Select * from `databases` where (0=1";
+        affected_dbnames.forEach(function(name, i){
+          aff_dbs_query +=" OR `databases`.Name =?";
+        });
+        aff_dbs_query +=");"
+        connection.query(aff_dbs_query, affected_dbnames, function(err, results){
           if(err){
             console.log(err);
             return callback(err);
           }
-          var new_dbs = results;
-          var lim = Math.max(old_dbs.length, new_dbs.length);
-          var affected_dbs = [];
-          for(var i=0; i<lim; i++){
-            if(i < new_dbs.length){
-              if(old_dbs.indexOf(new_dbs[i])<0){
-                affected_dbs.push(new_dbs[i]);
-              }
-            }
-            if(i < old_dbs.length){
-              if(new_dbs.indexOf(old_dbs[i])<0){
-                affected_dbs.push(old_dbs[i]);
-              }
-            }
-          }
-          if(affected_dbs.length < 1){
-            return callback(null, body);
-          }
+          var affected_dbs = results;
           connection.query("Select * from users where ID in (Select User_ID from users_groups where Group_ID=?)", [Group_ID], function(err, results){
             if(err){
               console.log(err);
@@ -86,7 +87,7 @@ function update_group(body, callback){
               db_tools.update_users(db, results, function(errs){
                 inner_callback();
               });
-              }, function(err, results){
+            }, function(err, results){
                 console.log("Group updated");
                 callback(null, body);
             });
