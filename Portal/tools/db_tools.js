@@ -178,6 +178,7 @@ module.exports = {
         console.log("no suitable users!");
         return callback();
       }
+      console.log("clean users", cleanusers);
       update(dbinfo, cleanusers, function(errs){
         callback(errs);
       });
