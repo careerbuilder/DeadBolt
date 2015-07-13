@@ -20,7 +20,7 @@ function add_group(body, callback){
 
 function update_group(body, callback){
   var Group_ID = body.ID;
-  var g_dbnames = body.Databases;
+  var g_dbnames = body.Databases || [];
   var affected_dbnames = [];
   connection.query("Select Name from `databases` where ID in (Select Database_ID from groups_databases where Group_ID = ?)", [Group_ID], function(err, results){
     if(err){
