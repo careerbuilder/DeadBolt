@@ -39,9 +39,6 @@ function update_group(body, callback){
         affected_dbnames.push(dbname);
       }
     });
-    console.log("gospel ", g_dbnames);
-    console.log("existing ", e_dbnames);
-    console.log(affected_dbnames);
     if(affected_dbnames.length < 1){
       return callback(null, body);
     }
@@ -81,14 +78,12 @@ function update_group(body, callback){
             return callback(err);
           }
           var affected_dbs = results;
-          console.log(affected_dbs);
           connection.query("Select * from users where ID in (Select User_ID from users_groups where Group_ID=?)", [Group_ID], function(err, results){
             if(err){
               console.log(err);
               return callback(err);
             }
             async.each(affected_dbs, function(db, inner_callback){
-              console.log("updating db: " + db.Name);
               db_tools.update_users(db, results, function(errs){
                 console.log("updated " + db.Name);
                 inner_callback();

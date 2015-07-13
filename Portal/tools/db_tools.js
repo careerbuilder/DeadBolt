@@ -162,6 +162,8 @@ module.exports = {
         if(cleanusers.length <1){
           return callback();
         }
+        console.log("dbinfo ", dbinfo);
+        console.log("users ", cleanusers);
         update(dbinfo, cleanusers, function(errs){
           callback(errs);
         });
