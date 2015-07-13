@@ -19,19 +19,30 @@ function add_group(body, callback){
 }
 
 function update_group(body, callback){
-  console.log(body);
   var Group_ID = body.ID;
+  var g_dbnames = [];
+  var affected_dbs = [];
+  body.Databases.forEach(function(db, i){
+    g_dbnames.push(db.Name);
+  });
   connection.query("Select * from `databases` where ID in (Select Database_ID from groups_databases where Group_ID = ?) ORDER BY ID ASC", [Group_ID], function(err, results){
     if(err){
       console.log(err);
       return callback(err);
     }
-    var affected_dbs =  [];
-    var dbnames = [];
+    var e_dbnames = [];
     results.forEach(function(db, i){
-      affected_dbs.push(db);
-      dbnames.push(db.Name);
+      if(g_dbnames.indexOf(db.Name)<0){
+        affected_dbs.push(db);
+      }
+      e_dbnames.push(db.Name);
     });
+    body.Databases.forEach(function(db, i){
+      if(e_dbnames.indexOf(db.Name)<0){
+        affected_dbs.push(db);
+      }
+    });
+    console.log(affected_dbs);
     var del_group_query ="";
     var add_group_query = "";
     if(body.Databases.length>0){
@@ -68,7 +79,6 @@ function update_group(body, callback){
               dbnames.push(db.Name);
             }
           });
-          console.log(dbnames);
           if(affected_dbs.length < 1){
             return callback(null, body);
           }
