@@ -69,7 +69,7 @@ function update_group(body, callback){
           console.log(err);
           return callback(err);
         }
-        var aff_dbs_query = "Select * from Databases where(0=1";
+        var aff_dbs_query = "Select * from `databases` where (0=1";
         affected_dbnames.forEach(function(name, i){
           aff_dbs_query +=" OR `databases`.Name =?";
         });
