@@ -63,7 +63,9 @@ module.exports = {
               var new_user = false;
               if(results.length <1){
                 if(user.MySQL_Password){
+                  user_log = "Creating user " + user.Username + " on " + dbinfo.Name;
                   user_query = 'Create User ? Identified by password ?;';
+                  user_log2="Creating localhost user " + user.Username + " on " + dbinfo.Name;
                   user_query2 = "Create User ?@'localhost' Identified by password ?;";
                 }
                 else{
