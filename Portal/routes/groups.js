@@ -20,6 +20,7 @@ function add_group(body, callback){
 
 function update_group(body, callback){
   var Group_ID = body.ID;
+  console.log(body);
   var g_dbnames = [];
   var affected_dbs = [];
   body.Databases.forEach(function(db, i){
