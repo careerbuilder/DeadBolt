@@ -40,6 +40,7 @@ function update_group(body, callback){
         affected_dbnames.push(db);
       }
     });
+    console.log(affected_dbnames);
     if(affected_dbnames.length < 1){
       return callback(null, body);
     }
