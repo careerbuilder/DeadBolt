@@ -10,7 +10,7 @@ function update(db, init_users, callback){
   var users = init_users;
   var final_errors = [];
   //get gospel user list
-  var get_users = "Select Users.*, MAX(users_groups.Permissions) as Permissions from users join users_groups on users_groups.User_ID = users.ID join groups_databases on groups_databases.Group_ID = users_groups.Group_ID where groups_databases.Database_ID = 1 group by users.Username;";
+  var get_users = "Select Users.*, MAX(users_groups.Permissions) as Permissions from users join users_groups on users_groups.User_ID = users.ID join groups_databases on groups_databases.Group_ID = users_groups.Group_ID where groups_databases.Database_ID = ? group by users.Username;";
   connection.query(get_users, [dbinfo.ID], function(err, results){
     if(err){
       console.log("Error on " + dbinfo.Name +": " + err);
