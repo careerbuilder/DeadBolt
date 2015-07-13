@@ -26,7 +26,12 @@ function update_group(body, callback){
       console.log(err);
       return callback(err);
     }
-    var old_dbs = results || [];
+    var affected_dbs =  [];
+    var dbnames = [];
+    results.forEach(function(db, i){
+      affected_dbs.push(db);
+      dbnames.push(db.Name);
+    });
     var del_group_query ="";
     var add_group_query = "";
     if(body.Databases.length>0){
@@ -57,21 +62,13 @@ function update_group(body, callback){
             console.log(err);
             return callback(err);
           }
-          var new_dbs = results;
-          var lim = Math.max(old_dbs.length, new_dbs.length);
-          var affected_dbs = [];
-          for(var i=0; i<lim; i++){
-            if(i < new_dbs.length){
-              if(old_dbs.indexOf(new_dbs[i])<0){
-                affected_dbs.push(new_dbs[i]);
-              }
+          results.forEach(function(db, i){
+            if(dbnames.indexOf(db.Name) <0){
+              affected_dbs.push(db);
+              dbnames.push(db.Name);
             }
-            if(i < old_dbs.length){
-              if(new_dbs.indexOf(old_dbs[i])<0){
-                affected_dbs.push(old_dbs[i]);
-              }
-            }
-          }
+          });
+          console.log(affected_dbs);
           if(affected_dbs.length < 1){
             return callback(null, body);
           }
