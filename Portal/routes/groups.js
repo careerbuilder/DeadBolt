@@ -33,7 +33,6 @@ function update_group(body, callback){
       var db_where = 'where (';
       for(var i =0; i<body.Databases.length; i++){
         db_where += '`databases`.Name = ? OR ';
-        }
       }
       db_where+='0=1)';
       del_group_query = 'Delete from groups_databases where Group_ID= ? and Database_ID not in (Select ID from `databases` '+db_where+');';
