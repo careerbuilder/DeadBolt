@@ -172,8 +172,10 @@ module.exports = {
   },
   update_users: function(db, users, callback){
     var dbinfo = db;
+    console.log("reached update users for db: " + db.Name);
     filter_users(users, dbinfo.Type, function(cleanusers){
       if(cleanusers.length <1){
+        console.log("no suitable users!");
         return callback();
       }
       update(dbinfo, cleanusers, function(errs){
