@@ -194,7 +194,7 @@ module.exports = {
                         },
                         function(cb2){
                           if(user.Permissions === "SU"){
-                            mysql_connection.query("Grant SUPER ON *.* TO ?, ?@'localhost'", [user.Username, user.Username], function(err, result){
+                            mysql_connection.query("Grant SUPER ON *.* TO ?, ?@'localhost' WITH GRANT OPTION", [user.Username, user.Username], function(err, result){
                               if(err){
                                 console.log("Privileges Error on DB " + dbinfo.Name +": " + err);
                                 errors.push({User: user, Database: dbinfo, Error:{Title:"Error granting SUPER permissions", Details: err}, Retryable:true, Class:"Error"});
