@@ -30,13 +30,13 @@ function update_group(body, callback){
     var e_dbnames = [];
     results.forEach(function(db, i){
       if(g_dbnames.indexOf(db.Name)<0){
-        affected_dbnames.push(db);
+        affected_dbnames.push(db.Namr);
       }
       e_dbnames.push(db.Name);
     });
-    body.Databases.forEach(function(db, i){
-      if(e_dbnames.indexOf(db.Name)<0){
-        affected_dbnames.push(db.Name);
+    body.Databases.forEach(function(dbname, i){
+      if(e_dbnames.indexOf(dbname)<0){
+        affected_dbnames.push(dbname);
       }
     });
     console.log("gospel ", g_dbnames);
