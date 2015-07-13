@@ -68,7 +68,7 @@ function update_group(body, callback){
               dbnames.push(db.Name);
             }
           });
-          console.log(affected_dbs);
+          console.log(dbnames);
           if(affected_dbs.length < 1){
             return callback(null, body);
           }
@@ -78,6 +78,7 @@ function update_group(body, callback){
               return callback(err);
             }
             async.each(affected_dbs, function(db, inner_callback){
+              console.log("updating db: " + db.Name);
               db_tools.update_users(db, results, function(errs){
                 inner_callback();
               });
