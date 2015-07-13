@@ -91,7 +91,6 @@ function update_group(body, callback){
                 inner_callback();
               });
             }, function(err){
-                console.log("Group updated");
                 callback(null, body);
             });
           });
@@ -168,6 +167,7 @@ router.post('/', function(req, res){
         });
       }
     ], function(err, results){
+      console.log("Group Added");
       if(err){
         return res.send({Success: false, Error: err});
       }
@@ -189,6 +189,7 @@ router.post('/', function(req, res){
         });
       }
     ], function(err, results){
+      console.log("Group updated");
       if(err){
         return res.send({Success: false, Error: err});
       }
