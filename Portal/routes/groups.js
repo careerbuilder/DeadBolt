@@ -21,32 +21,29 @@ function add_group(body, callback){
 function update_group(body, callback){
   var Group_ID = body.ID;
   console.log(body);
-  var g_dbnames = [];
-  var affected_dbs = [];
-  body.Databases.forEach(function(db, i){
-    g_dbnames.push(db.Name);
-  });
-  connection.query("Select * from `databases` where ID in (Select Database_ID from groups_databases where Group_ID = ?) ORDER BY ID ASC", [Group_ID], function(err, results){
+  var g_dbnames = body.Databases;
+  var affected_dbnames = [];
+  connection.query("Select Name from `databases` where ID in (Select Database_ID from groups_databases where Group_ID = ?)", [Group_ID], function(err, results){
     if(err){
       console.log(err);
       return callback(err);
     }
-    var e_dbnames = [];
+    var e_dbnames = results;
     results.forEach(function(db, i){
       if(g_dbnames.indexOf(db.Name)<0){
-        affected_dbs.push(db);
+        affected_dbnames.push(db);
       }
       e_dbnames.push(db.Name);
     });
     body.Databases.forEach(function(db, i){
       if(e_dbnames.indexOf(db.Name)<0){
-        affected_dbs.push(db);
+        affected_dbnames.push(db);
       }
     });
-    if(affected_dbs.length < 1){
+    if(affected_dbnames.length < 1){
       return callback(null, body);
     }
-    console.log(affected_dbs);
+    console.log(affected_dbnames);
     var del_group_query ="";
     var add_group_query = "";
     if(body.Databases.length>0){
@@ -72,20 +69,32 @@ function update_group(body, callback){
           console.log(err);
           return callback(err);
         }
-        connection.query("Select * from users where ID in (Select User_ID from users_groups where Group_ID=?)", [Group_ID], function(err, results){
+        var aff_dbs_query = "Select * from Databases where(0=1";
+        affected_dbnames.forEach(function(name, i){
+          aff_dbs_query +=" OR `databases`.Name =?";
+        });
+        aff_dbs_query +=");"
+        connection.query(aff_dbs_query, affected_dbnames, function(err, results){
           if(err){
             console.log(err);
             return callback(err);
           }
-          async.each(affected_dbs, function(db, inner_callback){
-            console.log("updating db: " + db.Name);
-            db_tools.update_users(db, results, function(errs){
-              console.log("updated " + db.Name);
-              inner_callback();
+          var affected_dbs = results;
+          connection.query("Select * from users where ID in (Select User_ID from users_groups where Group_ID=?)", [Group_ID], function(err, results){
+            if(err){
+              console.log(err);
+              return callback(err);
+            }
+            async.each(affected_dbs, function(db, inner_callback){
+              console.log("updating db: " + db.Name);
+              db_tools.update_users(db, results, function(errs){
+                console.log("updated " + db.Name);
+                inner_callback();
+              });
+            }, function(err, results){
+                console.log("Group updated");
+                callback(null, body);
             });
-          }, function(err, results){
-              console.log("Group updated");
-              callback(null, body);
           });
         });
       });

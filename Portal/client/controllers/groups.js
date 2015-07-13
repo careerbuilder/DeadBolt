@@ -97,7 +97,7 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
     groupdata.Databases = [];
     for(var i=0; i<$scope.databases.length; i++){
       if($scope.databases[i].Checked){
-        groupdata.Databases.push($scope.databases[i]);
+        groupdata.Databases.push($scope.databases[i].Name);
       }
     }
     $http.post('https://deadbolt.cbsitedb.net/api/groups', groupdata).success(function(data){
