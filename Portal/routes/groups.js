@@ -20,7 +20,6 @@ function add_group(body, callback){
 
 function update_group(body, callback){
   var Group_ID = body.ID;
-  console.log(body);
   var g_dbnames = body.Databases;
   var affected_dbnames = [];
   connection.query("Select Name from `databases` where ID in (Select Database_ID from groups_databases where Group_ID = ?)", [Group_ID], function(err, results){
@@ -37,7 +36,7 @@ function update_group(body, callback){
     });
     body.Databases.forEach(function(db, i){
       if(e_dbnames.indexOf(db.Name)<0){
-        affected_dbnames.push(db);
+        affected_dbnames.push(db.Name);
       }
     });
     console.log("gospel ", g_dbnames);
