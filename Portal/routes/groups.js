@@ -28,7 +28,7 @@ function update_group(body, callback){
       console.log(err);
       return callback(err);
     }
-    var e_dbnames = results;
+    var e_dbnames = [];
     results.forEach(function(db, i){
       if(g_dbnames.indexOf(db.Name)<0){
         affected_dbnames.push(db);
@@ -40,6 +40,8 @@ function update_group(body, callback){
         affected_dbnames.push(db);
       }
     });
+    console.log("gospel ", g_dbnames);
+    console.log("existing ", e_dbnames);
     console.log(affected_dbnames);
     if(affected_dbnames.length < 1){
       return callback(null, body);
