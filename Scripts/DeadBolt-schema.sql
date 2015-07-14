@@ -85,6 +85,7 @@ CREATE TABLE `users_groups` (
   `ID` int(11) NOT NULL AUTO_INCREMENT,
   `Group_ID` int(11) NOT NULL,
   `User_ID` int(11) NOT NULL,
+  `Permissions` enum('SU','DBA','RW','RO') DEFAULT 'RO',
   PRIMARY KEY (`ID`),
   UNIQUE KEY `no_dup` (`Group_ID`,`User_ID`),
   KEY `Group_ID_idx` (`Group_ID`),
