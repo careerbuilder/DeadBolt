@@ -4,3 +4,4 @@ bower_components/
 *.py
 *.out
 
+*.secret
