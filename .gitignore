@@ -4,3 +4,4 @@ bower_components/
 *.out
 *.secret
 *.log
+Portal/config.json
