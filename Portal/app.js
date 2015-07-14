@@ -7,10 +7,12 @@ var path = require('path');
 var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-var port = process.env.EXPRESS_PORT || process.env.PORT || 3000;
 
-var key_file = "/home/ubuntu/ssl/cbsitedb.key";
-var cert_file = "/home/ubuntu/ssl/-star-cbsitedb-net.crt.cer";
+global.config = require('./config.secret');
+var port = 3000;
+
+var key_file = global.config.SSL.keyfile;
+var cert_file = global.config.SSL.certfile;
 
 var config = {
   key: fs.readFileSync(key_file),

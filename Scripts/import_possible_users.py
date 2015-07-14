@@ -49,8 +49,8 @@ def get_new_userlist():
     s3 = boto3.resource('s3')
     bucket = s3.Bucket('sitedb-auth-useasttest')
     newest = None
-    for object in bucket.objects.filter(Prefix='add/CBEmployee'):
-        obj = object.get()
+    for csv in bucket.objects.filter(Prefix='add/CBEmployee'):
+        obj = csv.get()
         if newest is None:
             newest = obj
         else:
@@ -62,7 +62,7 @@ def get_new_userlist():
     for row in rows:
         row = re.sub(r'"', '', row.strip())
         info = re.split(r'\s*,\s*', row)
-        if len(info)!=4:
+        if len(info) != 4:
             continue
         user = {'Username': info[0],
                 'LastName': info[1],
@@ -74,25 +74,23 @@ def get_new_userlist():
 
 
 def filter_info(info):
-    alphanum = re.compile(r'^[a-zA-Z]+$')
-    cbemail = re.compile(r'^[a-zA-Z]+\.[a-zA-Z]+@careerbuilder\.co(m|\.uk)$', re.IGNORECASE)
-    clean = []
-    for obj in info:
-        isclean = True
-        for key in obj:
-            if key == "Email":
-                if not cbemail.match(obj[key]):
-                    isclean = False
-                    break
-                else:
-                    continue
-            if not alphanum.match(obj[key]):
-                isclean = False
-                break
-        if isclean:
-            clean.append(obj)
+    #alphanum = re.compile(r'^[a-zA-Z]+$')
+    # cbemail = re.compile(r'^[a-zA-Z]+\.[a-zA-Z]+@careerbuilder\.co(m|\.uk)$', re.IGNORECASE)
+    #clean = []
+    #for obj in info:
+    #    isclean = True
+    #    for key in obj:
+    #        if key == "Email":
+    #            continue
+    #        if not alphanum.match(obj[key]):
+    #            isclean = False
+    #            break
+    #    if isclean:
+    #        clean.append(obj)
     email_list = {}
-    for user in clean:
+    for user in info:
+        if 'Email' not in user or len(user['Email'])<1:
+            continue
         if user['Email'].lower() not in email_list:
             email_list[user['Email'].lower()] = [user]
         else:
@@ -154,7 +152,7 @@ def add_users(user_list):
         return
     sql = "Insert into `possible_users` (Username, FirstName, LastName, Email) Values "
     for user in user_list:
-        sql += "('" + user['Username'] + "', '" + user['FirstName'] + "', '" + user['LastName'] + "', '" + user['Email'] + "'), "
+        sql += '("' + user['Username'] + '", "' + user['FirstName'] + '", "' + user['LastName'] + '", "' + user['Email'] + '"), '
     sql = sql[0:len(sql) - 2]
     sql += " ON DUPLICATE KEY UPDATE Username=Values(Username), FirstName=Values(FirstName), LastName=Values(LastName)"
     cursor = cnx.cursor()
@@ -174,7 +172,7 @@ def remove_user(user):
 
 
 if __name__ == '__main__':
-    users = get_new_userlist()
+    newusers = get_new_userlist()
     try:
         secret_file = open('./script_creds.secret', 'r')
         secrets = json.load(secret_file)
@@ -188,7 +186,7 @@ if __name__ == '__main__':
         existing_users = {}
         changes = {}
         cnx = mysql.connector.connect(host=db_info['host'], password=db_info['password'], user=db_info['user'], database=db_info['database'], port=db_info['port'])
-        compare_users(filter_info(users), get_existing_users())
+        compare_users(filter_info(newusers), get_existing_users())
         cnx.close()
     except FileNotFoundError:
         changes = {'Error': "No secrets file!"}

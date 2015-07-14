@@ -1,8 +1,6 @@
 var mysql = require('mysql');
 
-var pool = mysql.createPool({
-	{{portinfo}}
-});
+var pool = mysql.createPool(global.config.DB);
 
 module.exports = {
 	query: function(){
