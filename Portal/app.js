@@ -8,7 +8,7 @@ var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-global.config = require('./config.secret');
+global.config = require('./config.json');
 var port = 3000;
 
 var key_file = global.config.SSL.keyfile;
