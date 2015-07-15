@@ -76,7 +76,7 @@ CREATE TABLE `users` (
   `MySQL_Password` varchar(512) DEFAULT NULL,
   `SQL_Server_Password` varchar(512) DEFAULT NULL,
   `Mongo_Password` varchar(512) DEFAULT NULL,
-  `Casandra_Password` varchar(512) DEFAULT NULL,
+  `Cassandra_Password` varchar(512) DEFAULT NULL,
   PRIMARY KEY (`ID`),
   UNIQUE KEY `Username` (`Username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

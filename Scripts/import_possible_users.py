@@ -163,7 +163,7 @@ def add_users(user_list):
 def remove_user(user):
     if 'ID' in user and user['ID'] is not None:
         r = requests.delete(api_info['host'] + "/users/" + str(user['ID']), headers={'authorization': api_info['Session']}, verify=False)
-        res = r.json
+        res = r.json()
         print(res)
     sql = "Delete from `possible_users` where `Username` = '" + user['Username'] + "';"
     cursor = cnx.cursor()

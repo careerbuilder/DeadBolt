@@ -42,7 +42,6 @@ function update_group(body, callback){
     if(affected_dbnames.length < 1){
       return callback(null, body);
     }
-    console.log("changes: ", affected_dbnames);
     var del_group_query ="";
     var add_group_query = "";
     if(body.Databases.length>0){
@@ -79,7 +78,6 @@ function update_group(body, callback){
             return callback(err);
           }
           var affected_dbs = results;
-          console.log('dbs: ', affected_dbs);
           connection.query("Select * from users where ID in (Select User_ID from users_groups where Group_ID=?)", [Group_ID], function(err, results){
             if(err){
               console.log(err);

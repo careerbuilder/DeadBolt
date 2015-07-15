@@ -28,7 +28,7 @@ function add_user(body, callback){
       console.log("error connecting to AD API");
       console.log(err);
     }
-    console.log(body);
+    console.log(body || "");
   });
   var query = 'Insert into Users (Username) value (?) ON Duplicate KEY UPDATE Username=Username';
   connection.query(query, [body.Username], function(err, result){
@@ -42,9 +42,9 @@ function add_user(body, callback){
         console.log(err);
         return callback(err);
       }
-      var plaintext = 'An account has been created for you on the CBsiteDB active directory, for use in RDS Identity management. To activate this account, please navigate to https://password.cbsitedb.net/accounts/UnLock and unlock the account.\n ' +
+      var plaintext = 'An account has been created for you on the CBsiteDB active directory, for use in RDS Identity management. To activate this account, please navigate to https://password.cbsitedb.net/accounts/Reset and unlock the account.\n ' +
       'username: ' + body.Username  + '\nUpon setting a password, all databases to which you have access will be accessible using that username and password. If you have any questions, email Adam.Yost@careerbuilder.com';
-      var html = '<h1>An Account Has Been Created For You</h1><p>An account has been created for you on the CBsiteDB active directory, for use in RDS Identity management. To activate this account, please navigate to <a href="https://password.cbsitedb.net/accounts/UnLock">https://password.cbsitedb.net/accounts/UnLock</a> and unlock the account.</p>\n' +
+      var html = '<h1>An Account Has Been Created For You</h1><p>An account has been created for you on the CBsiteDB active directory, for use in RDS Identity management. To activate this account, please navigate to <a href="https://password.cbsitedb.net/accounts/Reset">https://password.cbsitedb.net/accounts/Reset</a> and unlock the account.</p>\n' +
       '<h4>username: ' + body.Username  + '</h4>\n<p>Upon setting a password, all databases to which you have access will be accessible using that username and password. If you have any questions, email <a href="mailto:Adam.Yost@careerbuilder.com">Adam.Yost@careerbuilder.com</a></p>';
       transporter.sendMail({
         from: 'DeadBolt@cbsitedb.net',
@@ -76,6 +76,7 @@ function update_user(body, callback){
   values = "VALUES"+(values.substring(0,values.length-2));
   group_where+='0=1)';
   var del_group_query = 'Delete from users_groups where User_ID= ? and Group_ID not in (Select ID from groups '+group_where+');';
+  console.log(del_group_query);
   var add_group_query = 'Insert into users_groups (User_ID, Group_ID, Permissions) '+values+' ON DUPLICATE KEY UPDATE Permissions=Values(Permissions);';
   var db_query = "Select * from `databases` where ID in (Select Database_ID from groups_databases where Group_ID in (Select Group_ID from users_groups where User_ID = ?))";
   connection.query(db_query, [User_ID], function(err, results){
