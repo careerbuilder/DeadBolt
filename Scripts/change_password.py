@@ -122,19 +122,6 @@ def get_mongo_pass(password):
 def get_cassandra_pass(password):
     return None
 
-
-def get_pass(username):
-    query = 'Select MySQL_Password From Users where Username= %(username)s;'
-    cursor = cnx.cursor()
-    cursor.execute(query, {'username': username})
-    enc_pass = ""
-    for res in cursor:
-        enc_pass = res[0]
-    cursor.close()
-    password = decrypt_password(enc_pass)
-    print(password.decode('utf8'))
-
-
 if __name__ == "__main__":
     try:
         secret_file = open('./script_creds.secret', 'r')
