@@ -6,12 +6,14 @@
           <h4>Groups</h4>
         </div>
         <div class="col-sm-6">
-          <div class="input-group">
-            <input type="text" class="form-control" placeholder="Search for group" ng-model="searchCreds.Info">
-            <span class="input-group-btn">
-              <button class="btn btn-default" type="button" ng-click="search()">Search</button>
-            </span>
-          </div><!-- /input-group -->
+          <form ng-submit="search()">
+            <div class="input-group">
+              <input type="text" class="form-control" placeholder="Search for group" ng-model="searchCreds.Info">
+              <span class="input-group-btn">
+                <button class="btn btn-default" type="button" ng-click="search()">Search</button>
+              </span>
+            </div><!-- /input-group -->
+          </form>
         </div>
       </div>
     </div>
