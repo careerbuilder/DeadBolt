@@ -4,6 +4,7 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
   $scope.searchResults = [];
   $scope.group = {};
   $scope.databases = [];
+  $scope.allCheck=false;
   $scope.$emit('tabChanged', 2);
 
   $http.post('https://deadbolt.cbsitedb.net/api/groups/search/', {Info:''}).success(function(data){
@@ -22,6 +23,12 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
       }
     }
   });
+
+  $scope.selectAll()=function{
+    $scope.databases.forEach(function(db,i){
+      db.Checked = $scope.allCheck;
+    }
+  }
 
   $scope.search=function(){
     $http.post('https://deadbolt.cbsitedb.net/api/groups/search/', $scope.searchCreds).success(function(data){
