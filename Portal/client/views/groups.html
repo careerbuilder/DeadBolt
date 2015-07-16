@@ -70,7 +70,7 @@
                     <th>Host</th>
                     <th>Port</th>
                   </tr>
-                  <tr ng-repeat="db in databases | filter:dbfilter">
+                  <tr ng-repeat="db in filtered_dbs">
                     <td><input type="checkbox" ng-model="db.Checked" ng-change="evalAll()"></td>
                     <td>{{db.Name}}</td>
                     <th>{{db.Type}}</th>

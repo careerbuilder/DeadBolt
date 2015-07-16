@@ -1,9 +1,10 @@
 'use strict';
 
-app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $location, toastr){
+app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $location, $filter, toastr){
   $scope.searchResults = [];
   $scope.group = {};
   $scope.databases = [];
+  $scope.filtered_dbs=[];
   $scope.allCheck=false;
   $scope.$emit('tabChanged', 2);
 
@@ -25,14 +26,14 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
   });
 
   $scope.selectAll=function(){
-    $scope.databases.forEach(function(db,i){
+    $scope.filtered_dbs.forEach(function(db,i){
       db.Checked = $scope.allCheck;
     });
   }
 
   $scope.evalAll=function(){
-    for(var i=0; i< $scope.databases.length; i++){
-      var db = $scope.databases[i];
+    for(var i=0; i< $scope.filtered_dbs.length; i++){
+      var db = $scope.filtered_dbs[i];
       if(!db.Checked){
           $scope.allCheck = false;
           return;
@@ -60,6 +61,11 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
         $scope.searchResults = data.Results;
       }
     });
+  }
+
+  $scope.filter_dbs=function(){
+    $scope.filtered_dbs = $filter('filter')($scope.databases, $scope.dbfilter);
+    $scope.evalAll();
   }
 
   $scope.edit=function(index){
