@@ -22,7 +22,7 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
         data.Results[i].Checked = false;
       }
       $scope.databases = data.Results;
-      $filter('filter')($scope.databases, $scope.dbfilter);
+      $scope.filtered_dbs = $scope.databases;
     }
   });
 
