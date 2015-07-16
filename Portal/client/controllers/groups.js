@@ -30,6 +30,17 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
     });
   }
 
+  $scope.evalAll=function(){
+    $scope.databases.forEach(function(db,i){
+      if(!db.Checked){
+          $scope.allCheck = false;
+          return;
+      }
+    });
+    $scope.allCheck=true;
+    return
+  }
+
   $scope.search=function(){
     $http.post('https://deadbolt.cbsitedb.net/api/groups/search/', $scope.searchCreds).success(function(data){
       if(data.Success){

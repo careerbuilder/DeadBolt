@@ -63,7 +63,7 @@
                     <th>Port</th>
                   </tr>
                   <tr ng-repeat="db in databases">
-                    <td><input type="checkbox" ng-model="db.Checked"></td>
+                    <td><input type="checkbox" ng-model="db.Checked" ng-change="evalAll()"></td>
                     <td>{{db.Name}}</td>
                     <th>{{db.Type}}</th>
                     <th>{{db.Host}}</th>
