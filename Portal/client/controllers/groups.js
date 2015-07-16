@@ -4,7 +4,7 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
   $scope.searchResults = [];
   $scope.group = {};
   $scope.databases = [];
-  $scope.filtered_dbs=[];
+  $scope.filtered_dbs = []
   $scope.allCheck=false;
   $scope.$emit('tabChanged', 2);
 
@@ -22,6 +22,7 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
         data.Results[i].Checked = false;
       }
       $scope.databases = data.Results;
+      $filter('filter')($scope.databases, $scope.dbfilter);
     }
   });
 
