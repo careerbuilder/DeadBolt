@@ -31,12 +31,13 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
   }
 
   $scope.evalAll=function(){
-    $scope.databases.forEach(function(db,i){
+    for(var i=0; i< $scope.databases.length; i++){
+      var db = $scope.databases[i];
       if(!db.Checked){
           $scope.allCheck = false;
           return;
       }
-    });
+    }
     $scope.allCheck=true;
     return
   }
