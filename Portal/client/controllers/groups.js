@@ -19,17 +19,8 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
     if(data.Success){
       for(var i=0; i<data.Results.length; i++){
         data.Results[i].Checked = false;
-        $scope.databases = data.Results;
-        for(var i=0; i< $scope.databases.length; i++){
-          var db = $scope.databases[i];
-          if(!db.Checked){
-              $scope.allCheck = false;
-              return;
-          }
-        }
-        $scope.allCheck=true;
-        return
       }
+      $scope.databases = data.Results;
     }
   });
 
@@ -77,6 +68,7 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
     $http.get('https://deadbolt.cbsitedb.net/api/databases/'+groupinfo.Name).success(function(data){
       if(data.Success){
         group_dbs= data.Results;
+        var all_checked = true;
         for(var i=0; i<$scope.databases.length; i++){
           var db = $scope.databases[i];
           if(group_dbs.indexOf(db.Name) >=0){
@@ -84,8 +76,10 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
           }
           else{
             $scope.databases[i].Checked = false;
+            all_checked = false;
           }
         }
+        $scope.allCheck = all_checked;
         $scope.dbRef = JSON.stringify($scope.databases);
       }
     });
