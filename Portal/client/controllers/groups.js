@@ -20,6 +20,15 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
       for(var i=0; i<data.Results.length; i++){
         data.Results[i].Checked = false;
         $scope.databases = data.Results;
+        for(var i=0; i< $scope.databases.length; i++){
+          var db = $scope.databases[i];
+          if(!db.Checked){
+              $scope.allCheck = false;
+              return;
+          }
+        }
+        $scope.allCheck=true;
+        return
       }
     }
   });
