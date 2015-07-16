@@ -24,7 +24,7 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
     }
   });
 
-  $scope.selectAll()=function{
+  $scope.selectAll=function(){
     $scope.databases.forEach(function(db,i){
       db.Checked = $scope.allCheck;
     }
