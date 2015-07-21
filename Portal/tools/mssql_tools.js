@@ -57,7 +57,7 @@ module.exports = {
                 trans.begin(function(err){
                   var request = new mssql.Request(trans);
                   request.input('username', mssql.NVarChar, user.Username);
-                  var user_alter = "IF NOT Exists (SELECT * FROM syslogins WHERE name= ''" + user.Username + "'') \
+                  var user_alter = "IF NOT Exists (SELECT * FROM syslogins WHERE name= '" + user.Username + "') \
                   CREATE Login [" + user.Username + "] WITH password=" + user.SQL_Server_Password + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF \
                   ELSE ALTER LOGIN [" + user.Username + "] WITH PASSWORD=" + user.SQL_Server_Password + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF";
                   console.log(user_alter);
@@ -80,7 +80,7 @@ module.exports = {
                 trans.begin(function(err){
                   var request = new mssql.Request(trans);
                   request.input('username', mssql.NVarChar, user.Username);
-                  request.query("IF Exists (SELECT * FROM syslogins WHERE name= ''" + user.Username + "'') DROP LOGIN [" + user.Username + "]", function(err, records){
+                  request.query("IF Exists (SELECT * FROM syslogins WHERE name= '" + user.Username + "') DROP LOGIN [" + user.Username + "]", function(err, records){
                     trans.commit(function(err) {
                         if(err){
                           console.log(err);
