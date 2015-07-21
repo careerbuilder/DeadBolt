@@ -51,15 +51,20 @@ module.exports = {
           var user_pass;
           async.series([
             function(inner_cb){
-              encryption.decrypt(user.SQL_Server_Password, function(err, result){
-                if(err){
-                  console.log(err);
-                  errors.push({User: user, Database: dbinfo, Error:{Title: "User Password could not be decrypted", Details:err}, Retryable:true, Class:"Error"});
-                  return each_cb();
-                }
-                user_pass = result;
-                return inner_cb();
-              });
+              if(user.SQL_Server_Password){
+                encryption.decrypt(user.SQL_Server_Password, function(err, result){
+                  if(err){
+                    console.log(err);
+                    errors.push({User: user, Database: dbinfo, Error:{Title: "User Password could not be decrypted", Details:err}, Retryable:true, Class:"Error"});
+                    return each_cb();
+                  }
+                  user_pass = result;
+                  return inner_cb();
+                });
+              }
+              else{
+                inner_cb();
+              }
             },
             function(inner_cb){
               if(user.SQL_Server_Password){
