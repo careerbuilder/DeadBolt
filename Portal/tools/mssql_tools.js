@@ -133,7 +133,6 @@ module.exports = {
                 if(user.Permissions === 'DBA' || user.Permissions === 'SU'){
                   sql_roles += "ALTER ROLE DB_OWNER ADD MEMBER [" + user.Username + "];\n";
                 }
-                console.log("New Permissions for ", user.Username, "\n", sql_roles);
                 //update permissions
                 var grant = "SET NOCOUNT ON \
                 DECLARE @SQL VARCHAR(MAX) \
