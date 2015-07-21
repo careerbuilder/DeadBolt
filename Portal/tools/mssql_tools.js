@@ -63,7 +63,7 @@ module.exports = {
                 });
               }
               else{
-                return inner_cb({Error: "User lacks a SQL_Server Password", User: user.Username});
+                return inner_cb();
               }
             },
             function(inner_cb){
