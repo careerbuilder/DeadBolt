@@ -4,6 +4,7 @@ var encryption = require('./encryption');
 
 module.exports = {
   update_users: function(db, affected_users, gospel_users, callback){
+    var dbinfo = db;
     var errors = [];
     var g_users = {};
     gospel_users.forEach(function(gu, i){
