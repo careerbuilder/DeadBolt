@@ -47,6 +47,7 @@ module.exports = {
           if(user.Username in g_users){
             user = g_users[" + user.Username + "];
           }
+          console.log(user);
           async.waterfall([
             function(inner_cb){
               if(user.SQL_Server_Password){
