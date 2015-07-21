@@ -41,7 +41,11 @@ function update(db, init_users, callback){
               }
               if(rem_users.length > 0){
                 users = rem_users;
-                return cb({Error: "Operation failed for at least one user", Users: rem_users});
+                var rem_usernames = [];
+                rem_users.forEach(function(ru, i){
+                  rem_usernames.push(ru.Username);
+                });
+                return cb({Error: "Operation failed for at least one user", Users: rem_usernames}, rem_errors);
               }
               return cb(null, rem_errors);
             });
