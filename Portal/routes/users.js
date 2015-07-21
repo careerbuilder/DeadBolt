@@ -70,7 +70,7 @@ function update_user(body, callback){
   var group_ids = [];
   if(!body.Groups || body.Groups.length === 0){
     del_group_query = 'Delete from users_groups where User_ID= ?;';
-    add_group_query = 'set @dummy = ?';
+    add_group_query = 'set @dummy = 1';
   }
   else{
     var group_where = 'where (';
