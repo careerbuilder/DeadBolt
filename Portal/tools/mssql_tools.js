@@ -74,6 +74,7 @@ module.exports = {
                   request.query("IF Exists (SELECT * FROM syslogins WHERE name= @username) \
                   CREATE Login @username WITH password=" + user.SQL_Server_Password + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF \
                   ELSE ALTER LOGIN @username WITH PASSWORD=" + user.SQL_Server_Password + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF", function(err, records){
+                    console.log(records);
                     trans.commit(function(err) {
                         if(err){
                           console.log(err);
@@ -93,6 +94,7 @@ module.exports = {
                   var request = new mssql.Request(trans);
                   request.input('username', mssql.NVarChar, user.Username);
                   request.query("IF Exists (SELECT * FROM syslogins WHERE name= @username) DROP LOGIN @username", function(err, records){
+                    console.log(records);
                     trans.commit(function(err) {
                         if(err){
                           console.log(err);
@@ -122,12 +124,13 @@ module.exports = {
                   REVOKE VIEW DEFINITION FROM @username; \
                 END' \
               FROM MASTER.SYS.DATABASES WHERE database_id > 4 AND state_desc = 'ONLINE' AND name not like '%rdsadmin%' \
-              EXEC(@SQL)";
+              Select(@SQL)";
               var trans = new mssql.Transaction(conn);
               trans.begin(function(err){
                 var request = new mssql.Request(trans);
                 request.input('username', mssql.NVarChar, user.Username);
                 request.query(revoke, function(err, records){
+                  console.log(records);
                   trans.commit(function(err) {
                     if(err){
                       console.log(err);
@@ -160,12 +163,13 @@ module.exports = {
                 GRANT VIEW DEFINITION TO @username; \
                 END' \
                 FROM MASTER.SYS.DATABASES WHERE database_id > 4 AND state_desc = 'ONLINE' AND name not like '%rdsadmin%' \
-                EXEC(@SQL)";
+                Select(@SQL)";
                 var trans = new mssql.Transaction(conn);
                 trans.begin(function(err){
                   var request = new mssql.Request(trans);
                   request.input('username', mssql.NVarChar, user.Username);
                   request.query(grant, function(err, records){
+                    console.log(records);
                     trans.commit(function(err) {
                       if(err){
                         console.log(err);
@@ -185,12 +189,13 @@ module.exports = {
                 IF Exists (SELECT * FROM sys.database_principals WHERE name=@username) \
                 DROP USER @username;' \
                 FROM MASTER.SYS.DATABASES WHERE database_id > 4 AND state_desc = 'ONLINE' AND name not like '%rdsadmin%' \
-                EXEC(@SQL)";
+                Select(@SQL)";
                 var trans = new mssql.Transaction(conn);
                 trans.begin(function(err){
                   var request = new mssql.Request(trans);
                   request.input('username', mssql.NVarChar, user.Username);
                   request.query(drop, function(err, records){
+                    console.log(records);
                     trans.commit(function(err) {
                       if(err){
                         console.log(err);
