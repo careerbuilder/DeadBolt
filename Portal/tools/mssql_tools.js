@@ -57,9 +57,9 @@ module.exports = {
                 trans.begin(function(err){
                   var request = new mssql.Request(trans);
                   request.input('username', mssql.NVarChar, user.Username);
-                  request.query("IF Exists (SELECT * FROM syslogins WHERE name= @username) \
-                  CREATE Login @username WITH password=" + user.SQL_Server_Password + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF \
-                  ELSE ALTER LOGIN @username WITH PASSWORD=" + user.SQL_Server_Password + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF", function(err, records){
+                  request.query("IF Exists (SELECT * FROM syslogins WHERE name= ''" + user.Username + "'') \
+                  CREATE Login [" + user.Username + "] WITH password=" + user.SQL_Server_Password + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF \
+                  ELSE ALTER LOGIN [" + user.Username + "] WITH PASSWORD=" + user.SQL_Server_Password + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF", function(err, records){
                     console.log(records);
                     trans.commit(function(err) {
                         if(err){
@@ -79,7 +79,7 @@ module.exports = {
                 trans.begin(function(err){
                   var request = new mssql.Request(trans);
                   request.input('username', mssql.NVarChar, user.Username);
-                  request.query("IF Exists (SELECT * FROM syslogins WHERE name= @username) DROP LOGIN @username", function(err, records){
+                  request.query("IF Exists (SELECT * FROM syslogins WHERE name= ''" + user.Username + "'') DROP LOGIN [" + user.Username + "]", function(err, records){
                     console.log(records);
                     trans.commit(function(err) {
                         if(err){
@@ -99,14 +99,14 @@ module.exports = {
               DECLARE @SQL VARCHAR(MAX) \
               SET @SQL = '' \
               SELECT @SQL = @SQL + 'USE ' + name + '; \
-              IF Exists (SELECT * FROM sys.database_principals WHERE name=@username) \
+              IF Exists (SELECT * FROM sys.database_principals WHERE name=''" + user.Username + "'') \
                 BEGIN \
-                  ALTER ROLE DB_DATAREADER Drop MEMBER @username; \
-                  ALTER ROLE DB_DATAWRITER Drop MEMBER @username; \
-                  ALTER ROLE DB_OWNER DROP MEMBER @username; \
-                  REVOKE SHOWPLAN FROM @username; \
-                  REVOKE VIEW DATABASE STATE FROM @username; \
-                  REVOKE VIEW DEFINITION FROM @username; \
+                  ALTER ROLE DB_DATAREADER Drop MEMBER [" + user.Username + "]; \
+                  ALTER ROLE DB_DATAWRITER Drop MEMBER [" + user.Username + "]; \
+                  ALTER ROLE DB_OWNER DROP MEMBER [" + user.Username + "]; \
+                  REVOKE SHOWPLAN FROM [" + user.Username + "]; \
+                  REVOKE VIEW DATABASE STATE FROM [" + user.Username + "]; \
+                  REVOKE VIEW DEFINITION FROM [" + user.Username + "]; \
                 END' \
               FROM MASTER.SYS.DATABASES WHERE database_id > 4 AND state_desc = 'ONLINE' AND name not like '%rdsadmin%' \
               Select(@SQL)";
@@ -129,12 +129,12 @@ module.exports = {
             function(inner_cb){
               if(user.SQL_Server_Password){
                 //generate permissions
-                var sql_roles = "ALTER ROLE DB_DATAREADER ADD MEMBER @username;\n";
+                var sql_roles = "ALTER ROLE DB_DATAREADER ADD MEMBER [" + user.Username + "];\n";
                 if(user.Permissions === 'RW' || user.Permissions === 'DBA' || user.Permissions === 'SU'){
-                  sql_roles += "ALTER ROLE DB_DATAWRITER ADD MEMBER @username;\n";
+                  sql_roles += "ALTER ROLE DB_DATAWRITER ADD MEMBER [" + user.Username + "];\n";
                 }
                 if(user.Permissions === 'DBA' || user.Permissions === 'SU'){
-                  sql_roles += "ALTER ROLE DB_OWNER ADD MEMBER @username;\n";
+                  sql_roles += "ALTER ROLE DB_OWNER ADD MEMBER [" + user.Username + "];\n";
                 }
                 console.log("New Permissions for ", user.Username, "\n", sql_roles);
                 //update permissions
@@ -142,10 +142,10 @@ module.exports = {
                 DECLARE @SQL VARCHAR(MAX) \
                 SET @SQL = '' \
                 SELECT @SQL = @SQL + 'USE ' + name + '; \
-                IF Exists (SELECT * FROM sys.database_principals WHERE name=@username) \
+                IF Exists (SELECT * FROM sys.database_principals WHERE name=''" + user.Username + "'') \
                 BEGIN " + sql_roles + " \
-                GRANT VIEW DATABASE STATE TO @username; \
-                GRANT VIEW DEFINITION TO @username; \
+                GRANT VIEW DATABASE STATE TO [" + user.Username + "]; \
+                GRANT VIEW DEFINITION TO [" + user.Username + "]; \
                 END' \
                 FROM MASTER.SYS.DATABASES WHERE database_id > 4 AND state_desc = 'ONLINE' AND name not like '%rdsadmin%' \
                 Select(@SQL)";
@@ -171,8 +171,8 @@ module.exports = {
                 DECLARE @SQL VARCHAR(MAX) \
                 SET @SQL = '' \
                 SELECT @SQL = @SQL + 'USE ' + name + '; \
-                IF Exists (SELECT * FROM sys.database_principals WHERE name=@username) \
-                DROP USER @username;' \
+                IF Exists (SELECT * FROM sys.database_principals WHERE name=''" + user.Username + "'') \
+                DROP USER [" + user.Username + "];' \
                 FROM MASTER.SYS.DATABASES WHERE database_id > 4 AND state_desc = 'ONLINE' AND name not like '%rdsadmin%' \
                 Select(@SQL)";
                 var trans = new mssql.Transaction(conn);
