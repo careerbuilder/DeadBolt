@@ -66,6 +66,7 @@ module.exports = {
             function(inner_cb){
               if(user.SQL_Server_Password){
                 //add login
+                console.log("Creating or Updating login for ", user.Username);
                 var trans = new mssql.Transaction(conn);
                 trans.begin(function(err){
                   var request = new mssql.Request(trans);
@@ -86,6 +87,7 @@ module.exports = {
               //if user not in gospel
               else{
                 //attempt to drop login
+                console.log("Dropping login for ", user.Username);
                 var trans = new mssql.Transaction(conn);
                 trans.begin(function(err){
                   var request = new mssql.Request(trans);
@@ -105,6 +107,7 @@ module.exports = {
             },
             function(inner_cb){
               //drop all permissions
+              console.log("Dropping all permissions for ", user.Username);
               var revoke ="SET NOCOUNT ON \
               DECLARE @SQL VARCHAR(MAX) \
               SET @SQL = '' \
@@ -145,6 +148,7 @@ module.exports = {
                 if(user.Permissions === 'DBA' || user.Permissions === 'SU'){
                   sql_roles += "ALTER ROLE DB_OWNER ADD MEMBER @username;\n";
                 }
+                console.log("New Permissions for ", user.Username, "\n", sql_roles);
                 //update permissions
                 var grant = "SET NOCOUNT ON \
                 DECLARE @SQL VARCHAR(MAX) \
@@ -173,6 +177,7 @@ module.exports = {
                 });
               }
               else{
+                console.log("Dropping ", user.Username);
                 var drop ="SET NOCOUNT ON \
                 DECLARE @SQL VARCHAR(MAX) \
                 SET @SQL = '' \
