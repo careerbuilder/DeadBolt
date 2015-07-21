@@ -42,8 +42,7 @@ module.exports = {
         })
       },
       function(cb){
-        async.each(affected_users, function(userobj, each_cb){
-          var dropped = false;
+        async.eachSeries(affected_users, function(userobj, each_cb){
           var user = {Username: userobj.Username};
           if(user.Username in g_users){
             user = g_users[" + user.Username + "];
