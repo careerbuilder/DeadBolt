@@ -18,7 +18,6 @@ function update(db, init_users, callback){
     }
     var gospel_users = results;
     async.retry({times:3, interval:30000}, function(cb, results){
-      console.log(dbinfo.Type.toLowerCase().trim());
       switch(dbinfo.Type.toLowerCase().trim()){
         case 'mysql':
           mysql_tools.update_users(dbinfo, users, gospel_users, function(errors){
@@ -49,7 +48,6 @@ function update(db, init_users, callback){
           });
           break;
         case 'mssql':
-          console.log('Updating mssql Database');
           mssql_tools.update_users(dbinfo, users, gospel_users, function(err){
             retry_errors(dbinfo, err, function(save_err, rem_users, rem_errors){
               if(save_err){

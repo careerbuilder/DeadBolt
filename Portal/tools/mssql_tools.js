@@ -10,9 +10,7 @@ module.exports = {
     gospel_users.forEach(function(gu, i){
       g_users[gu.Username] = gu;
     });
-    var plainpass;
-    var conn;
-    async.series([
+    async.waterfall([
       function(cb){
         encryption.decrypt(dbinfo.SAPass, function(err, data){
           if(err){
@@ -22,12 +20,11 @@ module.exports = {
             });
             return cb(err);
           }
-          plainpass = data;
-          cb();
+          cb(null, data);
         });
       },
-      function(cb){
-        con = new mssql.Connection({
+      function(plainpass, cb){
+        var conn = new mssql.Connection({
           server   : dbinfo.Host,
           user     : dbinfo.SAUser,
           password : plainpass,
@@ -40,10 +37,10 @@ module.exports = {
             });
             return cb(err);
           }
-          cb();
+          cb(null, conn);
         })
       },
-      function(cb){
+      function(conn, cb){
         async.each(affected_users, function(user, each_cb){
           var request = conn.request();
           request.input('username', mssql.NVarChar, user.Username);
