@@ -109,7 +109,7 @@ module.exports = {
                   REVOKE VIEW DEFINITION FROM @username; \
                 END' \
               FROM MASTER.SYS.DATABASES WHERE database_id > 4 AND state_desc = 'ONLINE' AND name not like '%rdsadmin%' \
-              EXEC(@SQL)";
+              Select(@SQL)";
               var trans = new mssql.Transaction(conn);
               trans.begin(function(err){
                 var request = new mssql.Request(trans);
@@ -148,7 +148,7 @@ module.exports = {
                 GRANT VIEW DEFINITION TO @username; \
                 END' \
                 FROM MASTER.SYS.DATABASES WHERE database_id > 4 AND state_desc = 'ONLINE' AND name not like '%rdsadmin%' \
-                EXEC(@SQL)";
+                Select(@SQL)";
                 var trans = new mssql.Transaction(conn);
                 trans.begin(function(err){
                   var request = new mssql.Request(trans);
@@ -174,7 +174,7 @@ module.exports = {
                 IF Exists (SELECT * FROM sys.database_principals WHERE name=@username) \
                 DROP USER @username;' \
                 FROM MASTER.SYS.DATABASES WHERE database_id > 4 AND state_desc = 'ONLINE' AND name not like '%rdsadmin%' \
-                EXEC(@SQL)";
+                Select(@SQL)";
                 var trans = new mssql.Transaction(conn);
                 trans.begin(function(err){
                   var request = new mssql.Request(trans);
