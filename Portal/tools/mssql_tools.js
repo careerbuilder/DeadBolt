@@ -43,6 +43,8 @@ module.exports = {
       },
       function(cb){
         async.eachSeries(affected_users, function(userobj, each_cb){
+          console.log(userobj);
+          console.log(affected_users);
           var user = {Username: userobj.Username};
           if(user.Username in g_users){
             user = g_users[" + user.Username + "];
