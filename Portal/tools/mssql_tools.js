@@ -144,6 +144,7 @@ module.exports = {
             function(inner_cb){
               if(user.SQL_Server_Password){
                 //generate permissions
+                console.log("Generating new permissions for ", user.Username);
                 var sql_roles = "ALTER ROLE DB_DATAREADER ADD MEMBER [" + user.Username + "];\n";
                 if(user.Permissions === 'RW' || user.Permissions === 'DBA' || user.Permissions === 'SU'){
                   sql_roles += "ALTER ROLE DB_DATAWRITER ADD MEMBER [" + user.Username + "];\n";
@@ -156,11 +157,10 @@ module.exports = {
                 DECLARE @SQL VARCHAR(MAX) \
                 SET @SQL = '' \
                 SELECT @SQL = @SQL + 'USE ' + name + '; \
-                IF Exists (SELECT * FROM sys.database_principals WHERE name=''" + user.Username + "'') \
-                BEGIN " + sql_roles + " \
+                IF NOT Exists (SELECT * FROM sys.database_principals WHERE name=''" + user.Username + "'') \
+                CREATE USER [" + user.Username + "] FOR LOGIN [" + user.Username + "] WITH DEFAULT_SCHEMA=[dbo];" + sql_roles + " \
                 GRANT VIEW DATABASE STATE TO [" + user.Username + "]; \
-                GRANT VIEW DEFINITION TO [" + user.Username + "]; \
-                END' \
+                GRANT VIEW DEFINITION TO [" + user.Username + "];' \
                 FROM MASTER.SYS.DATABASES WHERE database_id > 4 AND state_desc = 'ONLINE' AND name not like '%rdsadmin%' \
                 EXEC(@SQL)";
                 var trans = new mssql.Transaction(conn);
