@@ -1,7 +1,7 @@
 var connection = require('../routes/mysql.js');
 var async = require('async');
 var mysql_tools = require('./mysql_tools.js');
-//var mssql_tools = require('./mssql_tools.js');
+var mssql_tools = require('./mssql_tools.js');
 //var mongo_tools = require('./mongo_tools.js');
 
 function update(db, init_users, callback){
