@@ -99,7 +99,6 @@ function update_user(body, callback){
         console.log(err);
         return callback(err);
       }
-      console.log(add_group_query, group_ids);
       connection.query(add_group_query, group_ids, function(err, results){
         if(err){
           console.log(err);

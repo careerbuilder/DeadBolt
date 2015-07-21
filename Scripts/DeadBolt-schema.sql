@@ -73,10 +73,10 @@ CREATE TABLE `sessions` (
 CREATE TABLE `users` (
   `ID` int(11) NOT NULL AUTO_INCREMENT,
   `Username` varchar(25) DEFAULT NULL,
-  `MySQL_Password` varchar(512) DEFAULT NULL,
-  `SQL_Server_Password` varchar(512) DEFAULT NULL,
-  `Mongo_Password` varchar(512) DEFAULT NULL,
-  `Cassandra_Password` varchar(512) DEFAULT NULL,
+  `MySQL_Password` text,
+  `SQL_Server_Password` text,
+  `Mongo_Password` text,
+  `Cassandra_Password` text,
   PRIMARY KEY (`ID`),
   UNIQUE KEY `Username` (`Username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

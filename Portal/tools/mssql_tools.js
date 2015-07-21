@@ -63,7 +63,7 @@ module.exports = {
                 });
               }
               else{
-                inner_cb();
+                return inner_cb({Error: "User lacks a SQL_Server Password", User: user.Username});
               }
             },
             function(inner_cb){
@@ -74,10 +74,9 @@ module.exports = {
                 trans.begin(function(err){
                   var request = new mssql.Request(trans);
                   request.input('username', mssql.NVarChar, user.Username);
-                  var user_alter = "IF NOT Exists (SELECT * FROM syslogins WHERE name= '" + user.Username + "') \
+                  var user_alter = "IF NOT Exists (SELECT * FROM sys.syslogins WHERE name= '" + user.Username + "') \
                   CREATE Login [" + user.Username + "] WITH password=" + user_pass + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF \
                   ELSE ALTER LOGIN [" + user.Username + "] WITH PASSWORD=" + user_pass + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF";
-                  console.log(user_alter);
                   request.query(user_alter, function(err, records){
                     trans.commit(function(err) {
                         if(err){
