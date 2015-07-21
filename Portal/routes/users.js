@@ -79,7 +79,7 @@ function update_user(body, callback){
   group_where+='0=1)';
   del_group_query = 'Delete from users_groups where User_ID= ? and Group_ID not in (Select ID from groups '+group_where+');';
   add_group_query = 'Insert into users_groups (User_ID, Group_ID, Permissions) '+values+' ON DUPLICATE KEY UPDATE Permissions=Values(Permissions);';
-  if(groupids.length<1){
+  if(group_ids.length<1){
     del_group_query = 'Delete from users_groups where User_ID= ?;';
     add_group_query = 'set @dummy = 1';
   }
