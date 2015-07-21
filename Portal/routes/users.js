@@ -67,14 +67,14 @@ function update_user(body, callback){
   var User_ID = body.User_ID;
   var del_group_query;
   var add_group_query;
-  if(body.Groups.length === 0){
+  var group_ids = [];
+  if(!body.Groups || body.Groups.length === 0){
     del_group_query = 'Delete from users_groups where User_ID= ?;';
     add_group_query = 'set @dummy = ?';
   }
   else{
     var group_where = 'where (';
     var values = "";
-    var group_ids = [];
     for(key in body.Groups){
       group_where += 'groups.ID = ? OR ';
       values +='('+User_ID+',?,"'+body.Groups[key]+'"), ';
