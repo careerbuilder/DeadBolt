@@ -99,7 +99,11 @@ function update_user(body, callback){
         console.log(err);
         return callback(err);
       }
-      var userinfo = results;
+      var usernames = [];
+      var userinfo = results || [];
+      userinfo.forEach(function(u, i){
+        usernames.push(u.Username);
+      });
       connection.query(del_group_query, [User_ID].concat(group_ids), function(err, results){
         if(err){
           console.log(err);
@@ -121,14 +125,26 @@ function update_user(body, callback){
                 db_names.push(results[i].Name);
               }
             });
-            async.each(affected_dbs,function(db, inner_callback){
-              db_tools.update_users(db, userinfo, function(errs){
-                inner_callback();
+            connection.query("Select users.*, users_groups.Permissions from users Join users_groups on users_groups.User_ID=users.ID where users.ID=?", [User_ID], function(err, results){
+              if(err){
+                console.log(err);
+                return callback(err);
+              }
+              results.forEach(function(u, i){
+                if(usernames.indexOf(u.Username)<0){
+                  usernames.push(u.Username);
+                  userinfo.push(u);
+                }
               });
-            }, function(err, result){
-              console.log("All Databases Updated for " + body.Username);
+              async.each(affected_dbs,function(db, inner_callback){
+                db_tools.update_users(db, userinfo, function(errs){
+                  inner_callback();
+                });
+              }, function(err, result){
+                console.log("All Databases Updated for " + body.Username);
+              });
+              callback(null, body);
             });
-            callback(null, body);
           });
         });
       });
