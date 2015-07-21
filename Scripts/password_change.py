@@ -1,8 +1,8 @@
 __author__ = 'ayost'
 
-
 import mysql.connector
 import requests
+import pymssql
 import codecs
 import boto3
 import json
@@ -112,7 +112,16 @@ def get_mysql_pass(password):
 
 
 def get_mssql_pass(password):
-    return None
+    mssql_db = config['mssql']
+    mssql_conn = pymssql.connect(server=mssql_db['host'], port=mssql_db['port'], user=mssql_db['user'], password=mssql_db['password'])
+    cursor = mssql_conn.cursor()
+    cursor.execute('Select PWDENCRYPT(%s)', password)
+    raw_pass = cursor.fetchone()[0]
+    mssql_pass = "0x"
+    for byte in raw_pass:
+        mssql_pass += int_to_hex(byte)
+    mssql_conn.close()
+    return mssql_pass
 
 
 def get_mongo_pass(password):
@@ -122,12 +131,42 @@ def get_mongo_pass(password):
 def get_cassandra_pass(password):
     return None
 
+def int_to_hex(num):
+    digit = {
+        0:'0',
+        1:'1',
+        2:'2',
+        3:'3',
+        4:'4',
+        5:'5',
+        6:'6',
+        7:'7',
+        8:'8',
+        9:'9',
+        10:'A',
+        11:'B',
+        12:'C',
+        13:'D',
+        14:'E',
+        15:'F'
+    }
+    hexstring = ""
+    while num > 0:
+        hexstring = digit[num%16] + hexstring
+        num = num//16
+    while len(hexstring)<2:
+        hexstring = str(0)+hexstring
+    return hexstring
+
+
 if __name__ == "__main__":
     try:
         secret_file = open('./script_creds.secret', 'r')
         secrets = json.load(secret_file)
-        db_info = secrets['db']
-        api_info = secrets['api']
+        secret_file.close()
+        config = secrets
+        db_info = config['db']
+        api_info = config['api']
         login = requests.post(api_info['host'] + '/login/', data={'email': api_info['username'], 'password': api_info['password']}, verify=False)
         response = login.json()
         if 'Success' in response and response['Success']:
@@ -140,7 +179,3 @@ if __name__ == "__main__":
     except FileNotFoundError:
         print('Error!', "No secrets file!")
         exit(-1)
-
-
-
-
