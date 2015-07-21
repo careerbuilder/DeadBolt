@@ -2,7 +2,7 @@ var connection = require('./mysql');
 
 module.exports = function(req, res, next) {
   var auth = req.headers.authorization;
-  if(auth.length <1){
+  if(!auth || auth.length<1){
     return res.send({Success:false, valid:false, Error: "Unauthorized to perform this request"});
   }
   connection.query('Select Expires from Sessions where Session_ID= ? LIMIT 1;', [auth], function(err, results){
