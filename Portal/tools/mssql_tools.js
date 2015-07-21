@@ -48,7 +48,19 @@ module.exports = {
           if(user.Username in g_users){
             user = g_users[user.Username];
           }
+          var user_pass;
           async.series([
+            function(inner_cb){
+              encryption.decrypt(user.SQL_Server_Password, function(err, result){
+                if(err){
+                  console.log(err);
+                  errors.push({User: user, Database: dbinfo, Error:{Title: "User Password could not be decrypted", Details:err}, Retryable:true, Class:"Error"});
+                  return each_cb();
+                }
+                user_pass = result;
+                return inner_cb();
+              });
+            },
             function(inner_cb){
               if(user.SQL_Server_Password){
                 //add login
@@ -58,8 +70,8 @@ module.exports = {
                   var request = new mssql.Request(trans);
                   request.input('username', mssql.NVarChar, user.Username);
                   var user_alter = "IF NOT Exists (SELECT * FROM syslogins WHERE name= '" + user.Username + "') \
-                  CREATE Login [" + user.Username + "] WITH password=" + user.SQL_Server_Password + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF \
-                  ELSE ALTER LOGIN [" + user.Username + "] WITH PASSWORD=" + user.SQL_Server_Password + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF";
+                  CREATE Login [" + user.Username + "] WITH password=" + user_pass + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF \
+                  ELSE ALTER LOGIN [" + user.Username + "] WITH PASSWORD=" + user_pass + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF";
                   console.log(user_alter);
                   request.query(user_alter, function(err, records){
                     trans.commit(function(err) {
