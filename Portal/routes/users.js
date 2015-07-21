@@ -94,34 +94,35 @@ function update_user(body, callback){
     affected_dbs.forEach(function(db, i){
       db_names.push(db.Name);
     });
-    connection.query(del_group_query, [User_ID].concat(group_ids), function(err, results){
+    connection.query("Select users.*, users_groups.Permissions from users Join users_groups on users_groups.User_ID=users.ID where users.ID=?", [User_ID], function(err, results){
       if(err){
         console.log(err);
         return callback(err);
       }
-      connection.query(add_group_query, group_ids, function(err, results){
+      var userinfo = results;
+      connection.query(del_group_query, [User_ID].concat(group_ids), function(err, results){
         if(err){
           console.log(err);
           return callback(err);
         }
-        connection.query(db_query, [User_ID], function(err, results){
+        connection.query(add_group_query, group_ids, function(err, results){
           if(err){
             console.log(err);
             return callback(err);
           }
-          results.forEach(function(res, i){
-            if(db_names.indexOf(results[i].Name)<0){
-              affected_dbs.push(results[i]);
-              db_names.push(results[i].Name);
-            }
-          });
-          connection.query("Select users.*, users_groups.Permissions from users Join users_groups on users_groups.User_ID=users.ID where users.ID=?", [User_ID], function(err, results){
+          connection.query(db_query, [User_ID], function(err, results){
             if(err){
               console.log(err);
               return callback(err);
             }
+            results.forEach(function(res, i){
+              if(db_names.indexOf(results[i].Name)<0){
+                affected_dbs.push(results[i]);
+                db_names.push(results[i].Name);
+              }
+            });
             async.each(affected_dbs,function(db, inner_callback){
-              db_tools.update_users(db, results, function(errs){
+              db_tools.update_users(db, userinfo, function(errs){
                 inner_callback();
               });
             }, function(err, result){
