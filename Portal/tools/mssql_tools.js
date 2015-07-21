@@ -46,8 +46,8 @@ module.exports = {
         async.each(affected_users, function(userobj, each_cb){
           var dropped = false;
           var user = {Username: userobj.Username};
-          if(username in g_users){
-            user = g_users[username];
+          if(user.Username in g_users){
+            user = g_users[user.Username];
           }
           async.waterfall([
             function(inner_cb){
