@@ -215,6 +215,8 @@ module.exports = {
         });
       }
     ], function(err, results){
+      console.log('---------------------------\nEND OPERATIONS FOR ' + dbinfo.Name +'\n---------------------------');
+      conn.close();
       if(err){
         return callback(errors);
       }
