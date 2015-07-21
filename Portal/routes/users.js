@@ -68,19 +68,17 @@ function update_user(body, callback){
   var del_group_query;
   var add_group_query;
   var group_ids = [];
-  else{
-    var group_where = 'where (';
-    var values = "";
-    for(key in body.Groups){
-      group_where += 'groups.ID = ? OR ';
-      values +='('+User_ID+',?,"'+body.Groups[key]+'"), ';
-      group_ids.push(key);
-    }
-    values = "VALUES"+(values.substring(0,values.length-2));
-    group_where+='0=1)';
-    del_group_query = 'Delete from users_groups where User_ID= ? and Group_ID not in (Select ID from groups '+group_where+');';
-    add_group_query = 'Insert into users_groups (User_ID, Group_ID, Permissions) '+values+' ON DUPLICATE KEY UPDATE Permissions=Values(Permissions);';
+  var group_where = 'where (';
+  var values = "";
+  for(key in body.Groups){
+    group_where += 'groups.ID = ? OR ';
+    values +='('+User_ID+',?,"'+body.Groups[key]+'"), ';
+    group_ids.push(key);
   }
+  values = "VALUES"+(values.substring(0,values.length-2));
+  group_where+='0=1)';
+  del_group_query = 'Delete from users_groups where User_ID= ? and Group_ID not in (Select ID from groups '+group_where+');';
+  add_group_query = 'Insert into users_groups (User_ID, Group_ID, Permissions) '+values+' ON DUPLICATE KEY UPDATE Permissions=Values(Permissions);';
   if(groupids.length<1){
     del_group_query = 'Delete from users_groups where User_ID= ?;';
     add_group_query = 'set @dummy = 1';
