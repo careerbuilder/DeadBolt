@@ -54,7 +54,12 @@
               </div>
               <div class="input-group" ng-class="{'has-error': (databaseform.type.$invalid && databaseform.type.$dirty)}">
                 <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>Type</strong></span>
-                <input type="text" class="form-control" name="type" placeholder="Database Type" ng-model="database.Type" required>
+                <select class="selectpicker form-control" title="type" name="type" ng-model="database.Type">
+                  <option>mysql</option>
+                  <option>mssql</option>
+                  <option>mongo</option>
+                  <option>cassandra</option>
+                </select>
               </div>
               <div class="input-group" ng-class="{'has-error': (databaseform.host.$invalid && databaseform.host.$dirty)}">
                 <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>Host</strong></span>

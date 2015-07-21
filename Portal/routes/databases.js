@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var async = require('async');
 var connection = require('./mysql');
 var encryption = require('../tools/encryption');
 var db_tools = require('../tools/db_tools');
@@ -19,6 +20,7 @@ function add_database(body, callback){
         return callback(err);
       }
       var DB_ID = result.insertId;
+      body.ID = DB_ID;
       connection.query("Insert into groups_databases (Group_ID, Database_ID) Values(-1, ?) ON DUPLICATE KEY UPDATE Database_ID=Database_ID;", [DB_ID], function(err, result){
         if(err){
           console.log(err);
@@ -106,19 +108,22 @@ router.get('/:groupname', function(req, res){
 
 router.post('/', function(req, res){
   var body = req.body;
-  if(body.SAPass){
-    add_database(body, function(err, result){
-      if(err){
-        return res.send({Success: false, Error:err});
+  async.series([
+    function(callback){
+      if(body.ID){
+        return callback(null, body.ID);
       }
-      return res.send({Success:true, ID: result});
-    });
-  }
-  update_database(body, function(err, result){
+      add_database(body, callback);
+    },
+    function(callback){
+      update_database(body, callback);
+    }
+  ],function(err, results){
     if(err){
+      console.log(err);
       return res.send({Success: false, Error:err});
     }
-    return res.send({Success:true, ID: result});
+    return res.send({Success:true, ID: results[0]});
   });
 });
 
