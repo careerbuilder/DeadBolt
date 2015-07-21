@@ -60,7 +60,6 @@ module.exports = {
                   request.query("IF Exists (SELECT * FROM syslogins WHERE name= ''" + user.Username + "'') \
                   CREATE Login [" + user.Username + "] WITH password=" + user.SQL_Server_Password + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF \
                   ELSE ALTER LOGIN [" + user.Username + "] WITH PASSWORD=" + user.SQL_Server_Password + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF", function(err, records){
-                    console.log(records);
                     trans.commit(function(err) {
                         if(err){
                           console.log(err);
@@ -80,7 +79,6 @@ module.exports = {
                   var request = new mssql.Request(trans);
                   request.input('username', mssql.NVarChar, user.Username);
                   request.query("IF Exists (SELECT * FROM syslogins WHERE name= ''" + user.Username + "'') DROP LOGIN [" + user.Username + "]", function(err, records){
-                    console.log(records);
                     trans.commit(function(err) {
                         if(err){
                           console.log(err);
@@ -115,7 +113,6 @@ module.exports = {
                 var request = new mssql.Request(trans);
                 request.input('username', mssql.NVarChar, user.Username);
                 request.query(revoke, function(err, records){
-                  console.log(records);
                   trans.commit(function(err) {
                     if(err){
                       console.log(err);
@@ -154,7 +151,6 @@ module.exports = {
                   var request = new mssql.Request(trans);
                   request.input('username', mssql.NVarChar, user.Username);
                   request.query(grant, function(err, records){
-                    console.log(records);
                     trans.commit(function(err) {
                       if(err){
                         console.log(err);
@@ -180,7 +176,6 @@ module.exports = {
                   var request = new mssql.Request(trans);
                   request.input('username', mssql.NVarChar, user.Username);
                   request.query(drop, function(err, records){
-                    console.log(records);
                     trans.commit(function(err) {
                       if(err){
                         console.log(err);
