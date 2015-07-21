@@ -52,7 +52,7 @@ module.exports = {
               errors.push({User: err_user, Database: dbinfo, Error:{Title: "Failed to query Database", Details: err}, Retryable:true, Class:"Error"});
               return cb();
             }
-            console.dir(records);
+            console.log(records);
           });
         }, function(err){
           cb(null, errors);
