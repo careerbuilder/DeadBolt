@@ -66,7 +66,7 @@ module.exports = {
             function(inner_cb){
               if(user.SQL_Server_Password){
                 //add login
-                var trans = mssql.Transaction(conn);
+                var trans = new mssql.Transaction(conn);
                 trans.begin(function(err){
                   var request = new mssql.Request(trans);
                   request.input('username', mssql.NVarChar, user.Username);
@@ -86,7 +86,7 @@ module.exports = {
               //if user not in gospel
               else{
                 //attempt to drop login
-                var trans = mssql.Transaction(conn);
+                var trans = new mssql.Transaction(conn);
                 trans.begin(function(err){
                   var request = new mssql.Request(trans);
                   request.input('username', mssql.NVarChar, user.Username);
@@ -120,7 +120,7 @@ module.exports = {
                 END' \
               FROM MASTER.SYS.DATABASES WHERE database_id > 4 AND state_desc = 'ONLINE' AND name not like '%rdsadmin%' \
               EXEC(@SQL)";
-              var trans = mssql.Transaction(conn);
+              var trans = new mssql.Transaction(conn);
               trans.begin(function(err){
                 var request = new mssql.Request(trans);
                 request.input('username', mssql.NVarChar, user.Username);
@@ -157,7 +157,7 @@ module.exports = {
                 END' \
                 FROM MASTER.SYS.DATABASES WHERE database_id > 4 AND state_desc = 'ONLINE' AND name not like '%rdsadmin%' \
                 EXEC(@SQL)";
-                var trans = mssql.Transaction(conn);
+                var trans = new mssql.Transaction(conn);
                 trans.begin(function(err){
                   var request = new mssql.Request(trans);
                   request.input('username', mssql.NVarChar, user.Username);
@@ -181,7 +181,7 @@ module.exports = {
                 DROP USER @username;' \
                 FROM MASTER.SYS.DATABASES WHERE database_id > 4 AND state_desc = 'ONLINE' AND name not like '%rdsadmin%' \
                 EXEC(@SQL)";
-                var trans = mssql.Transaction(conn);
+                var trans = new mssql.Transaction(conn);
                 trans.begin(function(err){
                   var request = new mssql.Request(trans);
                   request.input('username', mssql.NVarChar, user.Username);
