@@ -3,6 +3,7 @@ __author__ = 'ayost'
 import mysql.connector
 import requests
 import pymssql
+import getpass
 import codecs
 import boto3
 import json
@@ -158,6 +159,17 @@ def int_to_hex(num):
         hexstring = str(0)+hexstring
     return hexstring
 
+def main():
+    if len(sys.argv) < 2:
+        print("No username given!")
+        return "Failure"
+    username = sys.argv[1]
+    if len(sys.argv)>=3:
+        password = sys.argv[2]
+    else:
+        password = getpass.getpass()
+    change_password(username, password)
+
 
 if __name__ == "__main__":
     try:
@@ -174,7 +186,7 @@ if __name__ == "__main__":
         secret_file.close()
         cnx = mysql.connector.connect(host=db_info['host'], password=db_info['password'], user=db_info['user'], database=db_info['database'], port=db_info['port'])
         kms_connection = boto3.client('kms')
-        change_password(sys.argv[1], sys.argv[2])
+        main()
         cnx.close()
     except FileNotFoundError:
         print('Error!', "No secrets file!")
