@@ -89,6 +89,7 @@ function update(db, init_users, callback){
       if(err){
         console.log(err);
       }
+      console.log(results);
       save_errors(results, callback);
     });
   });
@@ -120,6 +121,7 @@ function save_errors(errors, callback){
           console.log(err);
           return cb(err);
         }
+        console.log("Saved Errors");
         return cb();
       });
     }, function(err, results){
