@@ -106,9 +106,7 @@ function retry_errors(db, errors, callback){
         users.push(error.User);
       }
     }
-    else{
-      remaining_errors.push(error);
-    }
+    remaining_errors.push(error);
   });
   callback(null, users, remaining_errors);
 }
