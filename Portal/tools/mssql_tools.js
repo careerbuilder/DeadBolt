@@ -18,7 +18,7 @@ module.exports = {
           if(err){
             console.log(err);
             affected_users.forEach(function(user, i){
-              errors.push({User: err_user, Database: dbinfo, Error:{Title: "Could not decrypt SA Password", Details: err}, Retryable:true, Class:"Error"});
+              errors.push({User: user, Database: dbinfo, Error:{Title: "Could not decrypt SA Password", Details: err}, Retryable:true, Class:"Error"});
             });
             return cb(err);
           }
@@ -35,7 +35,7 @@ module.exports = {
           if(err){
             console.log(err);
             affected_users.forEach(function(user, i){
-              errors.push({User: err_user, Database: dbinfo, Error:{Title: "Connection Error", Details: err}, Retryable:true, Class:"Error"});
+              errors.push({User: user, Database: dbinfo, Error:{Title: "Connection Error", Details: err}, Retryable:true, Class:"Error"});
             });
             return cb(err);
           }
