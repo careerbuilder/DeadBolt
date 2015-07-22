@@ -89,7 +89,6 @@ function update(db, init_users, callback){
       if(err){
         console.log(err);
       }
-      console.log(results);
       save_errors(results, callback);
     });
   });
@@ -124,19 +123,21 @@ function retry_errors(db, errors, callback){
 function save_errors(errors, callback){
   if(errors && errors.length > 0){
     async.each(errors, function(error, cb){
+      console.log("Saving Error");
       connection.query("Insert into Errors(Username, `Database`, Title, Details, Retryable, Class) Values(?, ?, ?, ?, ?, ?);", [error.User.Username, error.Database.Name, error.Error.Title, error.Error.Details, error.Retryable, error.Class], function(err, results){
         if(err){
           console.log(err);
           return cb(err);
         }
-        console.log("Saved Errors");
         return cb();
       });
     }, function(err, results){
       if(err){
+        console.log("Error saving errors", err);
         return callback(err);
       }
-      return callback(results);
+      console.log("Saved Errors");
+      return callback(null, results);
     });
   }
   else{

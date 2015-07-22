@@ -89,8 +89,11 @@ function update_group(body, callback){
                 inner_callback();
               });
             }, function(err){
-                callback(null, body);
+                if(err){
+                  console.log(err);
+                }
             });
+            callback(null, body);
           });
         });
       });
