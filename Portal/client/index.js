@@ -42,7 +42,7 @@ app.controller('PageController', function($http, $scope, $cookies, $cookieStore,
   $scope.tab=-1;
 	var auth_cookie = $cookieStore.get('rds_ad');
 	if(auth_cookie){
-		$http.post('https://deadbolt.cbsitedb.net/api/auth',{Session: auth_cookie}).success(function(data){
+		$http.post('/api/auth',{Session: auth_cookie}).success(function(data){
 			if(data.Success){
 				$scope.authentication = data.valid;
 			}

@@ -3,7 +3,7 @@
 app.controller('ErrorCtrl', function($http, $scope, toastr){
   $scope.results=[];
   $scope.$emit('tabChanged', 4);
-  $http.get('https://deadbolt.cbsitedb.net/api/errors/').success(function(data){
+  $http.get('/api/errors/').success(function(data){
     if(data.Success){
       $scope.results = data.Results;
     }
@@ -15,7 +15,7 @@ app.controller('ErrorCtrl', function($http, $scope, toastr){
   $scope.dismiss=function(i){
     var chopid = $scope.results[i].ID;
     $scope.results.splice(i, 1);
-    $http.delete('https://deadbolt.cbsitedb.net/api/errors/'+chopid).success(function(data){
+    $http.delete('/api/errors/'+chopid).success(function(data){
       if(!data.Success){
         console.log(data.Error);
       }
@@ -25,7 +25,7 @@ app.controller('ErrorCtrl', function($http, $scope, toastr){
   $scope.retry = function(i){
     var id = $scope.results[i].ID;
     $scope.results.splice(i, 1);
-    $http.post('https://deadbolt.cbsitedb.net/api/errors/retry/'+id).success(function(data){
+    $http.post('/api/errors/retry/'+id).success(function(data){
       if(!data.Success){
         console.log(data.Error);
       }
@@ -39,7 +39,7 @@ app.controller('ErrorCtrl', function($http, $scope, toastr){
   }
 
   $scope.retryAll=function(){
-    $http.post('https://deadbolt.cbsitedb.net/api/errors/retry/').success(function(data){
+    $http.post('/api/errors/retry/').success(function(data){
       if(data.Success){
         $scope.results = [];
       }

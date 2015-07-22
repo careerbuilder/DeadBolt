@@ -7,7 +7,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
   $scope.searchCreds = {Info: ""};
   $scope.$emit('tabChanged', 1);
 
-  $http.post('https://deadbolt.cbsitedb.net/api/users/search/0', {Info: ""}).success(function(data){
+  $http.post('/api/users/search/0', {Info: ""}).success(function(data){
     if(data.Success){
       $scope.isEditing = false;
       $scope.isSearching = true;
@@ -15,7 +15,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
     }
   });
 
-  $http.get('https://deadbolt.cbsitedb.net/api/groups').success(function(data){
+  $http.get('/api/groups').success(function(data){
     if(data.Success){
       for(var i=0; i<data.Results.length; i++){
         $scope.groups.push({Checked:false, Name:data.Results[i].Name, ID:data.Results[i].ID});
@@ -24,7 +24,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
   });
 
   $scope.search=function(pagenum){
-    $http.post('https://deadbolt.cbsitedb.net/api/users/search/'+pagenum, $scope.searchCreds).success(function(data){
+    $http.post('/api/users/search/'+pagenum, $scope.searchCreds).success(function(data){
       if(data.Success){
         $scope.isEditing = false;
         $scope.isSearching = true;
@@ -34,7 +34,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
   }
 
   $scope.refreshSearch = function(){
-    $http.post('https://deadbolt.cbsitedb.net/api/users/search/0', $scope.searchCreds).success(function(data){
+    $http.post('/api/users/search/0', $scope.searchCreds).success(function(data){
       if(data.Success){
         $scope.isEditing = false;
         $scope.isSearching = true;
@@ -67,7 +67,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
     var usergroups = [];
     if(userinfo.User_ID){
       $scope.userRef = JSON.stringify(userinfo);
-      $http.get('https://deadbolt.cbsitedb.net/api/groups/'+userinfo.Username).success(function(data){
+      $http.get('/api/groups/'+userinfo.Username).success(function(data){
         if(data.Success){
           usergroups = data.Results;
           for(var i=0; i<$scope.groups.length; i++){
@@ -112,7 +112,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
         userdata.Groups[group.ID]=group.Permissions;
       }
     });
-    $http.post('https://deadbolt.cbsitedb.net/api/users', userdata).success(function(data){
+    $http.post('/api/users', userdata).success(function(data){
       if(data.Success){
         $scope.user.User_ID = data.ID;
         $scope.refreshSearch();
@@ -123,7 +123,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
 
   $scope.removeUser=function(){
     var uid = $scope.user.User_ID;
-    $http.delete('https://deadbolt.cbsitedb.net/api/users/' + uid).success(function(data){
+    $http.delete('/api/users/' + uid).success(function(data){
       $scope.user = {};
       $scope.refreshSearch();
     });

@@ -3,7 +3,7 @@
 app.controller('HistoryCtrl', function($http, $scope, $cookies, $cookieStore, toastr){
   $scope.history=[];
   $scope.$emit('tabChanged', 0);
-  $http.get('https://deadbolt.cbsitedb.net/api/history/7').success(function(data){
+  $http.get('/api/history/7').success(function(data){
     if(data.Success){
       data.History.forEach(function(hist, i){
         var timestring = hist.Time.toString();

@@ -5,7 +5,7 @@ app.controller('DBCtrl', function($http, $scope, $cookies, $cookieStore, $locati
   $scope.database = {};
   $scope.$emit('tabChanged', 3);
 
-  $http.post('https://deadbolt.cbsitedb.net/api/databases/search/', {Info:''}).success(function(data){
+  $http.post('/api/databases/search/', {Info:''}).success(function(data){
     if(data.Success){
       $scope.isEditing = false;
       $scope.isSearching = true;
@@ -14,7 +14,7 @@ app.controller('DBCtrl', function($http, $scope, $cookies, $cookieStore, $locati
   });
 
   $scope.search=function(){
-    $http.post('https://deadbolt.cbsitedb.net/api/databases/search/', $scope.searchCreds).success(function(data){
+    $http.post('/api/databases/search/', $scope.searchCreds).success(function(data){
       if(data.Success){
         $scope.isEditing = false;
         $scope.isSearching = true;
@@ -24,7 +24,7 @@ app.controller('DBCtrl', function($http, $scope, $cookies, $cookieStore, $locati
   }
 
   $scope.refreshSearch=function(){
-    $http.post('https://deadbolt.cbsitedb.net/api/databases/search/', {Info:''}).success(function(data){
+    $http.post('/api/databases/search/', {Info:''}).success(function(data){
       if(data.Success){
         $scope.isEditing = false;
         $scope.isSearching = true;
@@ -58,7 +58,7 @@ app.controller('DBCtrl', function($http, $scope, $cookies, $cookieStore, $locati
 
   $scope.saveDB=function(){
     var dbdata = JSON.parse(JSON.stringify($scope.database));
-    $http.post('https://deadbolt.cbsitedb.net/api/databases', dbdata).success(function(data){
+    $http.post('/api/databases', dbdata).success(function(data){
       if(data.Success){
         $scope.database.ID = data.ID;
         $scope.refreshSearch();
@@ -69,7 +69,7 @@ app.controller('DBCtrl', function($http, $scope, $cookies, $cookieStore, $locati
 
   $scope.removeDB=function(){
     var dbid = $scope.database.ID;
-    $http.delete('https://deadbolt.cbsitedb.net/api/databases/' + dbid).success(function(data){
+    $http.delete('/api/databases/' + dbid).success(function(data){
       $scope.isEditing=false;
       $scope.refreshSearch();
       $scope.isSearching = true;

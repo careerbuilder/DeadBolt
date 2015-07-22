@@ -8,7 +8,7 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
   $scope.allCheck=false;
   $scope.$emit('tabChanged', 2);
 
-  $http.post('https://deadbolt.cbsitedb.net/api/groups/search/', {Info:''}).success(function(data){
+  $http.post('/api/groups/search/', {Info:''}).success(function(data){
     if(data.Success){
       $scope.isEditing = false;
       $scope.isSearching = true;
@@ -16,7 +16,7 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
     }
   });
 
-  $http.get('https://deadbolt.cbsitedb.net/api/databases').success(function(data){
+  $http.get('/api/databases').success(function(data){
     if(data.Success){
       for(var i=0; i<data.Results.length; i++){
         data.Results[i].Checked = false;
@@ -45,7 +45,7 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
   }
 
   $scope.search=function(){
-    $http.post('https://deadbolt.cbsitedb.net/api/groups/search/', $scope.searchCreds).success(function(data){
+    $http.post('/api/groups/search/', $scope.searchCreds).success(function(data){
       if(data.Success){
         $scope.isEditing = false;
         $scope.isSearching = true;
@@ -55,7 +55,7 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
   }
 
   $scope.refreshSearch=function(){
-    $http.post('https://deadbolt.cbsitedb.net/api/groups/search/', {Info:''}).success(function(data){
+    $http.post('/api/groups/search/', {Info:''}).success(function(data){
       if(data.Success){
         $scope.isEditing = false;
         $scope.isSearching = true;
@@ -72,7 +72,7 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
   $scope.edit=function(index){
     var groupinfo = $scope.searchResults[index];
     var group_dbs = [];
-    $http.get('https://deadbolt.cbsitedb.net/api/databases/'+groupinfo.Name).success(function(data){
+    $http.get('/api/databases/'+groupinfo.Name).success(function(data){
       if(data.Success){
         group_dbs= data.Results;
         var all_checked = true;
@@ -90,7 +90,7 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
         $scope.dbRef = JSON.stringify($scope.databases);
       }
     });
-    $http.get('https://deadbolt.cbsitedb.net/api/users/'+groupinfo.ID).success(function(data){
+    $http.get('/api/users/'+groupinfo.ID).success(function(data){
       if(data.Success){
         groupinfo.Users = data.Data;
         $scope.groupRef = JSON.stringify(groupinfo);
@@ -129,7 +129,7 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
         groupdata.Databases.push($scope.databases[i].Name);
       }
     }
-    $http.post('https://deadbolt.cbsitedb.net/api/groups', groupdata).success(function(data){
+    $http.post('/api/groups', groupdata).success(function(data){
       if(data.Success){
         $scope.group.ID = data.ID;
         $scope.refreshSearch();
@@ -142,7 +142,7 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
 
   $scope.removeGroup=function(){
     var gid = $scope.group.ID;
-    $http.delete('https://deadbolt.cbsitedb.net/api/groups/' + gid).success(function(data){
+    $http.delete('/api/groups/' + gid).success(function(data){
       $scope.isEditing=false;
       $scope.refreshSearch();
       $scope.isSearching = true;
