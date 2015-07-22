@@ -202,7 +202,7 @@ module.exports = {
                             mysql_connection.query("Grant SUPER ON *.* TO ?, ?@'localhost' WITH GRANT OPTION", [user.Username, user.Username], function(err, result){
                               if(err){
                                 console.log("Privileges Error on DB " + dbinfo.Name +": " + err);
-                                errors.push({User: user, Database: dbinfo, Error:{Title:"Error granting SUPER permissions", Details: {Error: err, Tip: "If this database is in Amazon RDS, this error can be ignored"}, Retryable:true, Class:"Warning"});
+                                errors.push({User: user, Database: dbinfo, Error:{Title:"Error granting SUPER permissions", Details: {Error: err, Tip: "If this database is in Amazon RDS, this error can be ignored"}}, Retryable:true, Class:"Warning"});
                               }
                               cb2();
                             });
