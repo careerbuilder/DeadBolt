@@ -78,7 +78,7 @@ def change_password(username, password):
             user['Groups'][res[0]] = res[1]
     for key in passwords:
         user[key] = passwords[key]
-    save_passwords(username, passwords, 'alias/RDSAD')
+    save_passwords(username, passwords, config['kms_keyname'])
     r = requests.post(api_info['host'] + '/users/', json=user, headers={'authorization': api_info['Session']}, verify=False)
     res = r.json()
     print(res)

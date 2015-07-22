@@ -3,7 +3,7 @@ var kms = new AWS.KMS({'region': 'us-east-1'});
 
 module.exports = {
   encrypt: function(message, callback){
-    var key = "alias/RDSADroot"
+    var key = global.config.kmskey;
     kms.encrypt({KeyId: key, Plaintext: message}, function(err, data){
       if(err){
         console.log("encryption error: ");

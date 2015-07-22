@@ -22,6 +22,7 @@ The config file should be a json object, with the following layout:
 _config.json_
 ```javascript  
 {
+  "kmskey": "alias/keyname",
   "DB" : {
     "host"      : "your_database_endpoint",
     "user"      : "your_sausername",

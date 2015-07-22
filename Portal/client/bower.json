@@ -1,13 +1,16 @@
 {
-  "name": "RDSADManagementPortal",
+  "name": "Deadbolt",
   "version": "1.0.0",
   "authors": [
     "ayost"
   ],
-  "description": "Front End user management system for RDSAD",
+  "description": "Front End user management system for Database IAM",
   "main": "index.js",
   "keywords": [
-    "RDSAD"
+    "Database",
+    "IAM",
+    "User Management",
+    "DeadBolt"
   ],
   "license": "NONE",
   "ignore": [
