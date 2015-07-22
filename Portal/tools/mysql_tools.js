@@ -173,19 +173,19 @@ module.exports = {
                       }
                       var permissions_query;
                       if(user.Permissions === "SU"){
-                        permissions_query = "Grant ALL ON *.* TO ?, ?@'localhost'";
+                        permissions_query = "Grant ALL ON `%`.* TO ?, ?@'localhost'";
                       }
                       else if(user.Permissions === "DBA"){
-                        permissions_query = "Grant ALL ON *.* TO ?, ?@'localhost'";
+                        permissions_query = "Grant ALL ON `%`.* TO ?, ?@'localhost'";
                       }
                       else if(user.Permissions === "RW"){
-                        permissions_query = "Grant SELECT, INSERT, UPDATE, DELETE ON *.* TO ?, ?@'localhost'";
+                        permissions_query = "Grant SELECT, INSERT, UPDATE, DELETE ON `%`.* TO ?, ?@'localhost'";
                       }
                       else if(user.Permissions === "RO"){
-                        permissions_query = "Grant SELECT ON *.* TO ?, ?@'localhost'";
+                        permissions_query = "Grant SELECT ON `%`.* TO ?, ?@'localhost'";
                       }
                       else{
-                        permissions_query = "Grant USAGE ON *.* TO ?, ?@'localhost'";
+                        permissions_query = "Grant USAGE ON `%`.* TO ?, ?@'localhost'";
                       }
                       async.series([
                         function(cb2){
@@ -202,7 +202,7 @@ module.exports = {
                             mysql_connection.query("Grant SUPER ON *.* TO ?, ?@'localhost' WITH GRANT OPTION", [user.Username, user.Username], function(err, result){
                               if(err){
                                 console.log("Privileges Error on DB " + dbinfo.Name +": " + err);
-                                errors.push({User: user, Database: dbinfo, Error:{Title:"Error granting SUPER permissions", Details: err}, Retryable:true, Class:"Error"});
+                                errors.push({User: user, Database: dbinfo, Error:{Title:"Error granting SUPER permissions", Details: {Error: err, Tip: "If this database is in Amazon RDS, this error can be ignored"}, Retryable:true, Class:"Warning"});
                               }
                               cb2();
                             });

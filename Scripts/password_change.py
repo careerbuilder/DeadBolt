@@ -10,6 +10,7 @@ import boto3
 import json
 import sys
 import re
+import os
 
 api_info = {
     'host': "",
@@ -189,7 +190,9 @@ def main():
 
 if __name__ == "__main__":
     try:
-        secret_file = open('./script_creds.secret', 'r')
+        cur_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+        sec_path = os.path.join(cur_dir, 'script_creds.secret')
+        secret_file = open(sec_path, 'r')
         secrets = json.load(secret_file)
         secret_file.close()
         config = secrets
