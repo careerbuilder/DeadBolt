@@ -94,16 +94,12 @@ function update_user(body, callback){
     affected_dbs.forEach(function(db, i){
       db_names.push(db.Name);
     });
-    connection.query("Select users.*, users_groups.Permissions from users Join users_groups on users_groups.User_ID=users.ID where users.ID=?", [User_ID], function(err, results){
+    connection.query("Select users.* where users.ID=?", [User_ID], function(err, results){
       if(err){
         console.log(err);
         return callback(err);
       }
-      var usernames = [];
-      var userinfo = results || [];
-      userinfo.forEach(function(u, i){
-        usernames.push(u.Username);
-      });
+      var userinfo = results
       connection.query(del_group_query, [User_ID].concat(group_ids), function(err, results){
         if(err){
           console.log(err);
@@ -125,26 +121,14 @@ function update_user(body, callback){
                 db_names.push(results[i].Name);
               }
             });
-            connection.query("Select users.*, users_groups.Permissions from users Join users_groups on users_groups.User_ID=users.ID where users.ID=?", [User_ID], function(err, results){
-              if(err){
-                console.log(err);
-                return callback(err);
-              }
-              results.forEach(function(u, i){
-                if(usernames.indexOf(u.Username)<0){
-                  usernames.push(u.Username);
-                  userinfo.push(u);
-                }
+            async.each(affected_dbs,function(db, inner_callback){
+              db_tools.update_users(db, userinfo, function(errs){
+                inner_callback();
               });
-              async.each(affected_dbs,function(db, inner_callback){
-                db_tools.update_users(db, userinfo, function(errs){
-                  inner_callback();
-                });
-              }, function(err, result){
-                console.log("All Databases Updated for " + body.Username);
-              });
-              callback(null, body);
+            }, function(err, result){
+              console.log("All Databases Updated for " + body.Username);
             });
+            callback(null, body);
           });
         });
       });
