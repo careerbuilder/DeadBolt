@@ -105,8 +105,18 @@ function retry_errors(db, errors, callback){
         usernames.push(error.User.Username);
         users.push(error.User);
       }
+      remaining_errors.push(error);
     }
-    remaining_errors.push(error);
+    else{
+      save_errors([err], function(err, results){
+        if(err){
+          console.log("error saving error! Oh the irony!");
+        }
+        else{
+          console.log("Error saved", results);
+        }
+      })
+    }
   });
   callback(null, users, remaining_errors);
 }
