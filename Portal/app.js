@@ -11,14 +11,6 @@ app.use(bodyParser.json());
 global.config = require('./config.json');
 var port = 3000;
 
-var key_file = global.config.SSL.keyfile;
-var cert_file = global.config.SSL.certfile;
-
-var config = {
-  key: fs.readFileSync(key_file),
- cert: fs.readFileSync(cert_file)
-};
-
 /*
 *----------------Handle Client-----------
 */
@@ -47,5 +39,18 @@ app.use(function(req, res, next){
   return res.type('txt').send('Not found');
 });
 
-https.createServer(config, app).listen(port);
+if('SSL' in global.config){
+  var key_file = global.config.SSL.keyfile;
+  var cert_file = global.config.SSL.certfile;
+
+  var config = {
+    key: fs.readFileSync(key_file),
+   cert: fs.readFileSync(cert_file)
+  };
+  https.createServer(config, app).listen(port);
+}
+else{
+  app.listen(port);
+}
+
 console.log('App Started on port ' + port);
