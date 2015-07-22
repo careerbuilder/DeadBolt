@@ -2,16 +2,17 @@
 A management portal for database user management through active directory.
 DeadBolt was created to allow for user Identity and Access Management(IAM) in Amazon RDS, which does not allow for SSH or traditional methods of IAM such as kerberos or LDAP.
 
-##Installation##
+##Dependencies##
 DeadBolt depends on a couple external tools right now
 
 * MySQL server
 * Node
 * Angular
-
-__These dependencies will be replaced by Jumpcloud in the near future__
+* __These dependencies will be replaced by Jumpcloud in the near future__
 * Amazon Simple AD
 * AD Manage Engine Password Self Service
+
+##Install##
 
 * Create an accessible MySQL database
 * Run the .sql script located in `Scripts/` to create the correct schema and tables
