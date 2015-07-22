@@ -2,6 +2,7 @@ __author__ = 'ayost'
 
 import mysql.connector
 import requests
+import hashlib
 import pymssql
 import getpass
 import codecs
@@ -56,7 +57,7 @@ def save_passwords(username, passwords, keyname):
 
 
 def change_password(username, password):
-    passwords = get_passwords(password)
+    passwords = get_passwords({'username': username, 'password': password})
     cursor = cnx.cursor()
     query = "Select FirstName, LastName, Email, User_ID from possible_users where Username=%(username)s"
     cursor.execute(query, {'username': username})
@@ -83,12 +84,12 @@ def change_password(username, password):
     print(res)
 
 
-def get_passwords(password):
+def get_passwords(creds):
     passwords = {}
-    mysql_p = get_mysql_pass(password)
-    mssql_p = get_mssql_pass(password)
-    mongo_p = get_mongo_pass(password)
-    cassandra_p = get_cassandra_pass(password)
+    mysql_p = get_mysql_pass(creds)
+    mssql_p = get_mssql_pass(creds)
+    mongo_p = get_mongo_pass(creds)
+    cassandra_p = get_cassandra_pass(creds)
     if mysql_p is not None:
         passwords['MySQL_Password'] = mysql_p
     if mssql_p is not None:
@@ -100,7 +101,8 @@ def get_passwords(password):
     return passwords
 
 
-def get_mysql_pass(password):
+def get_mysql_pass(creds):
+    password = creds['password']
     cursor = cnx.cursor()
     query = "Select PASSWORD('" + password + "');"
     cursor.execute(query)
@@ -112,7 +114,8 @@ def get_mysql_pass(password):
     return result
 
 
-def get_mssql_pass(password):
+def get_mssql_pass(creds):
+    password = creds['password']
     mssql_db = config['mssql']
     mssql_conn = pymssql.connect(server=mssql_db['host'], port=mssql_db['port'], user=mssql_db['user'], password=mssql_db['password'])
     cursor = mssql_conn.cursor()
@@ -125,11 +128,24 @@ def get_mssql_pass(password):
     return mssql_pass
 
 
-def get_mongo_pass(password):
+def get_mongo_pass(creds):
     return None
 
 
-def get_cassandra_pass(password):
+def get_cassandra_pass(creds):
+    return None
+
+def get_postgres_pass(creds):
+    password = creds['password']+creds['username']
+    md5 = hashlib.md5()
+    md5.update(password.encode('utf8'))
+    enc_bytes = md5.digest()
+    enc_password = "md5"
+    for byte in enc_bytes:
+        enc_password += int_to_hex(byte)
+    return enc_password
+
+def get_oracle_pass(creds):
     return None
 
 def int_to_hex(num):
