@@ -20,7 +20,7 @@ DeadBolt depends on a couple external tools right now
 The config file should be a json object, with the following layout:
 
 _config.json_
-```  
+```javascript  
 {
   "DB" : {
     "host"      : "your_database_endpoint",
