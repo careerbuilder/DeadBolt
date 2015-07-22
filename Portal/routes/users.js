@@ -94,7 +94,7 @@ function update_user(body, callback){
     affected_dbs.forEach(function(db, i){
       db_names.push(db.Name);
     });
-    connection.query("Select users.* where users.ID=?", [User_ID], function(err, results){
+    connection.query("Select * from users where users.ID=?;", [User_ID], function(err, results){
       if(err){
         console.log(err);
         return callback(err);
