@@ -107,7 +107,7 @@ function retry_errors(db, errors, callback){
       remaining_errors.push(error);
     }
     else{
-      save_errors([err], function(err, results){
+      save_errors([error], function(err, results){
         if(err){
           console.log("error saving error! Oh the irony!");
         }
