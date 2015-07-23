@@ -1,5 +1,6 @@
 var assert = require('assert');
 var rewire = require('rewire');
+var blanket = require('blanket');
 global.config = {DB:{}, kmskey: ""};
 var databases = rewire('../routes/databases.js');
 
