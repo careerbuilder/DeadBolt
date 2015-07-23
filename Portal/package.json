@@ -28,8 +28,6 @@
     "nodemailer": "^1.3.4",
     "nodemailer-ses-transport": "^1.3.0",
     "request": "^2.58.0",
-    "rewire": "^2.3.4",
-    "sinon": "^1.15.4",
-    "supertest": "^1.0.1"
+    "rewire": "^2.3.4"
   }
 }
