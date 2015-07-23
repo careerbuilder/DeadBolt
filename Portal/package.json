@@ -15,6 +15,12 @@
   ],
   "author": "ayost",
   "license": "NONE",
+  "config":{
+    "blanket":{
+      "pattern": ["routes/api", "routes/databases"],
+      "data-cover-never": ["node_modules", "client", "test"]
+    }
+  },
   "dependencies": {
     "async": "^1.2.1",
     "aws-sdk": "^2.1.34",
