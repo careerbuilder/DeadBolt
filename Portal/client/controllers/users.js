@@ -61,8 +61,6 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
   }
 
   $scope.edit=function(index){
-    $scope.isSearching=false;
-    $scope.isEditing = true;
     var userinfo = $scope.searchResults[index];
     var usergroups = [];
     if(userinfo.User_ID){
@@ -81,7 +79,12 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
               $scope.groups[i].Permissions = "";
             }
           }
+          $scope.isSearching=false;
+          $scope.isEditing = true;
           $scope.groupsRef = JSON.stringify($scope.groups);
+        }
+        else{
+          $toastr.error('API Error', 'Could not retreive groups for the selected user');
         }
       });
     }
