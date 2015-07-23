@@ -6,9 +6,11 @@ var encryption = require('../tools/encryption');
 var db_tools = require('../tools/db_tools');
 
 function add_database(body, callback){
+  if(!body){
+    return callback("No server info!");
+  }
   encryption.encrypt(body.SAPass, function(err, data){
     if(err){
-      console.log(err);
       return callback(err);
     }
     var sacreds = data;
@@ -16,14 +18,12 @@ function add_database(body, callback){
     var query = 'Insert into `databases` (Name, Type, Host, Port, SAUser, SAPass) values (?, ?, ?, ?, ?, ?) On Duplicate key Update Name=Values(name), Host=Values(Host), Port=Values(Port), Type=Values(Type), SAUser=Values(SAUser), SAPass=Values(SAPass);';
     connection.query(query, args, function(err, result){
       if(err){
-        console.log(err);
         return callback(err);
       }
       var DB_ID = result.insertId;
       body.ID = DB_ID;
       connection.query("Insert into groups_databases (Group_ID, Database_ID) Values(-1, ?) ON DUPLICATE KEY UPDATE Database_ID=Database_ID;", [DB_ID], function(err, result){
         if(err){
-          console.log(err);
           return callback(err);
         }
         var dbinfo = {Name: body.Name, Type: body.Type, Host: body.Host, Port: body.Port, SAUser: body.SAUser, SAPass: sacreds, ID:DB_ID};
@@ -41,6 +41,9 @@ function add_database(body, callback){
 }
 
 function update_database(body, callback){
+  if(!body || !body.ID){
+    return callback("No server info!");
+  }
   var DB_ID = body.ID;
   var args = [body.Name, body.Type, body.Host, body.Port, body.SAUser];
   var query = 'Insert into `databases` (Name, Type, Host, Port, SAUser) values (?, ?, ?, ?, ?) On Duplicate key Update Name=Values(name), Host=Values(Host), Port=Values(Port), Type=Values(Type), SAUser=Values(SAUser), SAPass=SAPass;';
@@ -54,6 +57,35 @@ function update_database(body, callback){
         console.log(err);
       }
       return callback(null, DB_ID);
+    });
+  });
+}
+
+function remove_database(req, callback){
+  if(!req.params || !req.params.id){
+    return callback("No database id!", {Success: false, Error: "No ID provided!"});
+  }
+  var db_id = req.params.id;
+  connection.query("Select * from `databases` where ID = ? LIMIT 1;", [db_id], function(err, data){
+    var dbinfo = data[0];
+    db_tools.update_all_users(dbinfo, function(errors){
+      var query = "Delete from groups_databases where Database_ID = ?";
+      connection.query(query, [db_id], function(err, result){
+        if(err){
+          return callback(err, {Success:false, Error: err});
+        }
+        connection.query('Delete from `databases` where ID = ?', [db_id], function(err, result){
+          if(err){
+            return callback(err, {Success:false, Error: err});
+          }
+          connection.query('Insert into History (Activity) Value("Deleted db : ?")', [dbinfo.Name], function(err, result){
+            if(err){
+              return callback(err, {Success: true, Error: "History error: " + err.toString(), });
+            }
+            return callback(null, {Success: true});
+          });
+        });
+      });
     });
   });
 }
@@ -128,34 +160,11 @@ router.post('/', function(req, res){
 });
 
 router.delete('/:id', function(req,res){
-  var db_id = req.params.id;
-  connection.query("Select * from `databases` where ID = ? LIMIT 1;", [db_id], function(err, data){
-    var dbinfo = data[0];
-    db_tools.update_all_users(dbinfo, function(errors){
-      if(errors){
-        console.log(errors);
-      }
-      var query = "Delete from groups_databases where Database_ID = ?";
-      connection.query(query, [db_id], function(err, result){
-        if(err){
-          console.log(err);
-          return res.send({Success:false, Error: err});
-        }
-        connection.query('Delete from `databases` where ID = ?', [db_id], function(err, result){
-          if(err){
-            console.log(err);
-            return res.send({Success:false, Error: err});
-          }
-          connection.query('Insert into History (Activity) Value("Deleted db : ?")', [dbinfo.Name], function(err, result){
-            if(err){
-              console.log(err);
-              return res.send({Success: true, Error: "History error: " + err.toString(), });
-            }
-            return res.send({Success: true});
-          });
-        });
-      });
-    });
+  remove_database(req, function(err, result){
+    if(err){
+      console.log(err);
+    }
+    return res.send(result);
   });
 });
 
