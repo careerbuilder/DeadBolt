@@ -75,7 +75,7 @@ function login(req, callback){
     }
     connection.query("Insert into Sessions (Session_ID, Expires) Values(?, ?)", [sessionid, later], function(err, results){
       if(err){
-        return callback(err, {Succes:false, Message: "Error generating session ID", Error: error});
+        return callback(err, {Succes:false, Message: "Error generating session ID", Error: err});
       }
       return callback(null, {Success:true, Message: 'Logged in successfuly as ' + body.email, Session: sessionid});
     });
