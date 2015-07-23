@@ -72,6 +72,9 @@ def change_password(username, password):
         user['Email'] = res[2]
         if (len(res) >= 4) and (res[3] is not None):
             user['User_ID'] = res[3]
+    if ('FirstName' not in user) and ('LastName' not in user) and ('Email' not in user):
+        print("User is not in possible User list")
+        exit(-1)
     if 'User_ID' in user:
         q2 = "Select Group_ID, Permissions from users_groups where User_ID = %(id)s"
         cursor.execute(q2, {'id': user['User_ID']})
