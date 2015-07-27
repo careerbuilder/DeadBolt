@@ -61,36 +61,6 @@ function update_database(body, callback){
   });
 }
 
-function remove_database(req, callback){
-  if(!req.params || !req.params.id){
-    return callback("No database id!", {Success: false, Error: "No ID provided!"});
-  }
-  var db_id = req.params.id;
-  connection.query("Select * from `databases` where ID = ? LIMIT 1;", [db_id], function(err, data){
-    var dbinfo = data[0];
-    db_tools.update_all_users(dbinfo, function(errors){
-      var query = "Delete from groups_databases where Database_ID = ?";
-      connection.query(query, [db_id], function(err, result){
-        if(err){
-          return callback(err, {Success:false, Error: err});
-        }
-        connection.query('Delete from `databases` where ID = ?', [db_id], function(err, result){
-          if(err){
-            return callback(err, {Success:false, Error: err});
-          }
-          connection.query('Insert into History (Activity) Value("Deleted db : ?")', [dbinfo.Name], function(err, result){
-            if(err){
-              return callback(err, {Success: true, Error: "History error: " + err.toString(), });
-            }
-            return callback(null, {Success: true});
-          });
-        });
-      });
-    });
-  });
-}
-
-
 router.get('/', function(req, res){
   connection.query('Select ID, Name, Type, Host, Port from `databases`;', function(err, results){
     if(err){
@@ -105,7 +75,7 @@ router.post('/search', function(req, res){
   var body = req.body;
   var query = "";
   var args = [];
-  if(body.Info.trim().length > 0){
+  if(body && body.Info && body.Info.trim().length > 0){
     var info = "%"+body.Info+"%";
     query = 'Select ID, Name, Type, Host, Port, SAUser from `databases` where (Name like ? OR Type like ? OR Host like ? OR Port like ? OR SAUser like ?);';
     args = [info, info, info, info, info];
@@ -160,11 +130,32 @@ router.post('/', function(req, res){
 });
 
 router.delete('/:id', function(req,res){
-  remove_database(req, function(err, result){
+  var db_id = req.params.id;
+  connection.query("Select * from `databases` where ID = ? LIMIT 1;", [db_id], function(err, data){
     if(err){
       console.log(err);
+      return res.send({Success: false, Error: err});
     }
-    return res.send(result);
+    var dbinfo = data[0];
+    db_tools.update_all_users(dbinfo, function(errors){
+      var query = "Delete from groups_databases where Database_ID = ?";
+      connection.query(query, [db_id], function(err, result){
+        if(err){
+          return res.send({Success:false, Error: err});
+        }
+        connection.query('Delete from `databases` where ID = ?', [db_id], function(err, result){
+          if(err){
+            return res.send({Success:false, Error: err});
+          }
+          connection.query('Insert into History (Activity) Value("Deleted db : ?")', [dbinfo.Name], function(err, result){
+            if(err){
+              return res.send({Success: true, Error: "History error: " + err.toString()});
+            }
+            return res.send({Success: true});
+          });
+        });
+      });
+    });
   });
 });
 
