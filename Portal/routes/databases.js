@@ -6,9 +6,6 @@ var encryption = require('../tools/encryption');
 var db_tools = require('../tools/db_tools');
 
 function add_database(body, callback){
-  if(!body){
-    return callback("No server info!");
-  }
   encryption.encrypt(body.SAPass, function(err, data){
     if(err){
       return callback(err);
@@ -41,9 +38,6 @@ function add_database(body, callback){
 }
 
 function update_database(body, callback){
-  if(!body || !body.ID){
-    return callback("No server info!");
-  }
   var DB_ID = body.ID;
   var args = [body.Name, body.Type, body.Host, body.Port, body.SAUser];
   var query = 'Insert into `databases` (Name, Type, Host, Port, SAUser) values (?, ?, ?, ?, ?) On Duplicate key Update Name=Values(name), Host=Values(Host), Port=Values(Port), Type=Values(Type), SAUser=Values(SAUser), SAPass=SAPass;';
@@ -60,6 +54,27 @@ function update_database(body, callback){
     });
   });
 }
+
+router.post('/', function(req, res){
+  var body = req.body;
+  async.series([
+    function(callback){
+      if(body.ID){
+        return callback(null, body.ID);
+      }
+      add_database(body, callback);
+    },
+    function(callback){
+      update_database(body, callback);
+    }
+  ],function(err, results){
+    if(err){
+      console.log(err);
+      return res.send({Success: false, Error:err});
+    }
+    return res.send({Success:true, ID: results[0]});
+  });
+});
 
 router.get('/', function(req, res){
   connection.query('Select ID, Name, Type, Host, Port from `databases`;', function(err, results){
@@ -108,27 +123,6 @@ router.get('/:groupname', function(req, res){
   });
 });
 
-router.post('/', function(req, res){
-  var body = req.body;
-  async.series([
-    function(callback){
-      if(body.ID){
-        return callback(null, body.ID);
-      }
-      add_database(body, callback);
-    },
-    function(callback){
-      update_database(body, callback);
-    }
-  ],function(err, results){
-    if(err){
-      console.log(err);
-      return res.send({Success: false, Error:err});
-    }
-    return res.send({Success:true, ID: results[0]});
-  });
-});
-
 router.delete('/:id', function(req,res){
   var db_id = req.params.id;
   connection.query("Select * from `databases` where ID = ? LIMIT 1;", [db_id], function(err, data){
@@ -147,7 +141,7 @@ router.delete('/:id', function(req,res){
           if(err){
             return res.send({Success:false, Error: err});
           }
-          connection.query('Insert into History (Activity) Value("Deleted db : ?")', [dbinfo.Name], function(err, result){
+          connection.query('insert into history (Activity) Value("Deleted db : ?")', [dbinfo.Name], function(err, result){
             if(err){
               return res.send({Success: true, Error: "History error: " + err.toString()});
             }
