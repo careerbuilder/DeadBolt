@@ -1,6 +1,5 @@
 var express = require('express');
 var app = express();
-var https = require('https');
 var fs = require('fs');
 var ejs = require('ejs');
 var path = require('path');
@@ -40,6 +39,7 @@ app.use(function(req, res, next){
 });
 
 if('SSL' in global.config){
+  var https = require('https');
   var key_file = global.config.SSL.keyfile;
   var cert_file = global.config.SSL.certfile;
 
@@ -54,3 +54,5 @@ else{
 }
 
 console.log('App Started on port ' + port);
+
+module.exports = app;
