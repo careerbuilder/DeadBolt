@@ -17,8 +17,8 @@
   "license": "NONE",
   "config":{
     "blanket":{
-      "pattern": ["routes/api", "routes/databases"],
-      "data-cover-never": ["node_modules", "client", "test"]
+      "pattern": ["routes/api", "routes/databases", "routes/errors", "routes/groups"],
+      "data-cover-never": ["node_modules", "client", "test", "routes/auth", "routes/mysql"]
     }
   },
   "dependencies": {
