@@ -27,6 +27,14 @@ describe('groups', function(){
         }
         return callback(null, [{ID: 1, Name: 'testgroup'}, {ID:2, Name:'testgroup2'}]);
       }
+      if(args[0].toUpperCase().search('SELECT GROUPS')>-1){
+        if(sql_args && sql_args[0]){
+          if(sql_args[0].toUpperCase().search('ERROR')>-1){
+            return callback("Database Error");
+          }
+        }
+        return callback(null, [{ID: 1, Name: 'testgroup', Permissions:"RW"}, {ID:2, Name:'testgroup2', Permissions:"SU"}]);
+      }
     }
   }
 
@@ -85,14 +93,14 @@ describe('groups', function(){
   });
   describe('POST /search', function(){
     it('should error on DB Error', function(done){
-      var error_revert = groups.__set__('connection', error_db);
       request(app)
       .post('/api/groups/search')
+      .set('Content-Type', 'application/json')
+      .send({Info: "Error"})
       .expect(200)
       .end(function(err, res){
         assert.equal(res.body.Success, false, 'Successful despite DB Error');
         assert(res.body.Error, 'No Error on DB Error');
-        error_revert();
         done();
       });
     });
@@ -100,6 +108,19 @@ describe('groups', function(){
       request(app)
       .post('/api/groups/search')
       .expect(200)
+      .set('Content-Type', 'application/json')
+      .end(function(err, res){
+        assert(res.body.Success, 'Unsuccessful request');
+        assert(res.body.Results, 'No groups returned');
+        done();
+      });
+    });
+    it('should return filtered groups', function(done){
+      request(app)
+      .post('/api/groups/search')
+      .expect(200)
+      .set('Content-Type', 'application/json')
+      .send({Info: 'testgroup'})
       .end(function(err, res){
         assert(res.body.Success, 'Unsuccessful request');
         assert(res.body.Results, 'No groups returned');
@@ -108,7 +129,26 @@ describe('groups', function(){
     });
   });
   describe('GET /:username', function(){
-
+    it('should error on DB Error', function(done){
+      request(app)
+      .get('/api/groups/error')
+      .expect(200)
+      .end(function(err, res){
+        assert.equal(res.body.Success, false, 'Successful despite DB Error');
+        assert(res.body.Error, 'No Error on DB Error');
+        done();
+      });
+    });
+    it('should return groups for a user', function(done){
+      request(app)
+      .get('/api/groups/user')
+      .expect(200)
+      .end(function(err, res){
+        assert(res.body.Success, 'Unsuccessful request');
+        assert(res.body.Results, 'No Results');
+        done();
+      });
+    });
   });
   describe('POST /', function(){
 
