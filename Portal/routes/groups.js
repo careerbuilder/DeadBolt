@@ -7,6 +7,9 @@ var db_tools = require('../tools/db_tools');
 
 
 function add_group(body, callback){
+  if(!body || !body.Name){
+    return callback("No Group Name Specified!");
+  }
   var query = 'Insert into groups (Name) value (?) ON Duplicate KEY UPDATE Name=Name';
   connection.query(query, [body.Name], function(err, result){
     if(err){
@@ -34,19 +37,20 @@ function update_group(body, callback){
       }
       e_dbnames.push(db.Name);
     });
-    body.Databases.forEach(function(dbname, i){
+    g_dbnames.forEach(function(dbname, i){
       if(e_dbnames.indexOf(dbname)<0){
         affected_dbnames.push(dbname);
       }
     });
     if(affected_dbnames.length < 1){
+      console.log('no affected databases!');
       return callback(null, body);
     }
     var del_group_query ="";
     var add_group_query = "";
-    if(body.Databases.length>0){
+    if(g_dbnames.length>0){
       var db_where = 'where (';
-      for(var i =0; i<body.Databases.length; i++){
+      for(var i =0; i<g_dbnames.length; i++){
         db_where += '`databases`.Name = ? OR ';
       }
       db_where+='0=1)';
@@ -57,12 +61,12 @@ function update_group(body, callback){
       del_group_query = 'Delete from groups_databases where Group_ID= ?;';
       add_group_query = 'Set @dummy=?;';
     }
-    connection.query(del_group_query, [Group_ID].concat(body.Databases), function(err, results){
+    connection.query(del_group_query, [Group_ID].concat(g_dbnames), function(err, results){
       if(err){
         console.log(err);
         return callback(err);
       }
-      connection.query(add_group_query, [Group_ID].concat(body.Databases), function(err, results){
+      connection.query(add_group_query, [Group_ID].concat(g_dbnames), function(err, results){
         if(err){
           console.log(err);
           return callback(err);
