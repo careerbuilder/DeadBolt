@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 var async = require('async');
 var connection = require('../middleware/mysql');
-var encryption = require('../tools/encryption');
+var encryption = require('../middleware/encryption');
 var db_tools = require('../tools/db_tools');
 
 function add_database(body, callback){

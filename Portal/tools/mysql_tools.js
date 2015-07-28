@@ -1,6 +1,6 @@
 var mysql = require('mysql');
 var async = require('async');
-var encryption = require('./encryption');
+var encryption = require('../middleware/encryption');
 
 module.exports = {
   update_users: function(db, affected_users, gospel_users, top_callback){

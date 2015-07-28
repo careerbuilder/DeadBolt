@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 var async = require('async');
 var connection = require('../middleware/mysql');
-var encryption = require('../tools/encryption');
+var encryption = require('../middleware/encryption');
 var db_tools = require('../tools/db_tools');
 
 
@@ -150,53 +150,39 @@ router.get('/:username', function(req, res){
 
 router.post('/', function(req, res){
   var body = req.body;
-  if(!body.ID){
-    async.waterfall([
-      function(callback){
-        add_group(body, callback);
-      },
-      function(new_body, callback){
-        update_group(new_body, callback);
-      },
-      function(info, callback){
-        connection.query('Insert into History (Activity) Value("Added group: ?")', [info.Name], function(err, result){
-          if(err){
-            console.log(err);
-            callback(err);
-          }
-          callback(null, info);
-        });
+  var exists = !!body.ID;
+  async.waterfall([
+    function(callback){
+      if(body.ID){
+          return callback(null, body);
       }
-    ], function(err, results){
-      console.log("Group Added");
-      if(err){
-        return res.send({Success: false, Error: err});
+      add_group(body, callback);
+    },
+    function(new_body, callback){
+      update_group(new_body, callback);
+    },
+    function(info, callback){
+      var activity =""
+      if(exists){
+        activity = '"Updated group: ?"';
       }
-      return res.send({Success: true, ID: results.ID})
-    });
-  }
-  else{
-    async.waterfall([
-      function(callback){
-        update_group(body, callback);
-      },
-      function(info, callback){
-        connection.query('Insert into History (Activity) Value("Edited Databases for group: ?")', [info.Name], function(err, result){
-          if(err){
-            console.log(err);
-            callback(err);
-          }
-          callback(null, info);
-        });
+      else{
+        activity = '"Added Group: ?"';
       }
-    ], function(err, results){
-      console.log("Group updated");
-      if(err){
-        return res.send({Success: false, Error: err});
-      }
-      return res.send({Success: true, ID: results.ID})
-    });
-  }
+      connection.query('Insert into History (Activity) Value(' + activity +')', [info.Name], function(err, result){
+        if(err){
+          console.log(err);
+          callback(err);
+        }
+        callback(null, info);
+      });
+    }
+  ], function(err, results){
+    if(err){
+      return res.send({Success: false, Error: err});
+    }
+    return res.send({Success: true, ID: results.ID})
+  });
 });
 
 router.delete('/:id', function(req,res){
