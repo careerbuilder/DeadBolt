@@ -92,11 +92,7 @@ function update_group(body, callback){
               db_tools.update_users(db, users, function(errs){
                 inner_callback();
               });
-            }, function(err){
-                if(err){
-                  console.log(err);
-                }
-            });
+            }, function(err){});
             callback(null, body);
           });
         });
@@ -173,13 +169,8 @@ router.post('/', function(req, res){
       else{
         activity = '"Added Group: ?"';
       }
-      connection.query('Insert into History (Activity) Value(' + activity +')', [info.Name], function(err, result){
-        if(err){
-          console.log(err);
-          callback(err);
-        }
-        callback(null, info);
-      });
+      connection.query('Insert into History (Activity) Value(' + activity +')', [info.Name], function(err, result){});
+      callback(null, info);
     }
   ], function(err, results){
     if(err){

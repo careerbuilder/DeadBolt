@@ -19,6 +19,30 @@ describe('groups', function(){
       if(args.length > 2){
         var sql_args = args[1];
       }
+      if(args[0].toUpperCase().search('INSERT INTO GROUPS_DATABASES')>-1){
+        if(sql_args && sql_args[0]){
+          if(sql_args[0]==-4){
+            return callback("Database Error");
+          }
+        }
+        return callback(null, {insertId:1});
+      }
+      if(args[0].toUpperCase().search('DELETE FROM GROUPS_DATABASES')>-1){
+        if(sql_args && sql_args[0]){
+          if(sql_args[0]==-3){
+            return callback("Database Error");
+          }
+        }
+        return callback(null, {});
+      }
+      if(args[0].toUpperCase().search('INSERT INTO GROUPS ')>-1){
+        if(sql_args && sql_args[0]){
+          if(sql_args[0].toUpperCase().search('ERROR')>-1){
+            return callback("Database Error");
+          }
+        }
+        return callback(null, {insertId:1});
+      }
       if(args[0].toUpperCase().search('SELECT ID,')>-1){
         if(sql_args && sql_args[0]){
           if(sql_args[0].toUpperCase().search('ERROR')>-1){
@@ -34,14 +58,6 @@ describe('groups', function(){
           }
         }
         return callback(null, [{ID: 1, Name: 'testgroup', Permissions:"RW"}, {ID:2, Name:'testgroup2', Permissions:"SU"}]);
-      }
-      if(args[0].toUpperCase().search('INSERT INTO GROUPS')>-1){
-        if(sql_args && sql_args[0]){
-          if(sql_args[0].toUpperCase().search('ERROR')>-1){
-            return callback("Database Error");
-          }
-        }
-        return callback(null, {insertId:1});
       }
       if(args[0].toUpperCase().search('SELECT NAME FROM `DATABASES`')>-1){
         if(sql_args && sql_args[0]){
@@ -61,6 +77,22 @@ describe('groups', function(){
           }
         }
         return callback(null, {insertId: 1});
+      }
+      if(args[0].toUpperCase().search('`DATABASES`.NAME')>-1){
+        if(sql_args && sql_args[0]){
+          if(sql_args[0].toUpperCase().search('ERROR')>-1){
+            return callback("Database Error");
+          }
+        }
+        return callback(null, [{ID:1, Name: 'testdb'}, {ID:2, Name:'testdb2'}]);
+      }
+      if(args[0].toUpperCase().search('FROM USERS WHERE')>-1){
+        if(sql_args && sql_args[0]){
+          if(sql_args[0]==-5){
+            return callback("Database Error");
+          }
+        }
+        return callback(null, [{ID:1, Name: 'testuser'}, {ID:2, Name:'testuser2'}]);
       }
     }
   }
@@ -242,39 +274,100 @@ describe('groups', function(){
         done();
       });
     });
-    it('should error on DB Error - delete g_d');
-    it('should error on DB Error - add g_d');
-    it('should error on DB Error - get db2');
-    it('should error on DB Error - get users');
-    it.skip('should feed the new id to update', function(done){
+    it('should error on DB Error - delete g_d', function(done){
       request(app)
       .post('/api/groups/')
       .set('Content-Type', 'application/json')
-      .send({Name: "testgroup"})
+      .send({ID: -3, Name: "dberror"})
       .expect(200)
       .end(function(err, res){
         if(err){
           console.log(err);
           return done(err);
         }
-        assert.equal(res.body.Success, false, 'Successful despite no info');
-        assert(res.body.Error, 'No Error on null body');
+        assert.equal(res.body.Success, false, 'Successful despite db error');
+        assert(res.body.Error, 'No Error on db error');
         done();
       });
     });
-    it.skip('should succeed on update alone', function(done){
+    it('should error on DB Error - add g_d', function(done){
       request(app)
       .post('/api/groups/')
       .set('Content-Type', 'application/json')
-      .send({ID: 1, Name: "testgroup"})
+      .send({ID: -4, Name: "dberror", Databases:["test1", "test2"]})
       .expect(200)
       .end(function(err, res){
         if(err){
           console.log(err);
           return done(err);
         }
-        assert.equal(res.body.Success, false, 'Successful despite no info');
-        assert(res.body.Error, 'No Error on null body');
+        assert.equal(res.body.Success, false, 'Successful despite db error');
+        assert(res.body.Error, 'No Error on db error');
+        done();
+      });
+    });
+    it('should error on DB Error - get db2', function(done){
+      request(app)
+      .post('/api/groups/')
+      .set('Content-Type', 'application/json')
+      .send({ID: -2, Name: "dberror", Databases:["error", "test2"]})
+      .expect(200)
+      .end(function(err, res){
+        if(err){
+          console.log(err);
+          return done(err);
+        }
+        assert.equal(res.body.Success, false, 'Successful despite db error');
+        assert(res.body.Error, 'No Error on db error');
+        done();
+      });
+    });
+    it('should error on DB Error - get users', function(done){
+      request(app)
+      .post('/api/groups/')
+      .set('Content-Type', 'application/json')
+      .send({ID: -5, Name: "dberror", Databases:["error", "test2"]})
+      .expect(200)
+      .end(function(err, res){
+        if(err){
+          console.log(err);
+          return done(err);
+        }
+        assert.equal(res.body.Success, false, 'Successful despite db error');
+        assert(res.body.Error, 'No Error on db error');
+        done();
+      });
+    });
+    it('should feed the new id to update', function(done){
+      request(app)
+      .post('/api/groups/')
+      .set('Content-Type', 'application/json')
+      .send({Name: "testgroup", Databases:["test1", "test2"]})
+      .expect(200)
+      .end(function(err, res){
+        if(err){
+          console.log(err);
+          return done(err);
+        }
+        assert(res.body.Success, 'Unsuccessful request');
+        assert(res.body.ID, 'No ID Returned');
+        done();
+      });
+    });
+    it('should succeed on update alone', function(done){
+      request(app)
+      .post('/api/groups/')
+      .set('Content-Type', 'application/json')
+      .send({ID: 1, Name: "testgroup", Databases:["test1", "test2"]})
+      .expect(200)
+      .end(function(err, res){
+        if(err){
+          console.log(err);
+          return done(err);
+        }
+        assert(res.body.Success, 'Unsuccessful request');
+        assert(res.body.ID, 'No ID Returned');
+        assert.equal(res.body.ID, 1, 'Returned ID does not match fed ID');
         done();
       });
     });
