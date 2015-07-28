@@ -19,7 +19,16 @@ describe('errors', function(){
       if(args.length > 2){
         var sql_args = args[1];
       }
-      if(args[0].toUpperCase().search('SELECT *') >-1){
+      if(args[0].toUpperCase().search('SELECT USERS') >-1){
+        if(sql_args[0]==-2){
+          return callback('Database Error');
+        }
+        if(sql_args[0]==-3){
+          return callback(null, [{Retryable:0}]);
+        }
+        return callback(null, [{Retryable:1}]);
+      }
+      if(args[0].toUpperCase().search('SELECT \*') >-1){
         return callback(null, [{Acknowledged:0, User: 'testuser', DB:'testdb'}]);
       }
       if(args[0].toUpperCase().search('UPDATE ERRORS') >-1){
@@ -27,15 +36,6 @@ describe('errors', function(){
           return callback('Database Error');
         }
         return callback();
-      }
-      if(args[0].toUpperCase().search('SELECT USERS') >-1){
-        if(sql_args[0]===-2){
-          return callback('Database Error');
-        }
-        if(sql_args[0]===-3){
-          return callback(null, [{Retryable:0}]);
-        }
-        return callback(null, [{Retryable:1}]);
       }
     }
   }
@@ -121,16 +121,125 @@ describe('errors', function(){
     });
   });
   describe('POST /retry/:id', function(){
-    it('should error on null id');
-    it('should error on invalid id');
-    it('should error on update error');
-    it('should return success on valid retry');
+    it('should error on invalid id', function(done){
+      request(app)
+      .post('/api/errors/retry/-2')
+      .set('Content-Type', 'application/json')
+      .expect(200)
+      .end(function(err, res){
+        if(err){
+          console.log(err)
+          return done(err);
+        }
+        assert.equal(res.body.Success, false, 'Successful despite lookup error');
+        assert(res.body.Error, 'No Error on DB Error');
+        done();
+      });
+    });
+    it('should error on empty result set', function(done){
+      request(app)
+      .post('/api/errors/retry/-3')
+      .set('Content-Type', 'application/json')
+      .expect(200)
+      .end(function(err, res){
+        if(err){
+          console.log(err)
+          return done(err);
+        }
+        assert.equal(res.body.Success, false, 'Successful despite lookup error');
+        assert(res.body.Error, 'No Error on DB Error');
+        done();
+      });
+    });
+    it('should error on update error', function(done){
+      request(app)
+      .post('/api/errors/retry/-1')
+      .set('Content-Type', 'application/json')
+      .expect(200)
+      .end(function(err, res){
+        if(err){
+          console.log(err)
+          return done(err);
+        }
+        assert.equal(res.body.Success, false, 'Successful despite update error');
+        assert(res.body.Error, 'No Error on DB Error');
+        done();
+      });
+    });
+    it('should return success on valid retry', function(done){
+      request(app)
+      .post('/api/errors/retry/1')
+      .set('Content-Type', 'application/json')
+      .expect(200, {Success: true}, done);
+    });
   });
   describe('POST /retry/', function(){
-    it('should error on null id');
-    it('should error on invalid id');
-    it('should error on update error');
-    it('should return success on valid retry');
+    it('should error on lookup error', function(done){
+      var select_error_revert = errors.__set__('connection', {
+        query: function(){
+          var callback = arguments[arguments.length-1];
+          return callback('Database Error');
+        }
+      });
+      request(app)
+      .post('/api/errors/retry')
+      .set('Content-Type', 'application/json')
+      .expect(200)
+      .end(function(err, res){
+        if(err){
+          console.log(err)
+          return done(err);
+        }
+        assert.equal(res.body.Success, false, 'Successful despite select error');
+        assert(res.body.Error, 'No Error on DB Error');
+        select_error_revert();
+        done();
+      });
+    });
+    it('should error on update error', function(done){
+      var update_error_revert = errors.__set__('connection', {
+        query:function(){
+          var sql_args = [];
+          var args = [];
+          for(var i=0; i<arguments.length; i++){
+            args.push(arguments[i]);
+          }
+          var callback= args[args.length-1];
+          if(args[0].toUpperCase().search('UPDATE') >-1){
+            return callback("Database Error!");
+          }
+          return callback(null, [{Name:'testdb', Error: 'testerror'}]);
+        }
+      });
+      request(app)
+      .post('/api/errors/retry')
+      .set('Content-Type', 'application/json')
+      .expect(200)
+      .end(function(err, res){
+        if(err){
+          console.log(err)
+          return done(err);
+        }
+        assert.equal(res.body.Success, false, 'Successful despite update error');
+        assert(res.body.Error, 'No Error on DB Error');
+        update_error_revert();
+        done();
+      });
+    });
+    it('should return success on valid retry', function(done){
+      request(app)
+      .post('/api/errors/retry')
+      .set('Content-Type', 'application/json')
+      .expect(200)
+      .end(function(err, res){
+        if(err){
+          console.log(err)
+          return done(err);
+        }
+        assert(res.body.Success,'Unsuccessful despite valid call');
+        done();
+      });
+    });
   });
   after(function(){
     db_revert();

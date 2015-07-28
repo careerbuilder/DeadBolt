@@ -32,8 +32,8 @@ router.post('/retry/:id', function(req, res){
       console.log(err);
       return res.send({Success:false, Error:err});
     }
-    if(results[0].Retryable == 0){
-      return res.send({Success:false, Error:err});
+    if(results.length <1 || results[0].Retryable == 0){
+      return res.send({Success:false, Error:'No retryable Error with that ID'});
     }
     var data = results;
     connection.query("Update Errors set Acknowledged=1 where id=?", [id], function(err, results){
@@ -42,8 +42,8 @@ router.post('/retry/:id', function(req, res){
         return res.send({Success:false, Error:err});
       }
       db_tools.update_users(data[0], data, function(errs){});
+      return res.send({Success:true});
     });
-    return res.send({Success:true});
   });
 });
 
@@ -56,7 +56,7 @@ router.post('/retry/', function(req, res){
     }
     var databases = {};
     results.forEach(function(res, i){
-      if(!res.Name in databases){
+      if(!(res.Name in databases)){
         databases[res.Name] = [];
       }
       databases[res.Name].push(res);
