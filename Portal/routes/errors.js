@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-var connection = require('./mysql');
+var connection = require('../middleware/mysql');
 var db_tools = require('../tools/db_tools.js');
 
 router.get('/', function(req, res){

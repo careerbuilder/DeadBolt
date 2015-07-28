@@ -5,7 +5,7 @@ var async = require('async');
 var nodemailer = require('nodemailer');
 var sesTransport = require('nodemailer-ses-transport');
 var transporter = nodemailer.createTransport(sesTransport());
-var connection = require('./mysql');
+var connection = require('../middleware/mysql');
 var encryption = require('../tools/encryption');
 var db_tools = require('../tools/db_tools');
 

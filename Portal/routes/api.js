@@ -1,9 +1,9 @@
 var express = require('express');
 var router = express.Router();
-var connection = require('./mysql');
+var connection = require('../middleware/mysql');
 var uuid = require('node-uuid');
 var crypto = require('crypto');
-var auth = require('./auth.js');
+var auth = require('../middleware/auth.js');
 
 router.get('/', function(req, res){
   return res.send("Welcome to the API");

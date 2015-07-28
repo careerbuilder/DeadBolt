@@ -1,4 +1,4 @@
-var connection = require('../routes/mysql.js');
+var connection = require('../middleware/mysql.js');
 var async = require('async');
 var mysql_tools = require('./mysql_tools.js');
 var mssql_tools = require('./mssql_tools.js');

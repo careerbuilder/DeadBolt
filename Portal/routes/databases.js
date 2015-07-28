@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var async = require('async');
-var connection = require('./mysql');
+var connection = require('../middleware/mysql');
 var encryption = require('../tools/encryption');
 var db_tools = require('../tools/db_tools');
 

@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var async = require('async');
-var connection = require('./mysql');
+var connection = require('../middleware/mysql');
 var encryption = require('../tools/encryption');
 var db_tools = require('../tools/db_tools');
 
@@ -231,9 +231,7 @@ router.delete('/:id', function(req,res){
               return res.send({Success:false, Error: err});
             }
             databases.forEach(function(db, i){
-              db_tools.update_users(db, users, function(errors){
-                //console.log(errors);
-              });
+              db_tools.update_users(db, users, function(errors){});
             });
             connection.query('Insert into History (Activity) Value("Deleted group with ID: ?")', [group_id], function(err, result){
               if(err){
