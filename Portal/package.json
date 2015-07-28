@@ -22,17 +22,14 @@
   "config": {
     "blanket": {
       "pattern": [
-        "routes/api",
-        "routes/databases",
-        "routes/errors",
-        "routes/groups"
+        "routes",
+        "tools"
       ],
       "data-cover-never": [
         "node_modules",
         "client",
         "test",
-        "routes/auth",
-        "routes/mysql"
+        "middleware"
       ]
     }
   },
