@@ -24,13 +24,11 @@ function add_database(body, callback){
           return callback(err);
         }
         var dbinfo = {Name: body.Name, Type: body.Type, Host: body.Host, Port: body.Port, SAUser: body.SAUser, SAPass: sacreds, ID:DB_ID};
-        db_tools.update_all_users(dbinfo, function(errs){
-          connection.query('Insert into History (Activity) Value("Added Database: ?")', [body.Name], function(err, result){
-            if(err){
-              console.log(err);
-            }
-            return callback(null, DB_ID);
-          });
+        connection.query('Insert into History (Activity) Value("Added Database: ?")', [body.Name], function(err, result){
+          if(err){
+            console.log(err);
+          }
+          return callback(null, DB_ID);
         });
       });
     });
@@ -60,12 +58,11 @@ router.post('/', function(req, res){
   async.series([
     function(callback){
       if(body.ID){
-        return callback(null, body.ID);
+        update_database(body, callback);
       }
-      add_database(body, callback);
-    },
-    function(callback){
-      update_database(body, callback);
+      else{
+        add_database(body, callback);
+      }
     }
   ],function(err, results){
     if(err){
