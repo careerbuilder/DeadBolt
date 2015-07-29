@@ -82,7 +82,7 @@ router.get('/', function(req, res){
       console.log(err);
       return res.send({Success:false, Error:err});
     }
-    return res.send({Success:true, Results:results});
+    return res.send({Success:true, Results: results});
   });
 });
 
@@ -103,7 +103,7 @@ router.post('/search', function(req, res){
       console.log(err);
       return res.send({Success: false, Error: err});
     }
-    return res.send({Success: true, Results: results});
+    return res.send({Success: true,  Results: results});
   });
 });
 

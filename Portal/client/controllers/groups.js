@@ -92,7 +92,7 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
     });
     $http.get('/api/users/'+groupinfo.ID).success(function(data){
       if(data.Success){
-        groupinfo.Users = data.Data;
+        groupinfo.Users = data.Results;
         $scope.groupRef = JSON.stringify(groupinfo);
       }
     });

@@ -107,7 +107,7 @@ router.get('/', function(req, res){
       console.log(err);
       return res.send({Success:false, Error:err});
     }
-    return res.send({Success:true, Results:results});
+    return res.send({Success:true, Results: results});
   });
 });
 
@@ -128,7 +128,7 @@ router.post('/search', function(req, res){
       console.log(err);
       return res.send({Success: false, Error: err});
     }
-    return res.send({Success: true, Results: results});
+    return res.send({Success: true, Results:results});
   });
 });
 
@@ -144,7 +144,7 @@ router.get('/:username', function(req, res){
     for(var i=0; i<results.length; i++){
       groups[results[i].Name] = results[i].Permissions;
     }
-    return res.send({Success:true, Results:groups});
+    return res.send({Success:true, Results: groups});
   });
 });
 

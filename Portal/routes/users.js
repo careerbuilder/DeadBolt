@@ -150,7 +150,7 @@ router.post('/search/:page', function(req, res){
   var end  = (start + 50)-1;
   var query = "";
   var args = [];
-  if(body.Info.trim().length > 0){
+  if(body.Info && body.Info.trim().length > 0){
     var info = "%"+body.Info+"%";
     query = 'Select ID, Username, Email, User_ID, FirstName, LastName from possible_users where (Username like ? OR Email like ? OR FirstName like ? OR LastName like ?) ORDER BY if(User_ID = "" or User_ID is null,1,0),User_ID, Username ASC LIMIT ?,?;';
     args = [info, info, info, info, start, end];
@@ -165,7 +165,7 @@ router.post('/search/:page', function(req, res){
       return res.send({Success: false, Error: err});
     }
     var users = results;
-    return res.send({Success: true, Results: users});
+    return res.send({Success: true,  Results: users});
   });
 });
 
