@@ -43,5 +43,16 @@ describe('mysql_tools', function(){
       if(args.length > 2){
         sql_args = args[1];
       }
-    } 
+    }
   }
+
+  before(function(){
+
+  });
+
+
+
+  after(function(){
+
+  });
+});
