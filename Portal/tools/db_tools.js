@@ -4,7 +4,7 @@ var mysql_tools = require('./mysql_tools.js');
 var mssql_tools = require('./mssql_tools.js');
 //var mongo_tools = require('./mongo_tools.js');
 
-var retry_args = {times:3, interval:30000}
+var retry_args = {times:3, interval:30000};
 
 function update(db, init_users, callback){
   var dbinfo = db;
@@ -171,14 +171,14 @@ module.exports = {
     connection.query("Select * from users;", function(err, all_users){
       if(err){
         console.log("Error on " + dbinfo.Name +": " + err);
-        callback(err);
+        return callback([err]);
       }
       filter_users(all_users, dbinfo.Type, function(cleanusers){
         if(cleanusers.length <1){
           return callback();
         }
         update(dbinfo, cleanusers, function(err, errs){
-          callback(null, errs);
+          callback(errs);
         });
       });
     });
@@ -190,9 +190,6 @@ module.exports = {
         return callback();
       }
       update(dbinfo, cleanusers, function(err, errs){
-        if(err){
-          console.log(err);
-        }
         callback(errs);
       });
     });

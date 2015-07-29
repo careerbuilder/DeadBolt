@@ -1,4 +1,4 @@
-describe.only('db_tools', function(){
+describe('db_tools', function(){
   var assert = require('assert');
   var rewire = require('rewire');
   var blanket = require('blanket');
@@ -28,6 +28,16 @@ describe.only('db_tools', function(){
         }
         return callback(null,[{Username: 'testuser', MySQL_Password:'password', SQL_Server_Password:'password', Permissions:'SU'}]);
       }
+      if(args[0].search(/select\s+\*\s+from\s+users/i)>-1){
+        return callback(null,[{Username: 'testuser', MySQL_Password:'password', SQL_Server_Password:'password'}]);
+      }
+    }
+  }
+
+  var error_db = {
+    query: function(){
+      var callback = arguments[arguments.length-1]; //last arg is callback
+      return callback("DB Error");
     }
   }
 
@@ -174,6 +184,59 @@ describe.only('db_tools', function(){
     it('should try to update mysql servers', function(done){
       update_users({ID:1, Name: 'testdb', Type:'mysql'}, [{Username: 'testguy', MySQL_Password:'password'}], function(errors){
         assert(errors, 'No Errors object returned!');
+        done();
+      });
+    });
+    it('should try to update mssql servers', function(done){
+      update_users({ID:1, Name: 'testdb', Type:'mssql'}, [{Username: 'testguy', SQL_Server_Password:'password'}], function(errors){
+        assert(errors, 'No Errors object returned!');
+        done();
+      });
+    });
+    describe('retry_errors problems', function(){
+      var retry_errors_revert;
+      before(function(){
+        retry_errors_revert = db_tools.__set__('retry_errors', function(errors, callback){
+          return callback("Save Error", [{Username: 'test1'}, {Username:'test2'}], []);
+        });
+      });
+      it('should try to update mysql servers', function(done){
+        update_users({ID:1, Name: 'testdb', Type:'mysql'}, [{Username: 'testguy', MySQL_Password:'password'}], function(errors){
+          assert(errors, 'No Errors object returned!');
+          done();
+        });
+      });
+      it('should try to update mssql servers', function(done){
+        update_users({ID:1, Name: 'testdb', Type:'mssql'}, [{Username: 'testguy', SQL_Server_Password:'password'}], function(errors){
+          assert(errors, 'No Errors object returned!');
+          done();
+        });
+      });
+      after(function(){
+        retry_errors_revert();
+      });
+    });
+  });
+  describe('#update_all_users', function(){
+    var update_all_users = db_tools.update_all_users;
+    it('should error on db error - get users', function(done){
+      var error_db_revert = db_tools.__set__('connection', error_db);
+      update_all_users({ID:1, Name: 'testdb', Type:'mssql'}, function(errors){
+        assert(errors, 'No Error on DB Error');
+        assert.equal(errors[0], "DB Error", 'DB Error not returned');
+        error_db_revert();
+        done();
+      });
+    });
+    it('should exit with zero users', function(done){
+      update_all_users({ID:1, Name: 'testdb', Type:'none'}, function(errors){
+        assert.equal(false, !!errors, 'Errors returned on no-op');
+        done();
+      });
+    });
+    it('should run through all users', function(done){
+      update_all_users({ID:1, Name: 'testdb', Type:'aurora'}, function(errors){
+        assert(errors, 'No Error object returned');
         done();
       });
     });
