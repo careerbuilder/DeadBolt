@@ -19,27 +19,10 @@ function update(db, init_users, callback){
     var gospel_users = results;
     async.retry({times:3, interval:30000}, function(cb, results){
       switch(dbinfo.Type.toLowerCase().trim()){
+        case 'aurora':
         case 'mysql':
           mysql_tools.update_users(dbinfo, users, gospel_users, function(errors){
-            retry_errors(dbinfo, errors, function(save_err, rem_users, rem_errors){
-              if(save_err){
-                console.log(save_err);
-              }
-              if(rem_users.length > 0){
-                users = rem_users;
-                var rem_usernames = [];
-                rem_users.forEach(function(ru, i){
-                  rem_usernames.push(ru.Username);
-                });
-                return cb({Error: "Operation failed for at least one user", Users: rem_usernames}, rem_errors);
-              }
-              return cb(null, rem_errors);
-            });
-          });
-          break;
-        case 'aurora':
-          mysql_tools.update_users(dbinfo, users, gospel_users, function(err){
-            retry_errors(dbinfo, err, function(save_err, rem_users, rem_errors){
+            retry_errors(errors, function(save_err, rem_users, rem_errors){
               if(save_err){
                 console.log(save_err);
               }
@@ -57,7 +40,7 @@ function update(db, init_users, callback){
           break;
         case 'mssql':
           mssql_tools.update_users(dbinfo, users, gospel_users, function(err){
-            retry_errors(dbinfo, err, function(save_err, rem_users, rem_errors){
+            retry_errors(err, function(save_err, rem_users, rem_errors){
               if(save_err){
                 console.log(save_err);
               }
@@ -76,7 +59,7 @@ function update(db, init_users, callback){
         /*
         case 'mongo':
           mongo_tools.update_users(dbinfo, users, gospel_users, function(err){
-            retry_errors(dbinfo, err, callback);
+            retry_errors(err, callback);
             //callback(errs);
           });
           break;
@@ -94,10 +77,11 @@ function update(db, init_users, callback){
   });
 }
 
-function retry_errors(db, errors, callback){
+function retry_errors(errors, callback){
   var remaining_errors = [];
   var usernames = [];
   var users = [];
+  var doomed = [];
   errors.forEach(function(error, i){
     if(error.Retryable){
       if(usernames.indexOf(error.User.Username)<0){
@@ -107,14 +91,15 @@ function retry_errors(db, errors, callback){
       remaining_errors.push(error);
     }
     else{
-      save_errors([error], function(err, results){
-        if(err){
-          console.log("error saving error! Oh the irony!");
-        }
-      });
+      doomed.push(error);
     }
   });
-  callback(null, users, remaining_errors);
+  save_errors(doomed, function(err, results){
+    if(err){
+      console.log("error saving error! Oh, the irony!");
+    }
+    callback(null, users, remaining_errors);
+  });
 }
 
 function save_errors(errors, callback){
@@ -137,7 +122,7 @@ function save_errors(errors, callback){
     });
   }
   else{
-    callback([]);
+    callback(null, []);
   }
 }
 
