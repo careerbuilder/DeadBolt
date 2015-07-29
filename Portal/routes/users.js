@@ -5,30 +5,26 @@ var async = require('async');
 var nodemailer = require('nodemailer');
 var sesTransport = require('nodemailer-ses-transport');
 var transporter = nodemailer.createTransport(sesTransport());
+var adapi = require('../middleware/adapi');
 var connection = require('../middleware/mysql');
 var encryption = require('../middleware/encryption');
 var db_tools = require('../tools/db_tools');
 
 function add_user(body, callback){
-  var payload = {
-    user:{
-      UserName: body.Username,
-      FirstName: body.FirstName,
-      LastName: body.LastName,
-      Email: body.Email
-    }
-  };
-  var req_opts = {
-    uri: "http://172.21.12.226:3000/api/createUser/",
-    method: 'POST',
-    json: payload
-  };
-  request(req_opts, function(err, response, body){
+  if(!body || !body.Username || !body.FirstName || !body.LastName || !body.Email){
+    return callback("No User info");
+  }
+  var user = {
+    UserName: body.Username,
+    FirstName: body.FirstName,
+    LastName: body.LastName,
+    Email: body.Email
+  }
+  adapi.add_user_to_AD(user, function(err, result){
     if(err){
-      console.log("error connecting to AD API");
       console.log(err);
     }
-    console.log(body || "");
+    console.log(result || "");
   });
   var query = 'Insert into Users (Username) value (?) ON Duplicate KEY UPDATE Username=Username';
   connection.query(query, [body.Username], function(err, result){
@@ -175,59 +171,39 @@ router.post('/search/:page', function(req, res){
 
 router.post('/', function(req, res){
   var body = req.body;
-  if(!body.User_ID){
-    async.waterfall([
-      function(callback){
+  var exists = !!body.User_ID;
+  async.waterfall([
+    function(callback){
+      if(body.User_ID){
         return callback(null, body);
-      },
-      function(arg1, callback){
-        add_user(arg1, callback);
-      },
-      function(arg1, callback){
-        update_user(arg1, callback);
-      },
-      function(userinfo, callback){
-        connection.query('Insert into History (Activity) Value("Added user: ?")', [userinfo.Username], function(err, result){
-          if(err){
-            console.log(err);
-            return callback(err);
-          }
-          return callback(null, userinfo.User_ID);
-        });
       }
-    ], function(err, result){
-      if(err){
-        console.log(err);
-        return res.send({Success:false, Error: err});
+      add_user(body, callback);
+    },
+    function(arg1, callback){
+      update_user(arg1, callback);
+    },
+    function(userinfo, callback){
+      var activity = "";
+      if(exists){
+        activity = '"Updated user: ?"';
       }
-      return res.send({Success:true, User_ID: result});
-    });
-  }
-  else{
-    async.waterfall([
-      function(callback){
-        return callback(null, body);
-      },
-      function(arg1, callback){
-        update_user(arg1, callback);
-      },
-      function(userinfo, callback){
-        connection.query('Insert into History (Activity) Value("Edited user: ?")', [userinfo.Username], function(err, result){
-          if(err){
-            console.log(err);
-            return callback(err);
-          }
-          return callback(null, userinfo.User_ID);
-        });
+      else{
+        activity = '"Added user: ?"';
       }
-    ], function(err, result){
-      if(err){
-        console.log(err);
-        return res.send({Success:false, Error: err});
-      }
-      return res.send({Success:true, User_ID: result});
-    });
-  }
+      connection.query('Insert into History (Activity) Value('+ activity +')', [userinfo.Username], function(err, result){
+        if(err){
+          console.log(err);
+        }
+        return callback(null, userinfo.User_ID);
+      });
+    }
+  ], function(err, result){
+    if(err){
+      console.log(err);
+      return res.send({Success:false, Error: err});
+    }
+    return res.send({Success:true, User_ID: result});
+  });
 });
 
 router.delete('/:id', function(req,res){
@@ -239,16 +215,11 @@ router.delete('/:id', function(req,res){
     }
     var user = results[0];
     var username = user.Username;
-    var req_opts = {
-      uri: "http://172.21.12.226:3000/api/removeUser/",
-      method: 'POST',
-      json: {user: {UserName: username}}
-    };
-    request(req_opts, function(err, response, body){
+    adapi.remove_user_from_AD(username, function(err, result){
       if(err){
         console.log(err);
       }
-      //console.log(body);
+      console.log(result);
     });
     var db_query = "Select * from `databases` where ID in (Select Database_ID from groups_databases where Group_ID in (Select Group_ID from users_groups where User_ID = ?))";
     connection.query(db_query, [user_id], function(err, results){
@@ -264,9 +235,7 @@ router.delete('/:id', function(req,res){
           return res.send({Success:false, Error: err});
         }
         async.each(affected_dbs, function(db, i){
-          db_tools.update_users(db, [user], function(errs){
-            //console.log(errs);
-          })
+          db_tools.update_users(db, [user], function(errs){});
         }, function(err){
           if(err){
             console.log(err);
@@ -282,15 +251,15 @@ router.delete('/:id', function(req,res){
                 console.log(err);
                 return res.send({Success:false, Error: err});
               }
+              connection.query('Insert into History (Activity) Value("Deleted user: ?")', [username], function(err, result){
+                if(err){
+                  console.log(err);
+                  return res.send({Success: true, Error: "History error: " + err.toString(), });
+                }
+                return res.send({Success: true});
+              });
             });
           });
-        });
-        connection.query('Insert into History (Activity) Value("Deleted user: ?")', [username], function(err, result){
-          if(err){
-            console.log(err);
-            return res.send({Success: true, Error: "History error: " + err.toString(), });
-          }
-          return res.send({Success: true});
         });
       });
     });
