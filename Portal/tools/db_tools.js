@@ -110,11 +110,7 @@ function retry_errors(db, errors, callback){
       save_errors([error], function(err, results){
         if(err){
           console.log("error saving error! Oh the irony!");
-        }
-        else{
-          console.log("Error saved", results);
-        }
-      })
+      });
     }
   });
   callback(null, users, remaining_errors);
@@ -123,7 +119,6 @@ function retry_errors(db, errors, callback){
 function save_errors(errors, callback){
   if(errors && errors.length > 0){
     async.each(errors, function(error, cb){
-      console.log("Saving Error");
       connection.query("Insert into Errors(Username, `Database`, Title, Details, Retryable, Class) Values(?, ?, ?, ?, ?, ?);", [error.User.Username, error.Database.Name, error.Error.Title, JSON.stringify(error.Error.Details), error.Retryable, error.Class], function(err, results){
         if(err){
           console.log(err);
@@ -194,7 +189,7 @@ module.exports = {
           return callback();
         }
         update(dbinfo, cleanusers, function(errs){
-          callback(errs);
+          callback(null, errs);
         });
       });
     });
