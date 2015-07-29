@@ -55,6 +55,12 @@ describe('db_tools', function(){
     {Username: 'NoCass', MySQL_Password:'pass', SQL_Server_Password: 'pass', Mongo_Password:'pass'}
   ];
 
+  var db_revert;
+  var tools1_revert;
+  var tools2_revert;
+  var retry_revert;
+  var quiet_revert;
+
   before(function(){
     db_revert = db_tools.__set__('connection', mock_db);
     tools1_revert = db_tools.__set__('mysql_tools', mock_sql_tools);
