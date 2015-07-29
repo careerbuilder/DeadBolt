@@ -68,7 +68,8 @@ function update_user(body, callback){
   var group_where = 'where (';
   var db_or = "OR ";
   var values = "";
-  for(key in body.Groups){
+  var b_groups = body.Groups || {};
+  for(key in b_groups){
     group_where += 'groups.ID = ? OR ';
     db_or += 'Group_ID= ? OR ';
     values +='('+User_ID+',?,"'+body.Groups[key]+'"), ';
@@ -90,10 +91,6 @@ function update_user(body, callback){
       return callback(err);
     }
     var affected_dbs = results || [];
-    var db_names = [];
-    affected_dbs.forEach(function(db, i){
-      db_names.push(db.Name);
-    });
     connection.query("Select * from users where users.ID=?;", [User_ID], function(err, results){
       if(err){
         console.log(err);
@@ -110,26 +107,14 @@ function update_user(body, callback){
             console.log(err);
             return callback(err);
           }
-          connection.query(db_query, [User_ID], function(err, results){
-            if(err){
-              console.log(err);
-              return callback(err);
-            }
-            results.forEach(function(res, i){
-              if(db_names.indexOf(results[i].Name)<0){
-                affected_dbs.push(results[i]);
-                db_names.push(results[i].Name);
-              }
+          async.each(affected_dbs,function(db, inner_callback){
+            db_tools.update_users(db, userinfo, function(errs){
+              inner_callback();
             });
-            async.each(affected_dbs,function(db, inner_callback){
-              db_tools.update_users(db, userinfo, function(errs){
-                inner_callback();
-              });
-            }, function(err, result){
-              console.log("All Databases Updated for " + body.Username);
-            });
-            callback(null, body);
+          }, function(err, result){
+            console.log("All Databases Updated for " + body.Username);
           });
+          callback(null, body);
         });
       });
     });
@@ -225,7 +210,7 @@ router.delete('/:id', function(req,res){
       }
       console.log(result);
     });
-    var db_query = "Select * from `databases` where ID in (Select Database_ID from groups_databases where Group_ID in (Select Group_ID from users_groups where User_ID = ?))";
+    var db_query = "Select DISTINCT * from `databases` where ID in (Select Database_ID from groups_databases where Group_ID in (Select Group_ID from users_groups where User_ID = ?))";
     connection.query(db_query, [user_id], function(err, results){
       if(err){
         console.log(err);
@@ -238,12 +223,11 @@ router.delete('/:id', function(req,res){
           console.log(err);
           return res.send({Success:false, Error: err});
         }
-        async.each(affected_dbs, function(db, i){
-          db_tools.update_users(db, [user], function(errs){});
+        async.each(affected_dbs, function(db, cb){
+          db_tools.update_users(db, [user], function(errs){
+            cb();
+          });
         }, function(err){
-          if(err){
-            console.log(err);
-          }
           console.log("All Databases Updated to remove " + username);
           connection.query('Delete from users where ID = ?', [user_id], function(err, result){
             if(err){
