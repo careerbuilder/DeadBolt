@@ -19,6 +19,36 @@ describe('users', function(){
       if(args.length > 2){
         var sql_args = args[1];
       }
+      if(args[0].search(/^select\s+users.username/i)>-1){
+        if(sql_args && sql_args[0] && sql_args[0] == -1){
+          return callback("Database Error");
+        }
+        return callback(null, [{Username: 'testuser', Permissions:'SU'}, {Username: 'testuser2', Permissions:'RW'}]);
+      }
+      if(args[0].search(/^select\s+id,\s+username/i)>-1){
+        if(sql_args && sql_args[0]){
+          if(sql_args[0] == -50 || sql_args[4] == -50){
+            return callback("Database Error");
+          }
+        }
+        return callback(null, [{Username: 'testuser', Permissions:'SU'}, {Username: 'testuser2', Permissions:'RW'}]);
+      }
+      if(args[0].search(/^insert\s+into\s+users/i)>-1){
+        if(sql_args && sql_args[0]){
+          if(sql_args[0].search(/dberror1/i)>-1){
+            return callback("Database Error");
+          }
+        }
+        return callback(null, {insertId: 1});
+      }
+      if(args[0].search(/^update\s+possible_users/i)>-1){
+        if(sql_args && sql_args[0]){
+          if(sql_args[1].search(/dberror2/i)>-1){
+            return callback("Database Error");
+          }
+        }
+        return callback(null, {insertId: 1});
+      }
     }
   }
 
@@ -40,7 +70,7 @@ describe('users', function(){
 
   var mock_transport = {
     sendMail: function(details, callback){
-      if(details.subject && details.subject.toUpperCase().search('error')>-1){
+      if(details.to && details.to.search(/error/i)>-1){
         return callback("Mail Error!");
       }
       return callback(null, details);
@@ -49,7 +79,7 @@ describe('users', function(){
 
   var mock_AD = {
     add_user_to_AD: function(user, callback){
-      if(user.UserName && user.Username == "error"){
+      if(user.UserName && user.UserName.search(/aderror/i)>-1){
         return callback("AD_API Error");
       }
       return callback();
@@ -78,12 +108,164 @@ describe('users', function(){
     quiet_revert = users.__set__('console', {log:function(){}});
   });
   describe('GET /:groupid', function(){
-    it('should error on db error');
-    it('should return users of the selected group');
+    it('should error on db error', function(done){
+      request(app)
+      .get('/api/users/-1')
+      .expect(200)
+      .end(function(err, res){
+        if(err){
+          console.log(err);
+          return done(err);
+        }
+        assert.equal(res.body.Success, false, 'Successful on DB Error');
+        assert(res.body.Error, 'No Error on DB Error');
+        done();
+      });
+    });
+    it('should return users of the selected group', function(done){
+      request(app)
+      .get('/api/users/1')
+      .expect(200)
+      .end(function(err, res){
+        if(err){
+          console.log(err);
+          return done(err);
+        }
+        assert(res.body.Success, 'Unsuccessful request');
+        assert(res.body.Results, 'No Results');
+        done();
+      });
+    });
   });
   describe('POST /search', function(){
-    it('should error on db error');
-    it('should return users of the selected group');
+    it('should error on db error - no data', function(done){
+      request(app)
+      .post('/api/users/search/-1')
+      .expect(200)
+      .end(function(err, res){
+        if(err){
+          console.log(err);
+          return done(err);
+        }
+        assert.equal(res.body.Success, false, 'Successful on DB Error');
+        assert(res.body.Error, 'No Error on DB Error');
+        done();
+      });
+    });
+    it('should error on db error - with data', function(done){
+      request(app)
+      .post('/api/users/search/-1')
+      .expect(200)
+      .set('Content-Type', 'application/json')
+      .send({Info: 'Error'})
+      .end(function(err, res){
+        if(err){
+          console.log(err);
+          return done(err);
+        }
+        assert.equal(res.body.Success, false, 'Successful on DB Error');
+        assert(res.body.Error, 'No Error on DB Error');
+        done();
+      });
+    });
+    it('should return users of the selected group', function(done){
+      request(app)
+      .post('/api/users/search/0')
+      .expect(200)
+      .set('Content-Type', 'application/json')
+      .send({Info: 'Error'})
+      .end(function(err, res){
+        if(err){
+          console.log(err);
+          return done(err);
+        }
+        assert(res.body.Success, 'Unsuccessful request');
+        assert(res.body.Results, 'No Results');
+        done();
+      });
+    });
+  });
+  describe('POST /', function(){
+    describe('add user', function(){
+      it('should error on lack of user info', function(done){
+        request(app)
+        .post('/api/users')
+        .expect(200)
+        .end(function(err, res){
+          assert.equal(res.body.Success, false, 'Successful despite no info');
+          assert(res.body.Error, 'No Error on Null info');
+          done();
+        });
+      });
+      it('should error on AD failure', function(){
+        request(app)
+        .post('/api/users')
+        .set('Content-Type', 'application/json')
+        .send({Username: "ADError", FirstName: "Error", LastName:"Error", Email:"Error@Error.com"})
+        .expect(200)
+        .end(function(err, res){
+          assert.equal(res.body.Success, false, 'Successful despite AD Error');
+          assert(res.body.Error, 'No Error on AD Error');
+          done();
+        });
+      });
+      it('should error on db error - insert', function(done){
+        request(app)
+        .post('/api/users')
+        .set('Content-Type', 'application/json')
+        .send({Username: "DBError1", FirstName: "user", LastName:"name", Email:"email@email.com"})
+        .expect(200)
+        .end(function(err, res){
+          assert.equal(res.body.Success, false, 'Successful DB Error');
+          assert(res.body.Error, 'No Error on DB Error');
+          done();
+        });
+      });
+      it('should error on db error - update', function(done){
+        request(app)
+        .post('/api/users')
+        .set('Content-Type', 'application/json')
+        .send({Username: "DBError2", FirstName: "user", LastName:"name", Email:"email@email.com"})
+        .expect(200)
+        .end(function(err, res){
+          assert.equal(res.body.Success, false, 'Successful DB Error');
+          assert(res.body.Error, 'No Error on DB Error');
+          done();
+        });
+      });
+      it('should proceed on mail failure', function(done){
+        request(app)
+        .post('/api/users')
+        .set('Content-Type', 'application/json')
+        .send({Username: "Username", FirstName: "user", LastName:"name", Email:"error@email.com"})
+        .expect(200)
+        .end(function(err, res){
+          assert(res.body.Success, 'Unsuccessful request');
+          assert(res.body.User_ID, 'No Results');
+          done();
+        });
+      });
+      it('should pass the new ID in to update', function(done){
+        request(app)
+        .post('/api/users')
+        .set('Content-Type', 'application/json')
+        .send({Username: "Username", FirstName: "user", LastName:"name", Email:"email@email.com", Groups:[]})
+        .expect(200)
+        .end(function(err, res){
+          assert(res.body.Success, 'Unsuccessful request');
+          assert(res.body.User_ID, 'No Results');
+          done();
+        });
+      });
+    });
+    describe('update user', function(){
+      it('should error on db error - select dbs');
+      it('should error on db error - select users');
+      it('should error on db error - del group');
+      it('should error on db error - add group');
+      it('should resume on history error');
+      it('should succeed on valid arguments');
+    });
   });
   after(function(){
     db_revert();

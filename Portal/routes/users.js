@@ -23,37 +23,38 @@ function add_user(body, callback){
   adapi.add_user_to_AD(user, function(err, result){
     if(err){
       console.log(err);
-    }
-    console.log(result || "");
-  });
-  var query = 'Insert into Users (Username) value (?) ON Duplicate KEY UPDATE Username=Username';
-  connection.query(query, [body.Username], function(err, result){
-    if(err){
-      console.log(err);
       return callback(err);
     }
-    User_ID = result.insertId;
-    connection.query('Update possible_users set User_ID = ? where Username = ?', [User_ID, body.Username], function(err, result){
+    console.log(result || "");
+    var query = 'Insert into Users (Username) value (?) ON Duplicate KEY UPDATE Username=Username';
+    connection.query(query, [body.Username], function(err, result){
       if(err){
         console.log(err);
         return callback(err);
       }
-      var plaintext = 'An account has been created for you on the CBsiteDB active directory, for use in RDS Identity management. To activate this account, please navigate to https://password.cbsitedb.net/accounts/Reset and unlock the account.\n ' +
-      'username: ' + body.Username  + '\nUpon setting a password, all databases to which you have access will be accessible using that username and password. If you have any questions, email Adam.Yost@careerbuilder.com';
-      var html = '<h1>An Account Has Been Created For You</h1><p>An account has been created for you on the CBsiteDB active directory, for use in RDS Identity management. To activate this account, please navigate to <a href="https://password.cbsitedb.net/accounts/Reset">https://password.cbsitedb.net/accounts/Reset</a> and unlock the account.</p>\n' +
-      '<h4>username: ' + body.Username  + '</h4>\n<p>Upon setting a password, all databases to which you have access will be accessible using that username and password. If you have any questions, email <a href="mailto:Adam.Yost@careerbuilder.com">Adam.Yost@careerbuilder.com</a></p>';
-      transporter.sendMail({
-        from: 'DeadBolt@cbsitedb.net',
-        to: body.Email,
-        subject: 'Identity Added to Databases',
-        text: plaintext,
-        html: html
-      }, function(err, info){
+      User_ID = result.insertId;
+      connection.query('Update possible_users set User_ID = ? where Username = ?', [User_ID, body.Username], function(err, result){
         if(err){
           console.log(err);
+          return callback(err);
         }
-        body.User_ID = User_ID;
-        return callback(null, body);
+        var plaintext = 'An account has been created for you on the CBsiteDB active directory, for use in RDS Identity management. To activate this account, please navigate to https://password.cbsitedb.net/accounts/Reset and unlock the account.\n ' +
+        'username: ' + body.Username  + '\nUpon setting a password, all databases to which you have access will be accessible using that username and password. If you have any questions, email Adam.Yost@careerbuilder.com';
+        var html = '<h1>An Account Has Been Created For You</h1><p>An account has been created for you on the CBsiteDB active directory, for use in RDS Identity management. To activate this account, please navigate to <a href="https://password.cbsitedb.net/accounts/Reset">https://password.cbsitedb.net/accounts/Reset</a> and unlock the account.</p>\n' +
+        '<h4>username: ' + body.Username  + '</h4>\n<p>Upon setting a password, all databases to which you have access will be accessible using that username and password. If you have any questions, email <a href="mailto:Adam.Yost@careerbuilder.com">Adam.Yost@careerbuilder.com</a></p>';
+        transporter.sendMail({
+          from: 'DeadBolt@cbsitedb.net',
+          to: body.Email,
+          subject: 'Identity Added to Databases',
+          text: plaintext,
+          html: html
+        }, function(err, info){
+          if(err){
+            console.log(err);
+          }
+          body.User_ID = User_ID;
+          return callback(null, body);
+        });
       });
     });
   });
@@ -65,22 +66,25 @@ function update_user(body, callback){
   var add_group_query;
   var group_ids = [];
   var group_where = 'where (';
+  var db_or = "OR ";
   var values = "";
   for(key in body.Groups){
     group_where += 'groups.ID = ? OR ';
+    db_or += 'Group_ID= ? OR ';
     values +='('+User_ID+',?,"'+body.Groups[key]+'"), ';
     group_ids.push(key);
   }
+  db_or += '0=1';
+  group_where += '0=1)'
   values = "VALUES"+(values.substring(0,values.length-2));
-  group_where+='0=1)';
   del_group_query = 'Delete from users_groups where User_ID= ? and Group_ID not in (Select ID from groups '+group_where+');';
   add_group_query = 'Insert into users_groups (User_ID, Group_ID, Permissions) '+values+' ON DUPLICATE KEY UPDATE Permissions=Values(Permissions);';
   if(group_ids.length<1){
     del_group_query = 'Delete from users_groups where User_ID= ?;';
     add_group_query = 'set @dummy = 1';
   }
-  var db_query = "Select * from `databases` where ID in (Select Database_ID from groups_databases where Group_ID in (Select Group_ID from users_groups where User_ID = ?))";
-  connection.query(db_query, [User_ID], function(err, results){
+  var db_query = "Select DISTINCT * from `databases` where ID in (Select Database_ID from groups_databases where Group_ID in (Select Group_ID from users_groups where User_ID = ? " + db_or + "));";
+  connection.query(db_query, [User_ID].concat(group_ids), function(err, results){
     if(err){
       console.log(err);
       return callback(err);
@@ -139,7 +143,7 @@ router.get('/:groupid', function(req, res){
       console.log(err);
       return res.send({Success: false, Error: err});
     }
-    return res.send({Success: true, Data: results});
+    return res.send({Success: true, Results: results});
   });
 });
 
