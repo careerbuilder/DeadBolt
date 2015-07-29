@@ -110,6 +110,7 @@ function retry_errors(db, errors, callback){
       save_errors([error], function(err, results){
         if(err){
           console.log("error saving error! Oh the irony!");
+        }
       });
     }
   });
