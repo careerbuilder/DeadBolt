@@ -24,6 +24,7 @@ function add_database(body, callback){
           return callback(err);
         }
         var dbinfo = {Name: body.Name, Type: body.Type, Host: body.Host, Port: body.Port, SAUser: body.SAUser, SAPass: sacreds, ID:DB_ID};
+        db_tools.update_all_users(dbinfo, function(err, results){});
         connection.query('Insert into History (Activity) Value("Added Database: ?")', [body.Name], function(err, result){
           if(err){
             console.log(err);
@@ -55,22 +56,24 @@ function update_database(body, callback){
 
 router.post('/', function(req, res){
   var body = req.body;
-  async.series([
-    function(callback){
-      if(body.ID){
-        update_database(body, callback);
+  if(body.ID){
+    update_database(body, function(err, result){
+      if(err){
+        console.log(err);
+        return res.send({Success: false, Error:err});
       }
-      else{
-        add_database(body, callback);
+      return res.send({Success:true, ID: result});
+    });
+  }
+  else{
+    add_database(body, function(err, result){
+      if(err){
+        console.log(err);
+        return res.send({Success: false, Error:err});
       }
-    }
-  ],function(err, results){
-    if(err){
-      console.log(err);
-      return res.send({Success: false, Error:err});
-    }
-    return res.send({Success:true, ID: results[0]});
-  });
+      return res.send({Success:true, ID: result});
+    });
+  }
 });
 
 router.get('/', function(req, res){

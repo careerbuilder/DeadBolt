@@ -7,7 +7,7 @@ CREATE TABLE `databases` (
   `Port` int(11) DEFAULT '3306',
   `Type` varchar(45) NOT NULL,
   `SAUser` varchar(45) NOT NULL,
-  `SAPass` varchar(512) NOT NULL,
+  `SAPass` text NOT NULL,
   PRIMARY KEY (`ID`),
   UNIQUE KEY `Endpoint` (`Host`),
   UNIQUE KEY `Name_UNIQUE` (`Name`)
