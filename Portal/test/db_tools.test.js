@@ -2,7 +2,6 @@ describe.only('db_tools', function(){
   var assert = require('assert');
   var rewire = require('rewire');
   var blanket = require('blanket');
-  var request = require('supertest');
   global.config = {DB:{}, kmskey: ""};
   var db_tools = rewire('../tools/db_tools.js');
 
@@ -46,12 +45,11 @@ describe.only('db_tools', function(){
     {Username: 'NoCass', MySQL_Password:'pass', SQL_Server_Password: 'pass', Mongo_Password:'pass'}
   ];
 
-
-
   before(function(){
     db_revert = db_tools.__set__('connection', mock_db);
     tools1_revert = db_tools.__set__('mysql_tools', mock_sql_tools);
     tools2_revert = db_tools.__set__('mssql_tools', mock_sql_tools);
+    retry_revert = db_tools.__set__('retry_args', {times:1, interval:100});
     quiet_revert = db_tools.__set__('console', {log:function(){}});
   });
   describe('#filter_users()', function(){
@@ -166,9 +164,16 @@ describe.only('db_tools', function(){
         done();
       });
     });
+    it('should error on unsupported server type', function(done){
+      var err_update = db_tools.__get__('update');
+      err_update({ID:1, Name: 'testdb', Type:'unsupported'}, [{Username: 'testguy', MySQL_Password:'password'}], function(err, errors){
+        assert(errors, 'No Errors object returned!');
+        done();
+      });
+    });
     it('should try to update mysql servers', function(done){
       update_users({ID:1, Name: 'testdb', Type:'mysql'}, [{Username: 'testguy', MySQL_Password:'password'}], function(errors){
-        assert(errors.length, 'No Errors object returned!');
+        assert(errors, 'No Errors object returned!');
         done();
       });
     });
@@ -177,6 +182,7 @@ describe.only('db_tools', function(){
     db_revert();
     tools1_revert();
     tools2_revert();
+    retry_revert();
     quiet_revert();
   });
 });

@@ -4,6 +4,8 @@ var mysql_tools = require('./mysql_tools.js');
 var mssql_tools = require('./mssql_tools.js');
 //var mongo_tools = require('./mongo_tools.js');
 
+var retry_args = {times:3, interval:30000}
+
 function update(db, init_users, callback){
   var dbinfo = db;
   var gospel_users = [];
@@ -14,10 +16,10 @@ function update(db, init_users, callback){
   connection.query(get_users, [dbinfo.ID], function(err, results){
     if(err){
       console.log("Error on " + dbinfo.Name +": " + err);
-      return callback([err]);
+      return callback(null, [err]);
     }
     var gospel_users = results;
-    async.retry({times:3, interval:30000}, function(cb, results){
+    async.retry(retry_args, function(cb, results){
       switch(dbinfo.Type.toLowerCase().trim()){
         case 'aurora':
         case 'mysql':
@@ -65,12 +67,13 @@ function update(db, init_users, callback){
           break;
         */
         default:
-          cb(null, [{Database:dbinfo, Error:{Title: "Unsupported Database type", Details: dbinfo.Type + " Is not currently supported."}, Retryable: false, Class:"Warning"}]);
+          console.log('unsupported DB type');
+          cb(null, [{User:{Username:'All Users'}, Database:dbinfo, Error:{Title: "Unsupported Database type", Details: dbinfo.Type + " Is not currently supported."}, Retryable: false, Class:"Warning"}]);
           break;
       }
     }, function(err, results){
       if(err){
-        console.log(err);
+        console.log("error", err);
       }
       save_errors(results, callback);
     });
@@ -112,13 +115,13 @@ function save_errors(errors, callback){
         }
         return cb();
       });
-    }, function(err, results){
+    }, function(err){
       if(err){
         console.log("Error saving errors", err);
         return callback(err);
       }
       console.log("Saved Errors");
-      return callback(null, results);
+      return callback(null, errors);
     });
   }
   else{
@@ -174,7 +177,7 @@ module.exports = {
         if(cleanusers.length <1){
           return callback();
         }
-        update(dbinfo, cleanusers, function(errs){
+        update(dbinfo, cleanusers, function(err, errs){
           callback(null, errs);
         });
       });
@@ -186,7 +189,10 @@ module.exports = {
       if(cleanusers.length <1){
         return callback();
       }
-      update(dbinfo, cleanusers, function(errs){
+      update(dbinfo, cleanusers, function(err, errs){
+        if(err){
+          console.log(err);
+        }
         callback(errs);
       });
     });
