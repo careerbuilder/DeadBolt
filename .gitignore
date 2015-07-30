@@ -5,3 +5,5 @@ bower_components/
 *.secret
 *.log
 Portal/config.json
+*.ignore
+
