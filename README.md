@@ -1,14 +1,3 @@
-_Coverage -- 100_ :star2:
-_Coverage -- 91_ :star:
-_Coverage -- 81_ :smile:
-_Coverage -- 71_ :thumbsup:
-_Coverage -- 61_ :ok_hand:
-_Coverage -- 51_ :thumbsdown:
-_Coverage -- 41_ :rage:
-_Coverage -- 31_ :scream:
-_Coverage -- 21_ :broken_heart:
-*Coverage -- 11 :fire:
-###Coverage 1 :poop:
 # DeadBolt
 A management portal for database user management through active directory.
 DeadBolt was created to allow for user Identity and Access Management(IAM) in Amazon RDS, which does not allow for SSH or traditional methods of IAM such as kerberos or LDAP.
