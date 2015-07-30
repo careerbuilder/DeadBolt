@@ -79,9 +79,6 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
               $scope.groups[i].Permissions = "";
             }
           }
-          $scope.isSearching=false;
-          $scope.isEditing = true;
-          $scope.groupsRef = JSON.stringify($scope.groups);
         }
         else{
           $toastr.error('API Error', 'Could not retreive groups for the selected user');
@@ -95,6 +92,9 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
         $scope.groups[i].Checked = false;
       }
     }
+    $scope.isSearching=false;
+    $scope.isEditing = true;
+    $scope.groupsRef = JSON.stringify($scope.groups);
     $scope.user = userinfo;
   }
 

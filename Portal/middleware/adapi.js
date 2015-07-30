@@ -1,3 +1,5 @@
+var request = require('request');
+
 var host = global.config.ADAPI;
 
 module.exports = {
