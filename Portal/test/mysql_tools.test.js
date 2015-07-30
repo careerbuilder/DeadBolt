@@ -3,7 +3,7 @@ describe('mysql_tools', function(){
   var rewire = require('rewire');
   var blanket = require('blanket');
   global.config = {DB:{}, kmskey: ""};
-  var mysql_tools = rewire('../tools/my_tools.js');
+  var mysql_tools = rewire('../tools/mysql_tools.js');
 
   var mock_encrypt = {
     encrypt: function(plaintext, callback){
@@ -21,7 +21,7 @@ describe('mysql_tools', function(){
   }
 
   var mock_mysql = {
-    createPool = function(opts){
+    createPool: function(opts){
       return mock_pool;
     }
   }
