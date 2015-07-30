@@ -1,3 +1,4 @@
+*Coverage -- 11 :fire:
 ###Coverage 1 :poop:
 # DeadBolt
 A management portal for database user management through active directory.
