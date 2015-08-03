@@ -17,7 +17,10 @@ module.exports = {
         encryption.decrypt(dbinfo.SAPass, function(err, data){
           if(err){
             console.log(err);
-            callback(err);
+            users.forEach(function(err_user, i){
+              errors.push({User: err_user, Database: dbinfo, Error:{Title: "Decryption Error", Details: err}, Retryable:false, Class:"Error"});
+            });
+            return top_callback(errors);
           }
           callback(null, data);
         });
@@ -39,7 +42,7 @@ module.exports = {
             });
             return top_callback(errors);
           }
-          callback(null, connection);
+          return callback(null, connection);
         });
       },
       function(mysql_connection, series_callback){
@@ -55,6 +58,7 @@ module.exports = {
             if(err){
               console.log("Select exists failed! Error on DB " + dbinfo.Name +": " + err);
               errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to query database", Details:err}, Retryable:true, Class:"Error"});
+              return callback();
             }
             else {
               var user_query = "";
@@ -69,7 +73,8 @@ module.exports = {
                   user_query2 = "Create User ?@'localhost' Identified by password ?;";
                 }
                 else{
-                  user_log="User " + user.Username + " does not exist on " + dbinfo.Name +" and cannot be removed";
+                  console.log("User " + user.Username + " does not exist on " + dbinfo.Name +" and cannot be removed");
+                  errors.push({User: user, Database: dbinfo, Error:{Title: "User does not Exist and cannot be dropped", Details:" "}, Retryable:false, Class:"Info"});
                   return callback();
                 }
               }
@@ -123,11 +128,11 @@ module.exports = {
                   }
                   else{
                     user_log2="Localhost User " + user.Username + " does not exist on " + dbinfo.Name +" and cannot be removed";
-                    user_query2 = 'Set @dummy1=?';
+                    user_query2 = 'Set @dummy2=?';
                   }
                 }
               }
-              var hash_pass = "";
+              var hash_pass= "";
               async.series([
                 function(cb){
                   if(user.MySQL_Password){
@@ -135,6 +140,7 @@ module.exports = {
                       if(err){
                         console.log(err);
                         errors.push({User: user, Database: dbinfo, Error:{Title: "Error Decrypting User password", Details: err}, Retryable:true, Class:"Error"});
+                        return callback();
                       }
                       hash_pass = data;
                       cb();
@@ -149,7 +155,8 @@ module.exports = {
                   mysql_connection.query(user_query, [user.Username, hash_pass], function(err, result){
                     if(err){
                       console.log("User Operation Failed! Error on DB " + dbinfo.Name +": " + err);
-                      errors.push({User: user, Database: dbinfo, Error:{Title:"Error on "+user_log, Details: err}, Retryable:true, Class:"Error"});
+                      errors.push({User: user, Database: dbinfo, Error:{Title:"Database Error on "+user_log, Details: err}, Retryable:true, Class:"Error"});
+                      return callback();
                     }
                     cb();
                   });
@@ -159,7 +166,8 @@ module.exports = {
                   mysql_connection.query(user_query2, [user.Username, hash_pass], function(err, result){
                     if(err){
                       console.log("Localhost User Operation Failed! Error on DB " + dbinfo.Name +": " + err);
-                      errors.push({User: user, Database: dbinfo, Error:{Title:"Error on "+user_log2, Details: err}, Retryable:true, Class:"Error"});
+                      errors.push({User: user, Database: dbinfo, Error:{Title:"Database Error on "+user_log2, Details: err}, Retryable:true, Class:"Error"});
+                      return callback();
                     }
                     cb();
                   });
@@ -170,6 +178,7 @@ module.exports = {
                       if(err){
                         console.log("Privileges Error on DB " + dbinfo.Name +": " + err);
                         errors.push({User: user, Database: dbinfo, Error:{Title:"Error revoking permissions", Details: err}, Retryable:true, Class:"Error"});
+                        return callback();
                       }
                       var permissions_query;
                       if(user.Permissions === "SU"){
@@ -193,6 +202,7 @@ module.exports = {
                             if(err){
                               console.log("Privileges Error on DB " + dbinfo.Name +": " + err);
                               errors.push({User: user, Database: dbinfo, Error:{Title:"Error granting permissions", Details: err}, Retryable:true, Class:"Error"});
+                              return callback();
                             }
                             cb2();
                           });
@@ -203,6 +213,7 @@ module.exports = {
                               if(err){
                                 console.log("Privileges Error on DB " + dbinfo.Name +": " + err);
                                 errors.push({User: user, Database: dbinfo, Error:{Title:"Error granting SUPER permissions", Details: {Error: err, Tip: "If this database is in Amazon RDS, this error can be ignored"}}, Retryable:false, Class:"Warning"});
+                                return callback();
                               }
                               cb2();
                             });
@@ -234,7 +245,9 @@ module.exports = {
         });
       }],
       function(err, results){
-        mysql_pool.end();
+        if(mysql_pool){
+          mysql_pool.end();
+        }
         top_callback(results)
     });
   }
