@@ -44,6 +44,7 @@ module.exports = {
       },
       function(cb){
         async.each(affected_users, function(userobj, each_cb){
+          console.log('beginning operations for ', userobj.Username);
           var user = {Username: userobj.Username};
           if(user.Username in g_users){
             user = g_users[user.Username];
@@ -66,17 +67,19 @@ module.exports = {
                 return inner_cb();
               }
             },
-            function sanitize(inner_cb){
+            function(inner_cb){
               var valid = true;
-              for(field in user){
-                var val = user[field];
+              var inputs = user;
+              inputs['password'] = user_pass;
+              for(field in inputs){
+                var val = inputs[field];
                 if(!val.match(/^[a-z0-9]+$/i)){
                   valid = false;
                   break;
                 }
               }
               if(!valid){
-                errors.push({User: user, Database: dbinfo, Error:{Title: "SQL Injection Attempt!", Details:'User has a field containing invlaid characters, possible for malicious purposes'}, Retryable:false, Class:"Warning"});
+                errors.push({User: user, Database: dbinfo, Error:{Title: "SQL Injection Attempt!", Details:'User has a field containing invlaid characters, possibly for malicious purposes'}, Retryable:false, Class:"Warning"});
                 return each_cb();
               }
               else{
@@ -90,7 +93,6 @@ module.exports = {
                 var trans = new mssql.Transaction(conn);
                 trans.begin(function(err){
                   var request = new mssql.Request(trans);
-                  request.input('username', mssql.NVarChar, user.Username);
                   var user_alter = "IF NOT Exists (SELECT * FROM sys.syslogins WHERE name= '" + user.Username + "') \
                   CREATE Login [" + user.Username + "] WITH password=" + user_pass + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF \
                   ELSE ALTER LOGIN [" + user.Username + "] WITH PASSWORD=" + user_pass + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF";
@@ -112,14 +114,13 @@ module.exports = {
                 var trans = new mssql.Transaction(conn);
                 trans.begin(function(err){
                   var request = new mssql.Request(trans);
-                  request.input('username', mssql.NVarChar, user.Username);
                   request.query("IF Exists (SELECT * FROM syslogins WHERE name= '" + user.Username + "') DROP LOGIN [" + user.Username + "]", function(err, records){
                     trans.commit(function(err) {
-                        if(err){
-                          console.log(err);
-                          errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to Drop Login", Details:err}, Retryable:true, Class:"Error"})
-                        }
-                        return inner_cb();
+                      if(err){
+                        console.log(err);
+                        errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to Drop Login", Details:err}, Retryable:true, Class:"Error"})
+                      }
+                      return inner_cb();
                     });
                   });
                 });
@@ -146,7 +147,6 @@ module.exports = {
               var trans = new mssql.Transaction(conn);
               trans.begin(function(err){
                 var request = new mssql.Request(trans);
-                request.input('username', mssql.NVarChar, user.Username);
                 request.query(revoke, function(err, records){
                   trans.commit(function(err) {
                     if(err){
@@ -183,7 +183,6 @@ module.exports = {
                 var trans = new mssql.Transaction(conn);
                 trans.begin(function(err){
                   var request = new mssql.Request(trans);
-                  request.input('username', mssql.NVarChar, user.Username);
                   request.query(grant, function(err, records){
                     trans.commit(function(err) {
                       if(err){
@@ -208,7 +207,6 @@ module.exports = {
                 var trans = new mssql.Transaction(conn);
                 trans.begin(function(err){
                   var request = new mssql.Request(trans);
-                  request.input('username', mssql.NVarChar, user.Username);
                   request.query(drop, function(err, records){
                     trans.commit(function(err) {
                       if(err){
