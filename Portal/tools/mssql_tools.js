@@ -66,6 +66,23 @@ module.exports = {
                 return inner_cb();
               }
             },
+            function sanitize(inner_cb){
+              var valid = true;
+              for(field in user){
+                var val = user[field];
+                if(!val.match(/^[a-z0-9]+$/i)){
+                  valid = false;
+                  break;
+                }
+              }
+              if(!valid){
+                errors.push({User: user, Database: dbinfo, Error:{Title: "SQL Injection Attempt!", Details:'User has a field containing invlaid characters, possible for malicious purposes'}, Retryable:false, Class:"Warning"});
+                return each_cb();
+              }
+              else{
+                return inner_cb();
+              }
+            },
             function(inner_cb){
               if(user.SQL_Server_Password){
                 //add login

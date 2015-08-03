@@ -1,4 +1,4 @@
-describe.only('mssql_tools', function(){
+describe('mssql_tools', function(){
   var assert = require('assert');
   var rewire = require('rewire');
   var blanket = require('blanket');
@@ -95,6 +95,17 @@ describe.only('mssql_tools', function(){
         assert(errors[0].Error.Title.search(/decrypt/i)>-1, 'No Decryption error!');
         done();
       });
+    });
+    it('should fail on sql injection attempt', function(done){
+      update_users({Host: 'nope', Port: 'nuhuh', SAUser: 'sauser', SAPass:'0xpassword'}, [{Username: 'test'}], [{Username: 'test', SQL_Server_Password:'0xpassword; drop table users; --'}], function(errors){
+        assert(errors, 'No Errors!');
+        assert(errors[0].Error.Title.search(/sql\s+inject/i)>-1, 'No Injection error!');
+      });
+      update_users({Host: 'nope', Port: 'nuhuh', SAUser: 'sauser', SAPass:'0xpassword'}, [{Username: 'test; delete * from users; --'}], [{Username: 'test; delete * from users; --', SQL_Server_Password:'0xpassword'}], function(errors){
+        assert(errors, 'No Errors!');
+        assert(errors[0].Error.Title.search(/sql\s+inject/i)>-1, 'No Injection error!');
+      });
+      done();
     });
   });
   after(function(){
