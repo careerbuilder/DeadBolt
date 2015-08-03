@@ -73,6 +73,7 @@ module.exports = {
                 var trans = new mssql.Transaction(conn);
                 trans.begin(function(err){
                   var request = new mssql.Request(trans);
+                  request.verbose = true;
                   request.input('username', mssql.NVarChar, user.Username);
                   request.input('pass', mssql.NVarChar, user_pass);
                   var user_alter = "IF NOT Exists (SELECT * FROM sys.syslogins WHERE name=@username) \
