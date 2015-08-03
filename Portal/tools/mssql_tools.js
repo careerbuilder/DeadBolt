@@ -96,11 +96,12 @@ module.exports = {
                 trans.begin(function(err){
                   var request = new mssql.Request(trans);
                   request.input('username', mssql.NVarChar, user.Username);
-                  request.query("IF Exists (SELECT * FROM syslogins WHERE name= '" + user.Username + "') DROP LOGIN [" + user.Username + "]", function(err, records){
+                  request.query("IF Exists (SELECT * FROM syslogins WHERE name=@username) DROP LOGIN [@username]", function(err, records){
                     trans.commit(function(err) {
                         if(err){
                           console.log(err);
                           errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to Drop Login", Details:err}, Retryable:true, Class:"Error"})
+                          return each_cb();
                         }
                         return inner_cb();
                     });
