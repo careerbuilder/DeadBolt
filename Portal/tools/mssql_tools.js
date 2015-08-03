@@ -75,7 +75,7 @@ module.exports = {
                   var request = new mssql.Request(trans);
                   request.verbose = true;
                   request.input('username', mssql.NVarChar, user.Username);
-                  request.input('pass', mssql.NVarChar, user_pass);
+                  request.input('pass', mssql.VarBinary, user_pass);
                   var user_alter = "IF NOT Exists (SELECT * FROM sys.syslogins WHERE name=@username) \
                   CREATE Login [@username] WITH password=@pass HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF \
                   ELSE ALTER LOGIN [@username] WITH PASSWORD=@pass HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF";
