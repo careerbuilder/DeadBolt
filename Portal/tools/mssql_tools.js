@@ -76,8 +76,8 @@ module.exports = {
                   request.verbose = true;
                   request.input('username', mssql.NVarChar, user.Username);
                   var user_alter = "IF NOT Exists (SELECT * FROM sys.syslogins WHERE name=@username) \
-                  CREATE Login [@username] WITH password=" + user_pass + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF \
-                  ELSE ALTER LOGIN [@username] WITH PASSWORD=" + user_pass + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF";
+                  CREATE Login @username WITH password=" + user_pass + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF \
+                  ELSE ALTER LOGIN @username WITH PASSWORD=" + user_pass + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF";
                   request.query(user_alter, function(err, records){
                     trans.commit(function(err) {
                         if(err){
@@ -99,7 +99,7 @@ module.exports = {
                   var request = new mssql.Request(trans);
                   request.verbose = true;
                   request.input('username', mssql.NVarChar, user.Username);
-                  request.query("IF Exists (SELECT * FROM syslogins WHERE name=@username) DROP LOGIN [@username]", function(err, records){
+                  request.query("IF Exists (SELECT * FROM syslogins WHERE name=@username) DROP LOGIN @username", function(err, records){
                     trans.commit(function(err) {
                         if(err){
                           console.log(err);
@@ -121,12 +121,12 @@ module.exports = {
               SELECT @SQL = @SQL + 'USE ' + name + '; \
               IF Exists (SELECT * FROM sys.database_principals WHERE name='@username') \
                 BEGIN \
-                  ALTER ROLE DB_DATAREADER Drop MEMBER [@username]; \
-                  ALTER ROLE DB_DATAWRITER Drop MEMBER [@username]; \
-                  ALTER ROLE DB_OWNER DROP MEMBER [@username]; \
-                  REVOKE SHOWPLAN FROM [@username]; \
-                  REVOKE VIEW DATABASE STATE FROM [@username]; \
-                  REVOKE VIEW DEFINITION FROM [@username]; \
+                  ALTER ROLE DB_DATAREADER Drop MEMBER @username; \
+                  ALTER ROLE DB_DATAWRITER Drop MEMBER @username; \
+                  ALTER ROLE DB_OWNER DROP MEMBER @username; \
+                  REVOKE SHOWPLAN FROM @username; \
+                  REVOKE VIEW DATABASE STATE FROM @username; \
+                  REVOKE VIEW DEFINITION FROM @username; \
                 END' \
               FROM MASTER.SYS.DATABASES WHERE database_id > 4 AND state_desc = 'ONLINE' AND name not like '%rdsadmin%' \
               EXEC(@SQL)";
@@ -151,12 +151,12 @@ module.exports = {
               if(user.SQL_Server_Password){
                 //generate permissions
                 console.log("Generating new permissions for ", user.Username);
-                var sql_roles = "ALTER ROLE DB_DATAREADER ADD MEMBER [@username];\n";
+                var sql_roles = "ALTER ROLE DB_DATAREADER ADD MEMBER @username;\n";
                 if(user.Permissions === 'RW' || user.Permissions === 'DBA' || user.Permissions === 'SU'){
-                  sql_roles += "ALTER ROLE DB_DATAWRITER ADD MEMBER [@username];\n";
+                  sql_roles += "ALTER ROLE DB_DATAWRITER ADD MEMBER @username;\n";
                 }
                 if(user.Permissions === 'DBA' || user.Permissions === 'SU'){
-                  sql_roles += "ALTER ROLE DB_OWNER ADD MEMBER [@username];\n";
+                  sql_roles += "ALTER ROLE DB_OWNER ADD MEMBER @username;\n";
                 }
                 //update permissions
                 var grant = "SET NOCOUNT ON \
@@ -164,9 +164,9 @@ module.exports = {
                 SET @SQL = '' \
                 SELECT @SQL = @SQL + 'USE ' + name + '; \
                 IF NOT Exists (SELECT * FROM sys.database_principals WHERE name='@username') \
-                CREATE USER [@username] FOR LOGIN [@username] WITH DEFAULT_SCHEMA=[dbo];" + sql_roles + " \
-                GRANT VIEW DATABASE STATE TO [@username]; \
-                GRANT VIEW DEFINITION TO [@username];' \
+                CREATE USER @username FOR LOGIN @username WITH DEFAULT_SCHEMA=[dbo];" + sql_roles + " \
+                GRANT VIEW DATABASE STATE TO @username; \
+                GRANT VIEW DEFINITION TO @username;' \
                 FROM MASTER.SYS.DATABASES WHERE database_id > 4 AND state_desc = 'ONLINE' AND name not like '%rdsadmin%' \
                 EXEC(@SQL)";
                 var trans = new mssql.Transaction(conn);
@@ -193,7 +193,7 @@ module.exports = {
                 SET @SQL = '' \
                 SELECT @SQL = @SQL + 'USE ' + name + '; \
                 IF Exists (SELECT * FROM sys.database_principals WHERE name='@username') \
-                DROP USER [@username];' \
+                DROP USER @username;' \
                 FROM MASTER.SYS.DATABASES WHERE database_id > 4 AND state_desc = 'ONLINE' AND name not like '%rdsadmin%' \
                 EXEC(@SQL)";
                 var trans = new mssql.Transaction(conn);
