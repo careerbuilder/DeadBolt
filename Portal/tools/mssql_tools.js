@@ -20,7 +20,7 @@ module.exports = {
             affected_users.forEach(function(user, i){
               errors.push({User: user, Database: dbinfo, Error:{Title: "Could not decrypt SA Password", Details: err}, Retryable:true, Class:"Error"});
             });
-            return cb(err);
+            return callback(errors);
           }
           cb(null, data);
         });
@@ -37,10 +37,10 @@ module.exports = {
             affected_users.forEach(function(user, i){
               errors.push({User: user, Database: dbinfo, Error:{Title: "Connection Error", Details: err}, Retryable:true, Class:"Error"});
             });
-            return cb(err);
+            return callback(errors);
           }
           cb();
-        })
+        });
       },
       function(cb){
         async.each(affected_users, function(userobj, each_cb){
@@ -215,12 +215,14 @@ module.exports = {
         });
       }
     ], function(err, results){
-      conn.close();
+      if(conn){
+        conn.close();
+      }
       if(err){
         return callback(errors);
       }
       console.log('---------------------------\nEND OPERATIONS FOR ' + dbinfo.Name +'\n---------------------------');
-      callback(results);
+      callback(errors);
     });
   }
 };
