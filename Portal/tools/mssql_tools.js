@@ -75,10 +75,9 @@ module.exports = {
                   var request = new mssql.Request(trans);
                   request.verbose = true;
                   request.input('username', mssql.NVarChar, user.Username);
-                  request.input('pass', mssql.VarBinary, user_pass);
                   var user_alter = "IF NOT Exists (SELECT * FROM sys.syslogins WHERE name=@username) \
-                  CREATE Login [@username] WITH password=@pass HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF \
-                  ELSE ALTER LOGIN [@username] WITH PASSWORD=@pass HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF";
+                  CREATE Login [@username] WITH password=" + user_pass + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF \
+                  ELSE ALTER LOGIN [@username] WITH PASSWORD=" + user_pass + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF";
                   request.query(user_alter, function(err, records){
                     trans.commit(function(err) {
                         if(err){
@@ -98,6 +97,7 @@ module.exports = {
                 var trans = new mssql.Transaction(conn);
                 trans.begin(function(err){
                   var request = new mssql.Request(trans);
+                  request.verbose = true;
                   request.input('username', mssql.NVarChar, user.Username);
                   request.query("IF Exists (SELECT * FROM syslogins WHERE name=@username) DROP LOGIN [@username]", function(err, records){
                     trans.commit(function(err) {
@@ -133,6 +133,7 @@ module.exports = {
               var trans = new mssql.Transaction(conn);
               trans.begin(function(err){
                 var request = new mssql.Request(trans);
+                request.verbose = true;
                 request.input('username', mssql.NVarChar, user.Username);
                 request.query(revoke, function(err, records){
                   trans.commit(function(err) {
@@ -171,8 +172,8 @@ module.exports = {
                 var trans = new mssql.Transaction(conn);
                 trans.begin(function(err){
                   var request = new mssql.Request(trans);
+                  request.verbose = true;
                   request.input('username', mssql.NVarChar, user.Username);
-                  request.input('pass', mssql.NVarChar, user_pass);
                   request.query(grant, function(err, records){
                     trans.commit(function(err) {
                       if(err){
@@ -198,6 +199,7 @@ module.exports = {
                 var trans = new mssql.Transaction(conn);
                 trans.begin(function(err){
                   var request = new mssql.Request(trans);
+                  request.verbose = true;
                   request.input('username', mssql.NVarChar, user.Username);
                   request.query(drop, function(err, records){
                     trans.commit(function(err) {
