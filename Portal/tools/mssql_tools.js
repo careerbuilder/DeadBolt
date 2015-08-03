@@ -44,7 +44,6 @@ module.exports = {
       },
       function(cb){
         async.each(affected_users, function(userobj, each_cb){
-          console.log('beginning operations for ', userobj.Username);
           var user = {Username: userobj.Username};
           if(user.Username in g_users){
             user = g_users[user.Username];
@@ -69,11 +68,13 @@ module.exports = {
             },
             function(inner_cb){
               var valid = true;
-              var inputs = user;
-              inputs['password'] = user_pass;
+              var inputs = {
+                Username: user.Username,
+                Password: user_pass
+              };
               for(field in inputs){
                 var val = inputs[field];
-                if(!val.match(/^[a-z0-9]+$/i)){
+                if(val && !val.match(/^[a-z0-9]+$/i)){
                   valid = false;
                   break;
                 }
