@@ -90,6 +90,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
       $scope.groupsRef = null;
       for(var i=0; i<$scope.groups.length; i++){
         $scope.groups[i].Checked = false;
+        $scope.groups[i].Permissions = "";
       }
     }
     $scope.isSearching=false;
