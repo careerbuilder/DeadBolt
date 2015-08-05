@@ -93,15 +93,26 @@ module.exports = {
                 console.log("Creating or Updating login for ", user.Username);
                 var trans = new mssql.Transaction(conn);
                 trans.begin(function(err){
+                  if(err){
+                    console.log(err);
+                    errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to Add or Update Login", Details:err}, Retryable:true, Class:"Error"})
+                    return each_cb();
+                  }
                   var request = new mssql.Request(trans);
                   var user_alter = "IF NOT Exists (SELECT * FROM sys.syslogins WHERE name= '" + user.Username + "') \
                   CREATE Login [" + user.Username + "] WITH password=" + user_pass + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF \
                   ELSE ALTER LOGIN [" + user.Username + "] WITH PASSWORD=" + user_pass + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF";
                   request.query(user_alter, function(err, records){
+                    if(err){
+                      console.log(err);
+                      errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to Add or Update Login", Details:err}, Retryable:true, Class:"Error"})
+                      return each_cb();
+                    }
                     trans.commit(function(err) {
                         if(err){
                           console.log(err);
                           errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to Add or Update Login", Details:err}, Retryable:true, Class:"Error"})
+                          return each_cb();
                         }
                         return inner_cb();
                     });
@@ -114,12 +125,23 @@ module.exports = {
                 console.log("Dropping login for ", user.Username);
                 var trans = new mssql.Transaction(conn);
                 trans.begin(function(err){
+                  if(err){
+                    console.log(err);
+                    errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to Drop Login", Details:err}, Retryable:true, Class:"Error"})
+                    return each_cb();
+                  }
                   var request = new mssql.Request(trans);
                   request.query("IF Exists (SELECT * FROM syslogins WHERE name= '" + user.Username + "') DROP LOGIN [" + user.Username + "]", function(err, records){
+                    if(err){
+                      console.log(err);
+                      errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to Drop Login", Details:err}, Retryable:true, Class:"Error"})
+                      return each_cb();
+                    }
                     trans.commit(function(err) {
                       if(err){
                         console.log(err);
                         errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to Drop Login", Details:err}, Retryable:true, Class:"Error"})
+                        return each_cb();
                       }
                       return inner_cb();
                     });
@@ -153,6 +175,45 @@ module.exports = {
                     if(err){
                       console.log(err);
                       errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to revoke permissions", Details:err}, Retryable:true, Class:"Error"});
+                      return each_cb();
+                    }
+                    return inner_cb();
+                  });
+                });
+              });
+            },
+            function(inner_cb){
+              //drop server permissions
+              console.log("Dropping server permissions for ", user.Username);
+              var revoke ="SET NOCOUNT ON \
+              DECLARE @SQL VARCHAR(MAX) \
+              SET @SQL = 'USE [master] \
+              IF Exists (SELECT * FROM sys.database_principals WHERE name=''" + user.Username + "'') \
+                BEGIN \
+                  ALTER SERVER ROLE [processadmin] DROP MEMBER [" + user.Username +"]; \
+                  ALTER SERVER ROLE [setupadmin] DROP MEMBER [" + user.Username +"]; \
+                  REVOKE ALTER ANY CONNECTION FROM [" + user.Username + "]; \
+                  REVOKE ALTER ANY LINKED SERVER FROM [" + user.Username + "]; \
+                  REVOKE ALTER ANY LOGIN FROM [" + user.Username + "]; \
+                  REVOKE ALTER ANY SERVER ROLE FROM [" + user.Username + "]; \
+                  REVOKE ALTER SERVER STATE FROM [" + user.Username + "]; \
+                  REVOKE ALTER TRACE FROM [" + user.Username + "]; \
+                  REVOKE CONNECT SQL FROM [" + user.Username + "]; \
+                  REVOKE CREATE ANY DATABASE FROM [" + user.Username + "]; \
+                  REVOKE VIEW ANY DATABASE FROM [" + user.Username + "]; \
+                  REVOKE VIEW ANY DEFINITION FROM [" + user.Username + "]; \
+                  REVOKE VIEW SERVER STATE FROM [" + user.Username + "]; \
+                END' \
+              EXEC(@SQL)";
+              var trans = new mssql.Transaction(conn);
+              trans.begin(function(err){
+                var request = new mssql.Request(trans);
+                request.query(revoke, function(err, records){
+                  trans.commit(function(err) {
+                    if(err){
+                      console.log(err);
+                      errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to revoke permissions", Details:err}, Retryable:true, Class:"Error"});
+                      return each_cb();
                     }
                     return inner_cb();
                   });
@@ -213,29 +274,65 @@ module.exports = {
                       if(err){
                         console.log(err);
                         errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to drop user", Details:err}, Retryable:true, Class:"Error"});
+                        return each_cb();
                       }
                       return inner_cb();
                     });
                   });
                 });
               }
+            },
+            function(inner_cb){
+              if(user.SQL_Server_Password || user.Permissions === "SU"){
+                var grant = "SET NOCOUNT ON \
+                DECLARE @SQL VARCHAR(MAX) \
+                SET @SQL = 'USE [master] \
+                IF Exists (SELECT * FROM sys.database_principals WHERE name=''" + user.Username + "'') \
+                  BEGIN \
+                    ALTER SERVER ROLE [processadmin] ADD MEMBER [" + user.Username +"]; \
+                    ALTER SERVER ROLE [setupadmin] ADD MEMBER [" + user.Username +"]; \
+                    GRANT ALTER ANY CONNECTION TO [" + user.Username + "] WITH GRANT OPTION; \
+                    GRANT ALTER ANY LINKED SERVER TO [" + user.Username + "] WITH GRANT OPTION; \
+                    GRANT ALTER ANY LOGIN TO [" + user.Username + "] WITH GRANT OPTION; \
+                    GRANT ALTER ANY SERVER ROLE TO [" + user.Username + "] WITH GRANT OPTION; \
+                    GRANT ALTER SERVER STATE TO [" + user.Username + "] WITH GRANT OPTION; \
+                    GRANT ALTER TRACE TO [" + user.Username + "] WITH GRANT OPTION; \
+                    GRANT CONNECT SQL TO [" + user.Username + "] WITH GRANT OPTION; \
+                    GRANT CREATE ANY DATABASE TO [" + user.Username + "] WITH GRANT OPTION; \
+                    GRANT VIEW ANY DATABASE TO [" + user.Username + "] WITH GRANT OPTION; \
+                    GRANT VIEW ANY DEFINITION TO [" + user.Username + "] WITH GRANT OPTION; \
+                    GRANT VIEW SERVER STATE TO [" + user.Username + "] WITH GRANT OPTION; \
+                  END' \
+                EXEC(@SQL)";
+                var trans = new mssql.Transaction(conn);
+                trans.begin(function(err){
+                  var request = new mssql.Request(trans);
+                  request.query(grant, function(err, records){
+                    trans.commit(function(err) {
+                      if(err){
+                        console.log(err);
+                        errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to grant Super permissions", Details:err}, Retryable:false, Class:"Warning"});
+                        return each_cb();
+                      }
+                      return inner_cb();
+                    });
+                  });
+                });
+              }
+              else{
+                return inner_cb();
+              }
             }
           ], function(err, results){
-            if(err){
-              console.log(err);
-            }
             return each_cb();
           });
         }, function(err){
-          cb(null, errors);
+          cb();
         });
       }
     ], function(err, results){
       if(conn){
         conn.close();
-      }
-      if(err){
-        return callback(errors);
       }
       console.log('---------------------------\nEND OPERATIONS FOR ' + dbinfo.Name +'\n---------------------------');
       callback(errors);
