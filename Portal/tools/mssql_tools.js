@@ -188,7 +188,7 @@ module.exports = {
               var revoke ="SET NOCOUNT ON \
               DECLARE @SQL VARCHAR(MAX) \
               SET @SQL = 'USE [master] \
-              IF Exists (SELECT * FROM sys.database_principals WHERE name=''" + user.Username + "'') \
+              IF Exists (SELECT * FROM sys.server_principals WHERE name=''" + user.Username + "'') \
                 BEGIN \
                   ALTER SERVER ROLE [processadmin] DROP MEMBER [" + user.Username +"]; \
                   ALTER SERVER ROLE [setupadmin] DROP MEMBER [" + user.Username +"]; \
@@ -283,11 +283,11 @@ module.exports = {
               }
             },
             function(inner_cb){
-              if(user.SQL_Server_Password || user.Permissions === "SU"){
+              if(user.SQL_Server_Password && user.Permissions === "SU"){
                 var grant = "SET NOCOUNT ON \
                 DECLARE @SQL VARCHAR(MAX) \
                 SET @SQL = 'USE [master] \
-                IF Exists (SELECT * FROM sys.database_principals WHERE name=''" + user.Username + "'') \
+                IF Exists (SELECT * FROM sys.server_principals WHERE name=''" + user.Username + "'') \
                   BEGIN \
                     ALTER SERVER ROLE [processadmin] ADD MEMBER [" + user.Username +"]; \
                     ALTER SERVER ROLE [setupadmin] ADD MEMBER [" + user.Username +"]; \
