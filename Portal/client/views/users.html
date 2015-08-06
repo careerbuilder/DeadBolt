@@ -18,23 +18,46 @@
       </div>
     </div>
     <div class="panel-body" ng-show="isSearching || isEditing">
-      <div id="searchResults" ng-show="isSearching" class="table-responsive">
-        <table class="table table-hover table-condensed">
-          <tr>
-            <th>Add/Edit</th>
-            <th>Username</th>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th>Email</th>
-          </tr>
-          <tr ng-repeat="user in searchResults track by $index" ng-class="{'success':user.User_ID, 'warning':!user.User_ID}" >
-            <td><button class="btn" ng-click="edit($index)" role="button" ng-class="{'btn-success':user.User_ID, 'btn-warning':!user.User_ID}">{{user.User_ID ? 'Edit' : 'Add'}}</button></td>
-            <td>{{user.Username}}</td>
-            <td>{{user.FirstName}}</td>
-            <td>{{user.LastName}}</td>
-            <td>{{user.Email}}</td>
-          </tr>
-        </table>
+      <div id="searchResults" ng-show="isSearching">
+        <div class="table-responsive">
+          <table class="table table-hover table-condensed">
+            <tr>
+              <th>Add/Edit</th>
+              <th>Username</th>
+              <th>First Name</th>
+              <th>Last Name</th>
+              <th>Email</th>
+            </tr>
+            <tr ng-repeat="user in searchResults track by $index" ng-class="{'success':user.User_ID, 'warning':!user.User_ID}" >
+              <td><button class="btn" ng-click="edit($index)" role="button" ng-class="{'btn-success':user.User_ID, 'btn-warning':!user.User_ID}">{{user.User_ID ? 'Edit' : 'Add'}}</button></td>
+              <td>{{user.Username}}</td>
+              <td>{{user.FirstName}}</td>
+              <td>{{user.LastName}}</td>
+              <td>{{user.Email}}</td>
+            </tr>
+          </table>
+        </div>
+        <div class="row">
+          <div class="col-xs-2">&nbsp;</div>
+          <div class="col-xs-8 text-center">
+            <nav>
+              <ul class="pagination pagination-lg">
+                <li>
+                  <a style="cursor:pointer;" ng-click="search(0)">First</a>
+                </li>
+                <li class="disabled"><a>...</a></li>
+                <li ng-repeat="page in pages track by $index" ng-class="{'active': page==currpage}">
+                  <a style="cursor:pointer;" ng-click="search(page-1)">{{page}}</a>
+                </li>
+                <li class="disabled"><a>...</a></li>
+                <li>
+                  <a style="cursor:pointer;" ng-click="search(numpages-1)">Last</a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+          <div class="col-xs-2">&nbsp;</div>
+        </div>
       </div>
       <div id="EditPanel" ng-show="isEditing" class="container-fluid">
         <p class="text-muted" ng-click="isEditing=false; isSearching=true" style="cursor: pointer;"><span class="glyphicon glyphicon-menu-up"></span><strong> up to users</strong></p>

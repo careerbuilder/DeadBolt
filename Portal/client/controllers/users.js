@@ -5,6 +5,9 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
   $scope.user = {};
   $scope.groups = [];
   $scope.searchCreds = {Info: ""};
+  $scope.numpages = 1;
+  $scope.pages = [];
+  $scope.currpage = 1;
   $scope.$emit('tabChanged', 1);
 
   $http.post('/api/users/search/0', {Info: ""}).success(function(data){
@@ -12,6 +15,13 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
       $scope.isEditing = false;
       $scope.isSearching = true;
       $scope.searchResults = data.Results;
+      var records = data.Total;
+      var numpages = ~~(records/50);
+      if(records%50 >0){
+        numpages +=1;
+      }
+      $scope.numpages = numpages;
+      $scope.page_change(1);
     }
   });
 
@@ -29,8 +39,38 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
         $scope.isEditing = false;
         $scope.isSearching = true;
         $scope.searchResults = data.Results;
+        var records = data.Total;
+        var numpages = ~~(records/50);
+        if(records%50 >0){
+          numpages +=1;
+        }
+        $scope.numpages = numpages;
+        $scope.currpage = 1;
+        $scope.page_change(pagenum+1);
       }
     });
+  }
+
+  $scope.page_change=function(newpage){
+    $scope.pages = [];
+    $scope.currpage = newpage;
+    if(newpage < 2){
+      for(var i=1; i<4; i++){
+        if(i<= $scope.numpages){
+          $scope.pages.push(i);
+        }
+      }
+    }
+    else if(newpage == $scope.numpages){
+      for(var i=newpage; i>newpage-3; i--){
+        if(i>0){
+          $scope.pages.unshift(i);
+        }
+      }
+    }
+    else{
+      $scope.pages=[newpage-1,newpage,newpage+1];
+    }
   }
 
   $scope.refreshSearch = function(){
@@ -39,6 +79,12 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
         $scope.isEditing = false;
         $scope.isSearching = true;
         $scope.searchResults = data.Results;
+        var records = data.Total;
+        var numpages = records/50;
+        if(records%50 >0){
+          numpages +=1;
+        }
+        $scope.numpages = numpages;
       }
     });
   }
