@@ -6,6 +6,8 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
   $scope.databases = [];
   $scope.filtered_dbs = []
   $scope.allCheck=false;
+  $scope.show_db_text = "Edit Databases";
+  $scope.db_edit = false;
   $scope.$emit('tabChanged', 2);
 
   $http.post('/api/groups/search/', {Info:''}).success(function(data){
@@ -44,6 +46,16 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
     return
   }
 
+  $scope.toggle_show_databases = function(){
+    $scope.db_edit = !$scope.db_edit;
+    if($scope.db_edit){
+      $scope.show_db_text = "View Databases";
+    }
+    else{
+      $scope.show_db_text = "Edit Databases";
+    }
+  }
+
   $scope.search=function(){
     $http.post('/api/groups/search/', $scope.searchCreds).success(function(data){
       if(data.Success){
@@ -64,12 +76,18 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
     });
   }
 
+  $scope.view_edit=function(value){
+    return ($scope.db_edit | value.Checked);
+  }
+
   $scope.filter_dbs=function(){
     $scope.filtered_dbs = $filter('filter')($scope.databases, $scope.dbfilter);
     $scope.evalAll();
   }
 
   $scope.edit=function(index){
+    $scope.db_edit = false;
+    $scope.show_db_text = "Edit Databases";
     var groupinfo = $scope.searchResults[index];
     var group_dbs = [];
     $http.get('/api/databases/'+groupinfo.Name).success(function(data){
@@ -114,6 +132,8 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
     $scope.group = {};
     $scope.groupRef=null;
     $scope.dbRef = null;
+    $scope.db_edit = true;
+    $scope.show_db_text = "View Databases";
     $scope.databases.forEach(function(db, i){
       db.Checked=false;
     });
@@ -146,6 +166,8 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
       $scope.isEditing=false;
       $scope.refreshSearch();
       $scope.isSearching = true;
+      $scope.db_edit = false;
+      $scope.show_db_text = "Edit Databases";
       $scope.group = {};
       $scope.groupRef=null;
       $scope.dbRef = null;
