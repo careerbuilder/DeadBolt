@@ -25,6 +25,12 @@ describe('users', function(){
         }
         return callback(null, [{Username: 'testuser', Permissions:'SU'}, {Username: 'testuser2', Permissions:'RW'}]);
       }
+      if(args[0].search(/^select\s+count\(\*\)/i)>-1){
+        if(sql_args && sql_args[0] && sql_args[0].toString().search(/counterror/i)>-1){
+          return callback("Database Error");
+        }
+        return callback(null, [{Total: 100}]);
+      }
       if(args[0].search(/^select\s+id,\s+username/i)>-1){
         if(sql_args && sql_args[0]){
           if(sql_args[0] == -50 || sql_args[4] == -50){
@@ -233,6 +239,22 @@ describe('users', function(){
         done();
       });
     });
+    it('should error on db error - get total count', function(done){
+      request(app)
+      .post('/api/users/search/1')
+      .expect(200)
+      .set('Content-Type', 'application/json')
+      .send({Info: 'CountError'})
+      .end(function(err, res){
+        if(err){
+          console.log(err);
+          return done(err);
+        }
+        assert.equal(res.body.Success, false, 'Successful on DB Error');
+        assert(res.body.Error, 'No Error on DB Error');
+        done();
+      });
+    });
     it('should return users of the selected group', function(done){
       request(app)
       .post('/api/users/search/0')
@@ -246,6 +268,7 @@ describe('users', function(){
         }
         assert(res.body.Success, 'Unsuccessful request');
         assert(res.body.Results, 'No Results');
+        assert(res.body.Total, 'No Row Count!');
         done();
       });
     });

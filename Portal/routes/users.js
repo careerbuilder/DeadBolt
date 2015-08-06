@@ -138,23 +138,32 @@ router.post('/search/:page', function(req, res){
   var start=  page * 50;
   var end  = (start + 50)-1;
   var query = "";
+  var count_query = "";
   var args = [];
   if(body.Info && body.Info.trim().length > 0){
     var info = "%"+body.Info+"%";
+    count_query = 'Select Count(*) as Total from possible_users where (Username like ? OR Email like ? OR FirstName like ? OR LastName like ?);';
     query = 'Select ID, Username, Email, User_ID, FirstName, LastName from possible_users where (Username like ? OR Email like ? OR FirstName like ? OR LastName like ?) ORDER BY if(User_ID = "" or User_ID is null,1,0),User_ID, Username ASC LIMIT ?,?;';
     args = [info, info, info, info, start, end];
   }
   else{
+    count_query = 'Select Count(*) as Total from possible_users;';
     query = 'Select ID, Username, Email, User_ID, FirstName, LastName from possible_users ORDER BY if(User_ID = "" or User_ID is null,1,0),User_ID, Username ASC LIMIT ?, ?;';
     args = [start, end];
   }
-  connection.query(query, args, function(err, results){
+  connection.query(count_query, args, function(err, results){
     if(err){
       console.log(err);
       return res.send({Success: false, Error: err});
     }
-    var users = results;
-    return res.send({Success: true,  Results: users});
+    var total = results[0].Total;
+    connection.query(query, args, function(err, users){
+      if(err){
+        console.log(err);
+        return res.send({Success: false, Error: err});
+      }
+      return res.send({Success: true,  Results: users, Total: total});
+    });
   });
 });
 
