@@ -20,20 +20,37 @@ describe('mssql_tools', function(){
     }
   }
 
-  var Transaction = function Transaction(){
+  var commit_error = function(callback){
+    return callback("Transaction Commit Error!");
+  }
+
+  var begin_error = function(callback){
+    return callback("Transaction Begin Error!");
+  }
+
+  var begin = function (callback){
+    return callback();
+  }
+
+  var commit = function (callback){
+    return callback();
+  }
+
+  var query_error = function(sql, callback){
+    return callback("Query Error!");
+  }
+
+  var query = function(sql, callback){
+    return callback();
+  }
+
+  var Transaction = function Transaction(connection){
     this.conn = connection;
   }
 
-  Transaction.prototype.begin = function begin(callback){
-    if(this.conn.server && this.conn.server.search(/transerror/i)>-1){
-      return callback("Transaction Error!");
-    }
-    return callback();
-  }
+  Transaction.prototype.begin = begin;
 
-  Transaction.prototype.commit = function commit(callback){
-    return callback();
-  }
+  Transaction.prototype.commit = commit;
 
   var Request = function Request(transaction){
     this.trans = transaction;
@@ -43,10 +60,7 @@ describe('mssql_tools', function(){
     return;
   }
 
-  Request.prototype.query=  function query(sql, callback){
-    console.log(sql);
-    return callback();
-  }
+  Request.prototype.query= query;
 
   var Connection = function Connection(opts, callback){
     this.opts = opts;
@@ -101,12 +115,47 @@ describe('mssql_tools', function(){
         assert(errors, 'No Errors!');
         assert(errors[0].Error.Title.search(/sql\s+inject/i)>-1, 'No Injection error!');
       });
-      update_users({Host: 'nope', Port: 'nuhuh', SAUser: 'sauser', SAPass:'0xpassword'}, [{Username: 'test; delete * from users; --'}], [{Username: 'test; delete * from users; --', SQL_Server_Password:'0xpassword'}], function(errors){
+      update_users({Host: 'nope', Port: 'nuhuh', SAUser: 'sauser', SAPass:'0xpassword'}, [{Username: 'test; delete * from users; --'}], [{Username: 'test; delete * from users; --'}], function(errors){
         assert(errors, 'No Errors!');
         assert(errors[0].Error.Title.search(/sql\s+inject/i)>-1, 'No Injection error!');
       });
       done();
     });
+    describe('should error on db error - login', function(){
+      it('should fail on transaction begin error', function(done){
+        Transaction.prototype.begin = begin_error;
+        update_users({Host: 'nope', Port: 'nuhuh', SAUser: 'sauser', SAPass:'0xpassword'}, [{Username: 'test'}, {Username: 'nouser'}], [{Username: 'test', SQL_Server_Password:'0xpassword'}], function(errors){
+          assert(errors, 'No Errors!');
+          assert(errors[0].Error.Details.search(/transaction\s+begin/i)>-1, 'No transaction error!');
+          Transaction.prototype.begin = begin;
+          done();
+        });
+      });
+      it('should fail on query error', function(done){
+        Request.prototype.query = query_error;
+        update_users({Host: 'nope', Port: 'nuhuh', SAUser: 'sauser', SAPass:'0xpassword'}, [{Username: 'test'}, {Username: 'nouser'}], [{Username: 'test', SQL_Server_Password:'0xpassword'}], function(errors){
+          assert(errors, 'No Errors!');
+          assert(errors[0].Error.Details.search(/query\s+error/i)>-1, 'No query error!');
+          Request.prototype.query = query;
+          done();
+        });
+      });
+      it('should fail on transaction commit error', function(done){
+        Transaction.prototype.commit = commit_error;
+        update_users({Host: 'nope', Port: 'nuhuh', SAUser: 'sauser', SAPass:'0xpassword'}, [{Username: 'test'}, {Username: 'nouser'}], [{Username: 'test', SQL_Server_Password:'0xpassword'}], function(errors){
+          assert(errors, 'No Errors!');
+          assert(errors[0].Error.Details.search(/transaction\s+commit/i)>-1, 'No transaction error!');
+          Transaction.prototype.commit = commit;
+          done();
+        });
+      });
+    });
+    it('should error on db error - drop login');
+    it('should error on db error - revoke permissions');
+    it('should error on db error - add/update user');
+    it('should error on db error - drop user');
+    it('should succeed on drop');
+    it('should succeed on add/update');
   });
   after(function(){
     mssql_revert();
