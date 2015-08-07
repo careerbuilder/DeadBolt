@@ -48,7 +48,7 @@ function update_database(body, callback){
           if(err){
             return cb(err);
           }
-          var sacreds = data;
+          sacreds = data;
           return cb();
         });
       }
@@ -71,7 +71,6 @@ function update_database(body, callback){
         connection.query('Insert into History (Activity) Value("Edited Database: ?")', [body.Name], function(err, result){
           if(err){
             console.log(err);
-
           }
           return cb(null, DB_ID);
         });
@@ -82,6 +81,7 @@ function update_database(body, callback){
     if(err){
       return callback(err);
     }
+    return callback(null, DB_ID);
   });
 }
 

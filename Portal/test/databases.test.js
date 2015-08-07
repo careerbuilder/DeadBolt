@@ -86,9 +86,17 @@ describe('databases', function(){
         }
         return callback(null, {insertId:1});
       }
-      else if(args[0].toUpperCase().search('HISTORY') >-1){
+      else if(args[0].search(/update\s+`databases`/i) >-1){
         if(sql_args && sql_args[0]){
-          if(sql_args[0].toUpperCase().search('ERROR')>-1){
+          if(sql_args[0].search(/upderror/i)>-1){
+            return callback("Database Error");
+          }
+        }
+        return callback(null, {insertId:1});
+      }
+      else if(args[0].search(/history/i) >-1){
+        if(sql_args && sql_args[0]){
+          if(sql_args[0].search(/error/i)>-1){
             return callback("Database Error");
           }
         }
@@ -104,6 +112,9 @@ describe('databases', function(){
     encrypt: function(plaintext, callback){
       if(!plaintext || plaintext.length <1){
         return callback("No text to encrypt!");
+      }
+      if(plaintext.search(/encerror/i)>-1){
+        return callback("Encryption Error!");
       }
       return callback(null, "0x" + plaintext);
     },
@@ -354,11 +365,26 @@ describe('databases', function(){
       });
     });
     describe('update database', function(){
-      it('should fail on db error - insert database', function(done){
+      it('should fail on new password encryption error', function(done){
         request(app)
         .post('/api/databases/')
         .set('Content-Type', 'application/json')
-        .send({ID:-1, Name: 'error1', Type: 'mysql', Host:'localhost', Port: 8080, SAUser:'sauser', SAPass: 'somepass'})
+        .send({ID:-1, Name: 'testuser', Type: 'mysql', Host:'localhost', Port: 8080, SAUser:'sauser', SAPass: 'encerror'})
+        .expect(200)
+        .end(function(err, res){
+          if(err){
+            return done(err);
+          }
+          assert.equal(res.body.Success, false, 'Successful post despite db error');
+          assert(res.body.Error, 'No Error on DB Error');
+          done();
+        });
+      });
+      it('should fail on db error - update database', function(done){
+        request(app)
+        .post('/api/databases/')
+        .set('Content-Type', 'application/json')
+        .send({ID:-1, Name: 'upderror', Type: 'mysql', Host:'localhost', Port: 8080, SAUser:'sauser'})
         .expect(200)
         .end(function(err, res){
           if(err){
