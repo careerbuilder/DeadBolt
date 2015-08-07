@@ -40,6 +40,15 @@ app.controller('DBCtrl', function($http, $scope, $cookies, $cookieStore, $locati
     $scope.dbRef = JSON.stringify($scope.searchResults[index]);
   }
 
+  $scope.change_pass=function(){
+    $scope.editing_pass = true;
+  }
+
+  $scope.cancel_change_pass=function(){
+    $scope.editing_pass = false;
+    delete $scope.database.SAPass;
+  }
+
   $scope.nochange=function(){
     if($scope.dbRef){
       return ($scope.dbRef===JSON.stringify($scope.database));

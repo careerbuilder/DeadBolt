@@ -74,10 +74,13 @@
                 <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>SA User</strong></span>
                 <input type="text" class="form-control" name="sauser" placeholder="Root Username" ng-model="database.SAUser" required>
               </div>
-              <div class="input-group" ng-if="!database.ID" ng-class="{'has-error': (databaseform.password.$invalid && databaseform.password.$dirty)}">
+              <div class="input-group" ng-if="!database.ID || editing_pass" ng-class="{'has-error': (databaseform.password.$invalid && databaseform.password.$dirty)}">
                 <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>Password</strong></span>
                 <input type="password" class="form-control" name="password" placeholder="Root Password" ng-model="database.SAPass" ng-required="!database.ID">
               </div>
+              <br />
+              <button class="btn" ng-show="database.ID && !editing_pass" ng-click="change_pass()">Change SA Password</button>
+              <button class="btn btn-danger" ng-show="editing_pass" ng-click="cancel_change_pass()">Cancel</button>
             </div>
             <div class="col-sm-1">&nbsp;</div>
           </div>

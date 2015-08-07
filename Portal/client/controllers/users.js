@@ -106,43 +106,51 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
     return quick_pages;
   }
 
-  $scope.edit=function(index){
-    var userinfo = $scope.searchResults[index];
-    var usergroups = [];
+  $scope.applyGroups = function(userinfo, callback){
     if(userinfo.User_ID){
-      $scope.userRef = JSON.stringify(userinfo);
       $http.get('/api/groups/'+userinfo.Username).success(function(data){
         if(data.Success){
-          usergroups = data.Results;
-          for(var i=0; i<$scope.groups.length; i++){
-            var g = $scope.groups[i];
-            if(g.Name in usergroups){
-              $scope.groups[i].Checked = true;
-              $scope.groups[i].Permissions = usergroups[g.Name];
-            }
-            else{
-              $scope.groups[i].Checked = false;
-              $scope.groups[i].Permissions = "";
-            }
-          }
+          callback(null, data.Results);
         }
         else{
-          $toastr.error('API Error', 'Could not retreive groups for the selected user');
+          callback(data);
         }
       });
     }
     else{
-      $scope.userRef = null;
-      $scope.groupsRef = null;
-      for(var i=0; i<$scope.groups.length; i++){
-        $scope.groups[i].Checked = false;
-        $scope.groups[i].Permissions = "";
-      }
+      callback(null, {});
     }
-    $scope.isSearching=false;
-    $scope.isEditing = true;
-    $scope.groupsRef = JSON.stringify($scope.groups);
-    $scope.user = userinfo;
+  }
+
+  $scope.edit=function(index){
+    var userinfo = $scope.searchResults[index];
+    var usergroups = [];
+    $scope.userRef = null;
+    if(userinfo.User_ID){
+      $scope.userRef = JSON.stringify(userinfo);
+    }
+    $scope.applyGroups(userinfo, function(err, results){
+      if(err){
+        toastr.error('err','Something went wrong');
+      }
+      else{
+        var usergroups = results;
+        $scope.groups.forEach(function(g){
+          if(g.Name in usergroups){
+            g.Checked = true;
+            g.Permissions = usergroups[g.Name];
+          }
+          else{
+            g.Checked = false;
+            g.Permissions = "";
+          }
+        });
+        $scope.groupsRef = JSON.stringify($scope.groups);
+        $scope.isSearching=false;
+        $scope.isEditing = true;
+        $scope.user = userinfo;
+      }
+    });
   }
 
   $scope.nochange=function(){

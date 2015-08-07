@@ -39,18 +39,49 @@ function add_database(body, callback){
 function update_database(body, callback){
   var DB_ID = body.ID;
   var args = [body.Name, body.Type, body.Host, body.Port, body.SAUser];
-  var query = 'Insert into `databases` (Name, Type, Host, Port, SAUser) values (?, ?, ?, ?, ?) On Duplicate key Update Name=Values(name), Host=Values(Host), Port=Values(Port), Type=Values(Type), SAUser=Values(SAUser), SAPass=SAPass;';
-  connection.query(query, args, function(err, result){
+  var query = 'Update `databases` SET Name = ?, SET Type = ?, SET Host = ?, SET Port = ?, SET SAUser = ?';
+  var sacreds = undefined;
+  async.series([
+    function(cb){
+      if(body.SAPass && body.SAPass.length > 0){
+        encryption.encrypt(body.SAPass, function(err, data){
+          if(err){
+            return cb(err);
+          }
+          var sacreds = data;
+          return cb();
+        });
+      }
+      else{
+        return cb();
+      }
+    },
+    function(cb){
+      if(sacreds){
+        query += ", SET SAPass = ?"
+        args.push(sacreds);
+      }
+      query += ' Where ID = ?';
+      args.push(DB_ID);
+      connection.query(query, args, function(err, result){
+        if(err){
+          console.log(err);
+          return cb(err);
+        }
+        connection.query('Insert into History (Activity) Value("Edited Database: ?")', [body.Name], function(err, result){
+          if(err){
+            console.log(err);
+
+          }
+          return cb(null, DB_ID);
+        });
+      });
+    }
+  ],
+  function(err, results){
     if(err){
-      console.log(err);
       return callback(err);
     }
-    connection.query('Insert into History (Activity) Value("Edited Database: ?")', [body.Name], function(err, result){
-      if(err){
-        console.log(err);
-      }
-      return callback(null, DB_ID);
-    });
   });
 }
 
