@@ -14,11 +14,11 @@ module.exports= {
         result = results[0];
         var now = ~~(new Date().getTime()/1000)
         var valid = now <= result.Expires;
-        return next();
+        if(valid){
+         return next(); 
+        }
       }
-      else{
-        return res.send({Success:false, valid:false});
-      }
+      return res.send({Success:false, valid:false});
     });
   }
 }
