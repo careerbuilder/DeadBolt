@@ -1,8 +1,8 @@
 'use strict';
 
-app.controller('HistoryCtrl', function($http, $scope, $cookies, $cookieStore, toastr){
+app.controller('HistoryCtrl', function($http, $scope, $cookies, $cookieStore, toastr, tabService){
   $scope.history=[];
-  $scope.$emit('tabChanged', 0);
+  tabService.setTab(0);
   $http.get('/api/history/7').success(function(data){
     if(data.Success){
       data.History.forEach(function(hist, i){

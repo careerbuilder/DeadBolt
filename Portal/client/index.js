@@ -12,7 +12,8 @@ app.config(['$routeProvider', '$httpProvider', function($routeProvider, $httpPro
 		resolve:{
 			isLoggingin: function(){
 				return true;
-			}
+			},
+			auth: 'doubleLoginService'
 		}
 	})
 	.when('/signup', {
@@ -21,7 +22,8 @@ app.config(['$routeProvider', '$httpProvider', function($routeProvider, $httpPro
 		resolve:{
 			isLoggingin: function(){
 				return false;
-			}
+			},
+			auth: 'doubleLoginService'
 		}
 	})
 	.when('/history', {
@@ -63,12 +65,15 @@ app.config(['$routeProvider', '$httpProvider', function($routeProvider, $httpPro
   $httpProvider.interceptors.push('httpRequestInterceptor');
 }]);
 
-app.controller('PageController', function($http, $scope, $location, authService, toastr){
-  $scope.tab=-1;
+app.controller('PageController', function($http, $scope, $location, authService, tabService, toastr){
 
-	$scope.$on('tabChanged', function(event, arg) {
-		$scope.tab = arg;
-	});
+	$scope.setTab = function(num){
+		tabService.setTab(num);
+	}
+
+	$scope.getTab = function(){
+		return tabService.getTab();
+	}
 
 	$scope.logOut = function(){
 		authService.logOut();
@@ -98,11 +103,26 @@ app.factory('accessService', ["$q", "authService", function($q, authService) {
   }
 }]);
 
-app.run(["$rootScope", "$location", "toastr", function($rootScope, $location, toastr) {
+app.factory('doubleLoginService', ["$q", "authService", function($q, authService) {
+  var userInfo = authService.getSession();
+  if (userInfo) {
+    return $q.reject({loggedIn: true});
+  }
+	else {
+    return $q.resolve({ loggedIn: false });
+  }
+}]);
+
+app.run(["$rootScope", "$location", "toastr", "tabService", function($rootScope, $location, toastr, tabService) {
   $rootScope.$on("$routeChangeError", function(event, current, previous, eventObj) {
     if (eventObj.authenticated === false) {
       toastr.error('Please Log in First');
+			tabService.setTab(-1);
       $location.path("/login");
     }
+		if (eventObj.loggedIn === true) {
+			tabService.setTab(-1);
+			$location.path("/");
+		}
   });
 }]);

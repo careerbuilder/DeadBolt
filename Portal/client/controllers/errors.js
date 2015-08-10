@@ -1,8 +1,8 @@
 'use strict';
 
-app.controller('ErrorCtrl', function($http, $scope, toastr){
+app.controller('ErrorCtrl', function($http, $scope, toastr, tabService){
   $scope.results=[];
-  $scope.$emit('tabChanged', 4);
+  tabService.setTab(4);
   $http.get('/api/errors/').success(function(data){
     if(data.Success){
       $scope.results = data.Results;

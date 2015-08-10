@@ -1,9 +1,9 @@
 'use strict';
 
-app.controller('DBCtrl', function($http, $scope, $cookies, $cookieStore, $location, toastr){
+app.controller('DBCtrl', function($http, $scope, $cookies, $cookieStore, $location, toastr, tabService){
   $scope.searchResults = [];
   $scope.database = {};
-  $scope.$emit('tabChanged', 3);
+  tabService.setTab(3);
 
   $http.post('/api/databases/search/', {Info:''}).success(function(data){
     if(data.Success){

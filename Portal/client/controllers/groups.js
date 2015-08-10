@@ -1,6 +1,7 @@
 'use strict';
 
-app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $location, $filter, toastr){
+app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $location, $filter, toastr, tabService){
+  tabService.setTab(2);
   $scope.searchResults = [];
   $scope.group = {};
   $scope.databases = [];
@@ -8,7 +9,6 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
   $scope.allCheck=false;
   $scope.show_db_text = "Edit Databases";
   $scope.db_edit = false;
-  $scope.$emit('tabChanged', 2);
 
   $http.post('/api/groups/search/', {Info:''}).success(function(data){
     if(data.Success){

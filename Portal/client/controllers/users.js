@@ -1,6 +1,7 @@
 'use strict';
 
-app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $location, toastr){
+app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $location, toastr, tabService){
+  tabService.setTab(1);
   $scope.searchResults = [];
   $scope.user = {};
   $scope.groups = [];
@@ -8,7 +9,6 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
   $scope.numpages = 1;
   $scope.pages = [];
   $scope.currpage = 1;
-  $scope.$emit('tabChanged', 1);
 
   $http.post('/api/users/search/0', {Info: ""}).success(function(data){
     if(data.Success){
