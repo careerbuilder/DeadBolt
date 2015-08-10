@@ -20,53 +20,53 @@ describe('api', function(){
       if(args.length > 2){
         sql_args = args[1];
       }
-      if(args[0].toUpperCase().search('SELECT EXPIRES')>-1){
+      if(args[0].search(/SELECT\s+EXPIRES/i)>-1){
         if(args.length< 3 || !args[1][0]){
           return callback('No Session Token Provided!');
         }
-        if(args[1][0].toUpperCase().search('EXPIRED')>-1){
+        if(args[1][0].search(/EXPIRED/i)>-1){
           return callback(null, [{Expires: ~~(new Date().getTime()/1000)-500}]);
         }
-        if(args[1][0].toUpperCase().search('INVALID')>-1){
+        if(args[1][0].search(/INVALID/i)>-1){
           return callback(null, []);
         }
-        if(args[1][0].toUpperCase().search('ERROR')>-1){
+        if(args[1][0].search(/ERROR/i)>-1){
           return callback("ERROR");
         }
         else{
           return callback(null, [{Expires: ~~(new Date().getTime()/1000)+500}]);
         }
       }
-      if(args[0].toUpperCase().search('SELECT ACTIVE')>-1){
+      if(args[0].search(/SELECT\s+ACTIVE/i)>-1){
         if(args.length< 3 || !args[1][0]){
           return callback('No Email Provided!');
         }
-        if(args[1][0].toUpperCase().search('INVALID')>-1){
+        if(args[1][0].search(/INVALID/i)>-1){
           return callback(null, []);
         }
-        else if(args[1][0].toUpperCase().search('EXISTING')>-1){
+        else if(args[1][0].search(/EXISTING/i)>-1){
           return callback(null, [{Active: 1}]);
         }
         else{
           return callback(null, [{Active: 0}]);
         }
       }
-      if(args[0].toUpperCase().search('UPDATE PORTAL')>-1){
+      if(args[0].search(/UPDATE\s+PORTAL/i)>-1){
         if(args.length< 3 || args[1].length < 3){
           return callback('Missing arguments!');
         }
-        if(args[1][2].toUpperCase().search('ERROR') >-1){
+        if(args[1][2].search(/ERROR/i) >-1){
           return callback('Database lookup error');
         }
         else{
           return callback();
         }
       }
-      if(args[0].toUpperCase().search('SELECT EMAIL,')>-1){
+      if(args[0].search(/SELECT\s+EMAIL,/i)>-1){
         if(args.length< 3 || !args[1][0]){
           return callback('No Email Provided!');
         }
-        if(args[1][0].toUpperCase().search('INVALID')>-1){
+        if(args[1][0].search(/INVALID/i)>-1){
           return callback(null, []);
         }
         else{
@@ -77,7 +77,7 @@ describe('api', function(){
           return callback(null, [{Email:args[1][0], Salt: salt, Password:passcheck}]);
         }
       }
-      if(args[0].toUpperCase().search('INSERT INTO SESSIONS')>-1){
+      if(args[0].search(/INSERT\s+INTO\s+SESSIONS/i)>-1){
         if(args.length< 3 || !args[1][0]){
           return callback('No sessionid Provided!');
         }
@@ -88,11 +88,11 @@ describe('api', function(){
           return callback();
         }
       }
-      if(args[0].toUpperCase().search('SELECT TIME')>-1){
+      if(args[0].search(/SELECT\s+TIME/i)>-1){
         if(args.length< 3 || !args[1][0]){
           return callback('No Timerange Provided!');
         }
-        if(args[1][0].toUpperCase().search('ERROR')>-1){
+        if(args[1][0].search(/ERROR/i)>-1){
           return callback('Database Error!');
         }
         else{
@@ -159,7 +159,7 @@ describe('api', function(){
         done();
       });
     });
-    it('should fail when an invalid is provided', function(done){
+    it('should fail when an invalid session token is provided', function(done){
       request(app)
       .post('/api/auth/')
       .set('Content-Type', 'application/json')
@@ -224,7 +224,7 @@ describe('api', function(){
       request(app)
       .post('/api/signup')
       .set('Content-Type', 'application/json')
-      .send({email:'invalidemail'})
+      .send({Email:'invalidemail'})
       .expect(200)
       .end(function(err, res){
         if(err){
@@ -239,7 +239,7 @@ describe('api', function(){
       request(app)
       .post('/api/signup')
       .set('Content-Type', 'application/json')
-      .send({email:'existingemail'})
+      .send({Email:'existingemail'})
       .expect(200)
       .end(function(err, res){
         if(err){
@@ -254,7 +254,7 @@ describe('api', function(){
       request(app)
       .post('/api/signup')
       .set('Content-Type', 'application/json')
-      .send({email:'validemail'})
+      .send({Email:'validemail'})
       .expect(200)
       .end(function(err, res){
         if(err){
@@ -269,7 +269,7 @@ describe('api', function(){
       request(app)
       .post('/api/signup')
       .set('Content-Type', 'application/json')
-      .send({email:'erroremail', password:'password'})
+      .send({Email:'erroremail', Password:'password'})
       .expect(200)
       .end(function(err, res){
         if(err){
@@ -284,7 +284,7 @@ describe('api', function(){
       request(app)
       .post('/api/signup')
       .set('Content-Type', 'application/json')
-      .send({email:'validemail', password:'validpassword'})
+      .send({Email:'validemail', Password:'validpassword'})
       .expect(200)
       .end(function(err, res){
         if(err){
@@ -315,7 +315,7 @@ describe('api', function(){
       request(app)
       .post('/api/login')
       .set('Content-Type', 'application/json')
-      .send({email: 'nopassword'})
+      .send({Email: 'nopassword'})
       .expect(200)
       .end(function(err, res){
         if(err){
@@ -329,7 +329,7 @@ describe('api', function(){
       request(app)
       .post('/api/login')
       .set('Content-Type', 'application/json')
-      .send({email: 'invalidemail', password:'somepass'})
+      .send({Email: 'invalidemail', Password:'somepass'})
       .expect(200)
       .end(function(err, res){
         if(err){
@@ -343,7 +343,7 @@ describe('api', function(){
       request(app)
       .post('/api/login')
       .set('Content-Type', 'application/json')
-      .send({email: 'validemail', password:'invalidpass'})
+      .send({Email: 'validemail', Password:'invalidpass'})
       .expect(200)
       .end(function(err, res){
         if(err){
@@ -377,7 +377,7 @@ describe('api', function(){
       request(app)
       .post('/api/login')
       .set('Content-Type', 'application/json')
-      .send({email: 'validemail', password:'password'})
+      .send({Email: 'validemail', Password:'password'})
       .expect(200)
       .end(function(err, res){
         if(err){
@@ -392,14 +392,14 @@ describe('api', function(){
       request(app)
       .post('/api/login')
       .set('Content-Type', 'application/json')
-      .send({email: 'validemail', password:'password'})
+      .send({Email: 'validemail', Password:'password'})
       .expect(200)
       .end(function(err, res){
         if(err){
           return done(err);
         }
-        assert.equal(false, !!res.body.Error, 'Error despite valid login');
         assert(res.body.Success, 'Success is false on successful login');
+        assert.equal(false, !!res.body.Error, 'Error despite valid login');
         assert(res.body.Session, 'No session ID returned');
         assert(res.headers['set-cookie'], 'No session cookie included');
         done();

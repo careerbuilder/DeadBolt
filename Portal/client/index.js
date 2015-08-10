@@ -6,77 +6,103 @@ app.config(['$routeProvider', '$httpProvider', function($routeProvider, $httpPro
 		controller: 'PageController',
 		templateUrl: 'views/welcome.html'
 	})
-  .when('/history', {
-		controller: 'HistoryCtrl',
-		templateUrl: 'views/history.html'
-	})
 	.when('/login', {
-		controller: 'LoginCtrl',
-		templateUrl: 'views/login.html'
+		controller: 'AuthCtrl',
+		templateUrl: 'views/auth.html',
+		resolve:{
+			isLoggingin: function(){
+				return true;
+			}
+		}
 	})
 	.when('/signup', {
-		controller: 'SignupCtrl',
-		templateUrl: 'views/signup.html'
+		controller: 'AuthCtrl',
+		templateUrl: 'views/auth.html',
+		resolve:{
+			isLoggingin: function(){
+				return false;
+			}
+		}
+	})
+	.when('/history', {
+		controller: 'HistoryCtrl',
+		templateUrl: 'views/history.html',
+		resolve:{
+			auth: 'accessService'
+		}
 	})
 	.when('/groups', {
 		controller: 'GroupCtrl',
-		templateUrl: 'views/groups.html'
+		templateUrl: 'views/groups.html',
+		resolve:{
+			auth: 'accessService'
+		}
 	})
 	.when('/databases', {
 		controller: 'DBCtrl',
-		templateUrl: 'views/databases.html'
+		templateUrl: 'views/databases.html',
+		resolve:{
+			auth: 'accessService'
+		}
 	})
   .when('/users', {
 		controller: 'UserCtrl',
-		templateUrl: 'views/users.html'
+		templateUrl: 'views/users.html',
+		resolve:{
+			auth: 'accessService'
+		}
 	})
 	.when('/errors', {
 		controller: 'ErrorCtrl',
-		templateUrl: 'views/errors.html'
+		templateUrl: 'views/errors.html',
+		resolve:{
+			auth: 'accessService'
+		}
 	})
-	.otherwise({redirectTo: 'home'});
+	.otherwise({redirectTo: '/'});
   $httpProvider.interceptors.push('httpRequestInterceptor');
 }]);
 
-app.controller('PageController', function($http, $scope, $cookies, $cookieStore, $location, toastr){
+app.controller('PageController', function($http, $scope, $location, authService, toastr){
   $scope.tab=-1;
-	var auth_cookie = $cookieStore.get('rds_ad');
-	if(auth_cookie){
-		$http.post('/api/auth',{Session: auth_cookie}).success(function(data){
-			if(data.Success){
-				$scope.authentication = data.valid;
-			}
-			else{
-				$cookieStore.remove('rds_ad');
-				toastr.warning('Please log in','Session Expired');
-			}
-		});
-	}
 
 	$scope.$on('tabChanged', function(event, arg) {
 		$scope.tab = arg;
 	});
 
-	$scope.$on('loginSuccess', function(event, args) {
-		$scope.authentication = args;
-	});
-
 	$scope.logOut = function(){
-		$cookieStore.remove('rds_ad');
-		$scope.authentication = false;
-		$location.path('#/');
+		authService.logOut();
+		$location.path('/');
 	}
 
 	$scope.isLoggedIn = function(){
-		return $scope.authentication;
+		return !!authService.getSession();
 	}
 });
 
-app.factory('httpRequestInterceptor', function ($cookieStore) {
+app.factory('httpRequestInterceptor', function ($cookies) {
   return {
     request: function (config) {
-      config.headers['Authorization'] = $cookieStore.get('rds_ad') || "";
+      config.headers['Authorization'] = $cookies.get('rdsapit');
       return config;
     }
   };
 });
+
+app.factory('accessService', ["$q", "authService", function($q, authService) {
+  var userInfo = authService.getSession();
+  if (userInfo) {
+    return $q.when(userInfo);
+  } else {
+    return $q.reject({ authenticated: false });
+  }
+}]);
+
+app.run(["$rootScope", "$location", "toastr", function($rootScope, $location, toastr) {
+  $rootScope.$on("$routeChangeError", function(event, current, previous, eventObj) {
+    if (eventObj.authenticated === false) {
+      toastr.error('Please Log in First');
+      $location.path("/login");
+    }
+  });
+}]);

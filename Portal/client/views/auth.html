@@ -1,0 +1,36 @@
+<div class="container">
+  <div class="row">
+    <div class="col-md-4">&nbsp;</div>
+    <div class="col-md-4">
+      <div class="form-group container-fluid">
+        <h3>{{loggingIn ? 'Log In' : 'Sign up'}}</h3>
+        <form class="simple-form" name="loginform" novalidate>
+          <div class="input-group form-group" ng-class="{'has-error': (loginform.email.$invalid && loginform.email.$dirty)}">
+            <span class="input-group-addon" id="EmailAddress" style="text-align:left; min-width:100px;"><b>Email</b></span>
+            <input type="email" class="form-control" placeholder="Email" name="email" ng-model="auth.Email" required />
+          </div>
+          <div class="input-group form-group" ng-class="{'has-error': (loginform.password.$invalid && loginform.password.$dirty)}">
+            <span class="input-group-addon" id="Password" style="text-align:left; min-width:100px;"><b>Password</b></span>
+            <input type="password" class="form-control" placeholder="Password" name="password" ng-pattern="/\S{8,}/i" ng-model="auth.Password" required />
+          </div>
+          <div class="input-group form-group" ng-class="{'has-error': (loginform.Password2.$invalid && loginform.Password2.$dirty)}" ng-if="!loggingIn">
+            <span class="input-group-addon" id="confirmpassword" style="text-align:left; min-width:100px;"><b>Confirm</b></span>
+            <input type="password" class="form-control" placeholder="Password again" name="Password2" ng-model="auth.password2" compare-to="auth.Password" ng-required="!loggingIn"/>
+          </div>
+        </form>
+        <a ng-hide="loggingIn" style="cursor:pointer;" ng-click="loggingIn=true"><em><u>Already a member? Log in instead</u></em></a>
+        <a ng-show="loggingIn" style="cursor:pointer;" ng-click="loggingIn=false"><em><u>Not yet a member? Sign up instead</u></em></a>
+        <button class="btn btn-lg btn-primary btn-block" type="submit" ng-click="signUp()" ng-disabled="loginform.$invalid" ng-hide="loggingIn">Sign up</button>
+        <button class="btn btn-lg btn-primary btn-block" type="submit" ng-click="logIn()" ng-disabled="loginform.$invalid" ng-show="loggingIn">Log in</button>
+        <br />
+        <div class="alert alert-dismissible" role="alert" ng-if="loginResult" ng-class="{'alert-danger': !loginResult.Success, 'alert-success': loginResult.Success}">
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          <strong>{{loginResult.Message}}</strong>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">&nbsp;</div>
+  </div>
+</div>

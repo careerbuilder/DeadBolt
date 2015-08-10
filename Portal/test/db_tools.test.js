@@ -22,7 +22,7 @@ describe('db_tools', function(){
         }
         return callback(null,{insertId: 1});
       }
-      if(args[0].search(/select\s+users\.\*,\s+max/i)>-1){
+      if(args[0].search(/select\s+users\.\*,\s+/i)>-1){
         if(sql_args[0]==-1){
           return callback("DB Error");
         }

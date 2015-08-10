@@ -1,0 +1,69 @@
+'use strict';
+
+app.factory('authService', ['$q', '$http','$cookies', function($q, $http, $cookies){
+
+  var session;
+  var auth_cookie = $cookies.get('rdsapit');
+	if(auth_cookie){
+	   session = auth_cookie;
+	}
+
+  return {
+    getSession: function(){
+      return session;
+    },
+    logIn: function(creds){
+      var deferred = $q.defer();
+      if(creds && creds.Email && creds.Password){
+        $http.post('/api/login', creds)
+        .then(function(res){
+          var data = res.data;
+          if(data.Success){
+            session = data.Session;
+            deferred.resolve(session);
+          }
+          else{
+            deferred.reject(data.Error);
+          }
+        }, function(){
+          deferred.reject('Could not reach Authentication Service');
+        });
+      }
+      else{
+        deferred.reject('No Credentials provided');
+      }
+      return deferred.promise;
+    },
+    signUp: function(creds){
+      var deferred = $q.defer();
+      if(creds && creds.Email && creds.Password){
+        $http.post('/api/signup', creds)
+        .then(function(res){
+          var data = res.data;
+          if(data.Success){
+            deferred.resolve(data.Success);
+          }
+          else{
+            deferred.reject(data.Error);
+          }
+        }, function (){
+          deferred.reject('Failed to reach Authentication Service');
+        });
+      }
+      else{
+        deferred.reject('No Credentials Provided!');
+      }
+      return deferred.promise;
+    },
+    logOut: function(){
+      $http.delete('/api/sessions/'+session.ID)
+      .then(function(){
+        session = null;
+      }, function(){
+        session = null;
+      });
+      $cookies.remove('rdsapit');
+      auth_cookie = null;
+    }
+  }
+}]);
