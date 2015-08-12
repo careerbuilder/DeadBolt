@@ -182,10 +182,10 @@ module.exports = {
                       }
                       var permissions_query;
                       if(user.Permissions === "SU"){
-                        permissions_query = "Grant ALL ON `%`.* TO ?, ?@'localhost'";
+                        permissions_query = "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, RELOAD, PROCESS, REFERENCES, INDEX, ALTER, SHOW DATABASES, CREATE TEMPORARY TABLES, LOCK TABLES, EXECUTE, REPLICATION SLAVE, REPLICATION CLIENT, CREATE VIEW, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, CREATE USER, EVENT, TRIGGER ON *.* TO ?, ?@'localhost'";
                       }
                       else if(user.Permissions === "DBA"){
-                        permissions_query = "Grant ALL ON `%`.* TO ?, ?@'localhost'";
+                        permissions_query = "GRANT ALL on `%`.* TO ?, ?@'localhost'";
                       }
                       else if(user.Permissions === "RW"){
                         permissions_query = "Grant SELECT, INSERT, UPDATE, DELETE ON `%`.* TO ?, ?@'localhost'";
