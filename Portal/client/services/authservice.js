@@ -12,6 +12,16 @@ app.factory('authService', ['$q', '$http','$cookies', function($q, $http, $cooki
     getSession: function(){
       return session;
     },
+    hasAccess: function(){
+      var deferred = $q.defer();
+      if(!!session){
+        deferred.resolve(true);
+      }
+      else{
+        deferred.reject({authenticated: false});
+      }
+      return deferred.promise;
+    },
     logIn: function(creds){
       var deferred = $q.defer();
       if(creds && creds.Email && creds.Password){
@@ -55,15 +65,11 @@ app.factory('authService', ['$q', '$http','$cookies', function($q, $http, $cooki
       }
       return deferred.promise;
     },
+
     logOut: function(){
-      $http.delete('/api/sessions/'+session.ID)
-      .then(function(){
-        session = null;
-      }, function(){
-        session = null;
-      });
       $cookies.remove('rdsapit');
       auth_cookie = null;
+      session = null;
     }
   }
 }]);

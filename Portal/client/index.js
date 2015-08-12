@@ -12,8 +12,7 @@ app.config(['$routeProvider', '$httpProvider', function($routeProvider, $httpPro
 		resolve:{
 			isLoggingin: function(){
 				return true;
-			},
-			auth: 'doubleLoginService'
+			}
 		}
 	})
 	.when('/signup', {
@@ -22,43 +21,42 @@ app.config(['$routeProvider', '$httpProvider', function($routeProvider, $httpPro
 		resolve:{
 			isLoggingin: function(){
 				return false;
-			},
-			auth: 'doubleLoginService'
+			}
 		}
 	})
 	.when('/history', {
 		controller: 'HistoryCtrl',
 		templateUrl: 'views/history.html',
 		resolve:{
-			auth: 'accessService'
+			auth: ["authService", function(authService) {return authService.hasAccess();}]
 		}
 	})
 	.when('/groups', {
 		controller: 'GroupCtrl',
 		templateUrl: 'views/groups.html',
 		resolve:{
-			auth: 'accessService'
+			auth: ["authService", function(authService) {return authService.hasAccess();}]
 		}
 	})
 	.when('/databases', {
 		controller: 'DBCtrl',
 		templateUrl: 'views/databases.html',
 		resolve:{
-			auth: 'accessService'
+			auth: ["authService", function(authService) {return authService.hasAccess();}]
 		}
 	})
   .when('/users', {
 		controller: 'UserCtrl',
 		templateUrl: 'views/users.html',
 		resolve:{
-			auth: 'accessService'
+			auth: ["authService", function(authService) {return authService.hasAccess();}]
 		}
 	})
 	.when('/errors', {
 		controller: 'ErrorCtrl',
 		templateUrl: 'views/errors.html',
 		resolve:{
-			auth: 'accessService'
+			auth: ["authService", function(authService) {return authService.hasAccess();}]
 		}
 	})
 	.otherwise({redirectTo: '/'});
@@ -94,24 +92,6 @@ app.factory('httpRequestInterceptor', function ($cookies) {
   };
 });
 
-app.factory('accessService', ["$q", "authService", function($q, authService) {
-  var userInfo = authService.getSession();
-  if (userInfo) {
-    return $q.when(userInfo);
-  } else {
-    return $q.reject({ authenticated: false });
-  }
-}]);
-
-app.factory('doubleLoginService', ["$q", "authService", function($q, authService) {
-  var userInfo = authService.getSession();
-  if (userInfo) {
-    return $q.reject({loggedIn: true});
-  }
-	else {
-    return userInfo;
-  }
-}]);
 
 app.run(["$rootScope", "$location", "toastr", "tabService", function($rootScope, $location, toastr, tabService) {
   $rootScope.$on("$routeChangeError", function(event, current, previous, eventObj) {
@@ -120,9 +100,5 @@ app.run(["$rootScope", "$location", "toastr", "tabService", function($rootScope,
 			tabService.setTab(-1);
       $location.path("/login");
     }
-		if (eventObj.loggedIn === true) {
-			tabService.setTab(-1);
-			$location.path("/");
-		}
   });
 }]);
