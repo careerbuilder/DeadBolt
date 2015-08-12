@@ -52,25 +52,32 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
   }
 
   $scope.page_change=function(newpage){
-    $scope.pages = [];
     $scope.currpage = newpage;
-    if(newpage < 2){
-      for(var i=1; i<4; i++){
-        if(i<= $scope.numpages){
-          $scope.pages.push(i);
+    var pages = [];
+    var i = newpage-2;
+    var topped = false;
+    while(pages.length<$scope.numpages && pages.length<5){
+      if(i>0 && i<=$scope.numpages){
+        if(topped){
+          pages.unshift(i);
+        }
+        else{
+          pages.push(i);
         }
       }
-    }
-    else if(newpage == $scope.numpages){
-      for(var i=newpage; i>newpage-3; i--){
-        if(i>0){
-          $scope.pages.unshift(i);
-        }
+      if(i >= $scope.numpages){
+        topped = true;
+        i = pages[0];
       }
+      if(topped){
+        i--;
+      }
+      else{
+        i++;
+      }
+
     }
-    else{
-      $scope.pages=[newpage-1,newpage,newpage+1];
-    }
+    $scope.pages = pages;
   }
 
   $scope.refreshSearch = function(){

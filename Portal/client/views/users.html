@@ -45,11 +45,9 @@
                 <li>
                   <a style="cursor:pointer;" ng-click="search(0)">First</a>
                 </li>
-                <li class="disabled"><a>...</a></li>
                 <li ng-repeat="page in pages track by $index" ng-class="{'active': page==currpage}">
                   <a style="cursor:pointer;" ng-click="search(page-1)">{{page}}</a>
                 </li>
-                <li class="disabled"><a>...</a></li>
                 <li>
                   <a style="cursor:pointer;" ng-click="search(numpages-1)">Last</a>
                 </li>

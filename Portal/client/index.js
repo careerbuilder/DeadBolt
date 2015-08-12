@@ -109,7 +109,7 @@ app.factory('doubleLoginService', ["$q", "authService", function($q, authService
     return $q.reject({loggedIn: true});
   }
 	else {
-    return $q.resolve({ loggedIn: false });
+    return userInfo;
   }
 }]);
 
