@@ -2,6 +2,7 @@
 
 app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $location, toastr, tabService){
   tabService.setTab(1);
+
   $scope.searchResults = [];
   $scope.user = {};
   $scope.groups = [];
@@ -9,21 +10,6 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
   $scope.numpages = 1;
   $scope.pages = [];
   $scope.currpage = 1;
-
-  $http.post('/api/users/search/0', {Info: ""}).success(function(data){
-    if(data.Success){
-      $scope.isEditing = false;
-      $scope.isSearching = true;
-      $scope.searchResults = data.Results;
-      var records = data.Total;
-      var numpages = ~~(records/50);
-      if(records%50 >0){
-        numpages +=1;
-      }
-      $scope.numpages = numpages;
-      $scope.page_change(1);
-    }
-  });
 
   $http.get('/api/groups').success(function(data){
     if(data.Success){
@@ -75,7 +61,6 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
       else{
         i++;
       }
-
     }
     $scope.pages = pages;
   }
@@ -193,5 +178,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
       $scope.refreshSearch();
     });
   }
+
+  $scope.search(0);
 
 });
