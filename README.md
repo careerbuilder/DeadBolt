@@ -48,6 +48,7 @@ Deadbolt was designed at Careerbuilder for the SiteDB team to maintain users acr
 
 ###Currently Supported Systems:###
 - [x] MySQL
+- [x] Amazon Aurora
 - [x] Microsoft SQL server
 - [ ] MongoDB
 - [ ] Cassandra
