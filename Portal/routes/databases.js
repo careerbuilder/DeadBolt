@@ -39,7 +39,7 @@ function add_database(body, callback){
 function update_database(body, callback){
   var DB_ID = body.ID;
   var args = [body.Name, body.Type, body.Host, body.Port, body.SAUser];
-  var query = 'Update `databases` SET Name = ?, SET Type = ?, SET Host = ?, SET Port = ?, SET SAUser = ?';
+  var query = 'Update `databases` SET Name = ?, Type = ?, Host = ?, Port = ?, SAUser = ?';
   var sacreds = undefined;
   async.series([
     function(cb){
@@ -58,7 +58,7 @@ function update_database(body, callback){
     },
     function(cb){
       if(sacreds){
-        query += ", SET SAPass = ?"
+        query += ", SAPass = ?"
         args.push(sacreds);
       }
       query += ' Where ID = ?';
