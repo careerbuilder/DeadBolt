@@ -169,8 +169,18 @@ module.exports = {
               EXEC(@SQL)";
               var trans = new mssql.Transaction(conn);
               trans.begin(function(err){
+                if(err){
+                  console.log(err);
+                  errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to revoke permissions", Details:err}, Retryable:true, Class:"Error"});
+                  return each_cb();
+                }
                 var request = new mssql.Request(trans);
                 request.query(revoke, function(err, records){
+                  if(err){
+                    console.log(err);
+                    errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to revoke permissions", Details:err}, Retryable:true, Class:"Error"});
+                    return each_cb();
+                  }
                   trans.commit(function(err) {
                     if(err){
                       console.log(err);
@@ -207,8 +217,18 @@ module.exports = {
               EXEC(@SQL)";
               var trans = new mssql.Transaction(conn);
               trans.begin(function(err){
+                if(err){
+                  console.log(err);
+                  errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to revoke permissions", Details:err}, Retryable:true, Class:"Error"});
+                  return each_cb();
+                }
                 var request = new mssql.Request(trans);
                 request.query(revoke, function(err, records){
+                  if(err){
+                    console.log(err);
+                    errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to revoke permissions", Details:err}, Retryable:true, Class:"Error"});
+                    return each_cb();
+                  }
                   trans.commit(function(err) {
                     if(err){
                       console.log(err);
@@ -244,12 +264,23 @@ module.exports = {
                 EXEC(@SQL)";
                 var trans = new mssql.Transaction(conn);
                 trans.begin(function(err){
+                  if(err){
+                    console.log(err);
+                    errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to grant permissions", Details:err}, Retryable:true, Class:"Error"});
+                    return each_cb();
+                  }
                   var request = new mssql.Request(trans);
                   request.query(grant, function(err, records){
+                    if(err){
+                      console.log(err);
+                      errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to grant permissions", Details:err}, Retryable:true, Class:"Error"});
+                      return each_cb();
+                    }
                     trans.commit(function(err) {
                       if(err){
                         console.log(err);
                         errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to grant permissions", Details:err}, Retryable:true, Class:"Error"});
+                        return each_cb();
                       }
                       return inner_cb();
                     });
@@ -268,8 +299,18 @@ module.exports = {
                 EXEC(@SQL)";
                 var trans = new mssql.Transaction(conn);
                 trans.begin(function(err){
+                  if(err){
+                    console.log(err);
+                    errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to drop user", Details:err}, Retryable:true, Class:"Error"});
+                    return each_cb();
+                  }
                   var request = new mssql.Request(trans);
                   request.query(drop, function(err, records){
+                    if(err){
+                      console.log(err);
+                      errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to drop user", Details:err}, Retryable:true, Class:"Error"});
+                      return each_cb();
+                    }
                     trans.commit(function(err) {
                       if(err){
                         console.log(err);
@@ -283,6 +324,7 @@ module.exports = {
               }
             },
             function(inner_cb){
+              console.log("Granting server permissions");
               if(user.SQL_Server_Password && user.Permissions === "SU"){
                 var grant = "SET NOCOUNT ON \
                 DECLARE @SQL VARCHAR(MAX) \
@@ -306,8 +348,18 @@ module.exports = {
                 EXEC(@SQL)";
                 var trans = new mssql.Transaction(conn);
                 trans.begin(function(err){
+                  if(err){
+                    console.log(err);
+                    errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to grant Super permissions", Details:err}, Retryable:false, Class:"Warning"});
+                    return each_cb();
+                  }
                   var request = new mssql.Request(trans);
                   request.query(grant, function(err, records){
+                    if(err){
+                      console.log(err);
+                      errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to grant Super permissions", Details:err}, Retryable:false, Class:"Warning"});
+                      return each_cb();
+                    }
                     trans.commit(function(err) {
                       if(err){
                         console.log(err);
