@@ -157,14 +157,15 @@ module.exports = {
               SET @SQL = '' \
               SELECT @SQL = @SQL + 'USE ' + name + '; \
               IF Exists (SELECT * FROM sys.database_principals WHERE name=''" + user.Username + "'') \
-                BEGIN \
-                  ALTER ROLE DB_DATAREADER Drop MEMBER [" + user.Username + "]; \
-                  ALTER ROLE DB_DATAWRITER Drop MEMBER [" + user.Username + "]; \
-                  ALTER ROLE DB_OWNER DROP MEMBER [" + user.Username + "]; \
-                  REVOKE SHOWPLAN FROM [" + user.Username + "]; \
-                  REVOKE VIEW DATABASE STATE FROM [" + user.Username + "]; \
-                  REVOKE VIEW DEFINITION FROM [" + user.Username + "]; \
-                END' \
+              BEGIN \
+                ALTER ROLE DB_DATAREADER Drop MEMBER [" + user.Username + "]; \
+                ALTER ROLE DB_DATAWRITER Drop MEMBER [" + user.Username + "]; \
+                ALTER ROLE DB_OWNER DROP MEMBER [" + user.Username + "]; \
+                REVOKE SHOWPLAN FROM [" + user.Username + "]; \
+                REVOKE VIEW DATABASE STATE FROM [" + user.Username + "]; \
+                REVOKE VIEW DEFINITION FROM [" + user.Username + "]; \
+              END; \
+              ' \
               FROM MASTER.SYS.DATABASES WHERE database_id > 4 AND state_desc = 'ONLINE' AND name not like '%rdsadmin%' \
               EXEC(@SQL)";
               var trans = new mssql.Transaction(conn);
@@ -198,7 +199,7 @@ module.exports = {
               var revoke ="SET NOCOUNT ON \
               DECLARE @SQL VARCHAR(MAX) \
               SET @SQL = 'USE [master] \
-              IF Exists (SELECT * FROM sys.server_principals WHERE name=''" + user.Username + "'') \
+                IF Exists (SELECT * FROM sys.server_principals WHERE name=''" + user.Username + "'') \
                 BEGIN \
                   ALTER SERVER ROLE [processadmin] DROP MEMBER [" + user.Username +"]; \
                   ALTER SERVER ROLE [setupadmin] DROP MEMBER [" + user.Username +"]; \
@@ -213,27 +214,26 @@ module.exports = {
                   REVOKE VIEW ANY DATABASE FROM [" + user.Username + "]; \
                   REVOKE VIEW ANY DEFINITION FROM [" + user.Username + "]; \
                   REVOKE VIEW SERVER STATE FROM [" + user.Username + "]; \
-                END; \
-              ' \
+                END' \
               EXEC(@SQL)";
               var trans = new mssql.Transaction(conn);
               trans.begin(function(err){
                 if(err){
                   console.log(err);
-                  errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to revoke permissions", Details:err}, Retryable:true, Class:"Error"});
+                  errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to revoke server permissions", Details:err}, Retryable:true, Class:"Error"});
                   return each_cb();
                 }
                 var request = new mssql.Request(trans);
                 request.query(revoke, function(err, records){
                   if(err){
                     console.log(err);
-                    errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to revoke permissions", Details:err}, Retryable:true, Class:"Error"});
+                    errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to revoke server permissions", Details:err}, Retryable:true, Class:"Error"});
                     return each_cb();
                   }
                   trans.commit(function(err) {
                     if(err){
                       console.log(err);
-                      errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to revoke permissions", Details:err}, Retryable:true, Class:"Error"});
+                      errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to revoke server permissions", Details:err}, Retryable:true, Class:"Error"});
                       return each_cb();
                     }
                     return inner_cb();
