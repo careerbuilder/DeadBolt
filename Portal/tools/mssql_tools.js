@@ -213,7 +213,8 @@ module.exports = {
                   REVOKE VIEW ANY DATABASE FROM [" + user.Username + "]; \
                   REVOKE VIEW ANY DEFINITION FROM [" + user.Username + "]; \
                   REVOKE VIEW SERVER STATE FROM [" + user.Username + "]; \
-                END' \
+                END; \
+              ' \
               EXEC(@SQL)";
               var trans = new mssql.Transaction(conn);
               trans.begin(function(err){
