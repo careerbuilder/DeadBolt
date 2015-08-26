@@ -98,10 +98,6 @@ module.exports = {
                     errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to Add or Update Login", Details:err}, Retryable:false, Class:"Error"})
                     return each_cb();
                   }
-                  var rolledBack = false;
-                  transaction.on('rollback', function(aborted){
-                      rolledBack = true;
-                  });
                   var request = new mssql.Request(trans);
                   var user_alter = "IF NOT Exists (SELECT * FROM sys.syslogins WHERE name= '" + user.Username + "') \
                   CREATE Login [" + user.Username + "] WITH password=" + user_pass + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF \
