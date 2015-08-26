@@ -98,19 +98,38 @@ module.exports = {
                     errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to Add or Update Login", Details:err}, Retryable:false, Class:"Error"})
                     return each_cb();
                   }
+                  var rolledBack = false;
+                  trans.on('rollback', function(aborted) {
+                    // emited with aborted === true
+                    rolledBack = true;
+                  });
                   var request = new mssql.Request(trans);
                   var user_alter = "IF NOT Exists (SELECT * FROM sys.syslogins WHERE name= '" + user.Username + "') \
                   CREATE Login [" + user.Username + "] WITH password=" + user_pass + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF \
                   ELSE ALTER LOGIN [" + user.Username + "] WITH PASSWORD=" + user_pass + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF";
                   request.query(user_alter, function(err, records){
-                    trans.commit(function(err) {
-                        if(err){
-                          console.log(err);
-                          errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to Add or Update Login", Details:err}, Retryable:true, Class:"Error"})
+                    if(err){
+                      console.log(err);
+                      errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to Add or Update Login", Details:err}, Retryable:true, Class:"Error"});
+                      if(!rolledBack){
+                        trans.rollback(function(error){
+                          if(error){
+                            console.log(error);
+                          }
                           return each_cb();
-                        }
-                        return inner_cb();
-                    });
+                        });
+                      }
+                    }
+                    else{
+                      trans.commit(function(err) {
+                          if(err){
+                            console.log(err);
+                            errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to Add or Update Login", Details:err}, Retryable:true, Class:"Error"});
+                            return each_cb();
+                          }
+                          return inner_cb();
+                      });
+                    }
                   });
                 });
               }
@@ -125,16 +144,35 @@ module.exports = {
                     errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to Drop Login", Details:err}, Retryable:true, Class:"Error"})
                     return each_cb();
                   }
+                  var rolledBack = false;
+                  trans.on('rollback', function(aborted) {
+                    // emited with aborted === true
+                    rolledBack = true;
+                  });
                   var request = new mssql.Request(trans);
                   request.query("IF Exists (SELECT * FROM syslogins WHERE name= '" + user.Username + "') DROP LOGIN [" + user.Username + "]", function(err, records){
-                    trans.commit(function(err) {
-                      if(err){
-                        console.log(err);
-                        errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to Drop Login", Details:err}, Retryable:true, Class:"Error"})
-                        return each_cb();
+                    if(err){
+                      console.log(err);
+                      errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to Drop Login", Details:err}, Retryable:true, Class:"Error"});
+                      if(!rolledBack){
+                        trans.rollback(function(error){
+                          if(error){
+                            console.log(error);
+                          }
+                          return each_cb();
+                        });
                       }
-                      return inner_cb();
-                    });
+                    }
+                    else{
+                      trans.commit(function(err) {
+                        if(err){
+                          console.log(err);
+                          errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to Drop Login", Details:err}, Retryable:true, Class:"Error"});
+                          return each_cb();
+                        }
+                        return inner_cb();
+                      });
+                    }
                   });
                 });
               }
@@ -165,16 +203,35 @@ module.exports = {
                   errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to revoke permissions", Details:err}, Retryable:true, Class:"Error"});
                   return each_cb();
                 }
+                var rolledBack = false;
+                trans.on('rollback', function(aborted) {
+                  // emited with aborted === true
+                  rolledBack = true;
+                });
                 var request = new mssql.Request(trans);
                 request.query(revoke, function(err, records){
-                  trans.commit(function(err) {
-                    if(err){
-                      console.log(err);
-                      errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to revoke permissions", Details:err}, Retryable:true, Class:"Error"});
-                      return each_cb();
+                  if(err){
+                    console.log(err);
+                    errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to revoke permissions", Details:err}, Retryable:true, Class:"Error"});
+                    if(!rolledBack){
+                      trans.rollback(function(error){
+                        if(error){
+                          console.log(error);
+                        }
+                        return each_cb();
+                      });
                     }
-                    return inner_cb();
-                  });
+                  }
+                  else{
+                    trans.commit(function(err) {
+                      if(err){
+                        console.log(err);
+                        errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to revoke permissions", Details:err}, Retryable:true, Class:"Error"});
+                        return each_cb();
+                      }
+                      return inner_cb();
+                    });
+                  }
                 });
               });
             },
@@ -223,7 +280,7 @@ module.exports = {
                         if(error){
                           console.log(error);
                         }
-                        each_cb();
+                        return each_cb();
                       });
                     }
                   }
@@ -269,16 +326,35 @@ module.exports = {
                     errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to grant permissions", Details:err}, Retryable:true, Class:"Error"});
                     return each_cb();
                   }
+                  var rolledBack = false;
+                  trans.on('rollback', function(aborted) {
+                    // emited with aborted === true
+                    rolledBack = true;
+                  });
                   var request = new mssql.Request(trans);
                   request.query(grant, function(err, records){
-                    trans.commit(function(err) {
-                      if(err){
-                        console.log(err);
-                        errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to grant permissions", Details:err}, Retryable:true, Class:"Error"});
-                        return each_cb();
+                    if(err){
+                      console.log(err);
+                      errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to grant permissions", Details:err}, Retryable:true, Class:"Error"});
+                      if(!rolledBack){
+                        trans.rollback(function(error){
+                          if(error){
+                            console.log(error);
+                          }
+                          return each_cb();
+                        });
                       }
-                      return inner_cb();
-                    });
+                    }
+                    else{
+                      trans.commit(function(err) {
+                        if(err){
+                          console.log(err);
+                          errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to grant permissions", Details:err}, Retryable:true, Class:"Error"});
+                          return each_cb();
+                        }
+                        return inner_cb();
+                      });
+                    }
                   });
                 });
               }
@@ -299,16 +375,35 @@ module.exports = {
                     errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to drop user", Details:err}, Retryable:true, Class:"Error"});
                     return each_cb();
                   }
+                  var rolledBack = false;
+                  trans.on('rollback', function(aborted) {
+                    // emited with aborted === true
+                    rolledBack = true;
+                  });
                   var request = new mssql.Request(trans);
                   request.query(drop, function(err, records){
-                    trans.commit(function(err) {
-                      if(err){
-                        console.log(err);
-                        errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to drop user", Details:err}, Retryable:true, Class:"Error"});
-                        return each_cb();
+                    if(err){
+                      console.log(err);
+                      errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to drop user", Details:err}, Retryable:true, Class:"Error"});
+                      if(!rolledBack){
+                        trans.rollback(function(error){
+                          if(error){
+                            console.log(error);
+                          }
+                          return each_cb();
+                        });
                       }
-                      return inner_cb();
-                    });
+                    }
+                    else{
+                      trans.commit(function(err) {
+                        if(err){
+                          console.log(err);
+                          errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to drop user", Details:err}, Retryable:true, Class:"Error"});
+                          return each_cb();
+                        }
+                        return inner_cb();
+                      });
+                    }
                   });
                 });
               }
@@ -343,16 +438,35 @@ module.exports = {
                     errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to grant Super permissions", Details:err}, Retryable:false, Class:"Warning"});
                     return each_cb();
                   }
+                  var rolledBack = false;
+                  trans.on('rollback', function(aborted) {
+                    // emited with aborted === true
+                    rolledBack = true;
+                  });
                   var request = new mssql.Request(trans);
                   request.query(grant, function(err, records){
-                    trans.commit(function(err) {
-                      if(err){
-                        console.log(err);
-                        errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to grant Super permissions", Details:err}, Retryable:false, Class:"Warning"});
-                        return each_cb();
+                    if(err){
+                      console.log(err);
+                      errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to grant Super permissions", Details:err}, Retryable:false, Class:"Warning"});
+                      if(!rolledBack){
+                        trans.rollback(function(error){
+                          if(error){
+                            console.log(error);
+                          }
+                          return each_cb();
+                        });
                       }
-                      return inner_cb();
-                    });
+                    }
+                    else{
+                      trans.commit(function(err) {
+                        if(err){
+                          console.log(err);
+                          errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to grant Super permissions", Details:err}, Retryable:false, Class:"Warning"});
+                          return each_cb();
+                        }
+                        return inner_cb();
+                      });
+                    }
                   });
                 });
               }
