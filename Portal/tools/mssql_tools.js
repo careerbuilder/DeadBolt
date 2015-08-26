@@ -95,19 +95,18 @@ module.exports = {
                 trans.begin(function(err){
                   if(err){
                     console.log(err);
-                    errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to Add or Update Login", Details:err}, Retryable:true, Class:"Error"})
+                    errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to Add or Update Login", Details:err}, Retryable:false, Class:"Error"})
                     return each_cb();
                   }
+                  var rolledBack = false;
+                  transaction.on('rollback', function(aborted){
+                      rolledBack = true;
+                  });
                   var request = new mssql.Request(trans);
                   var user_alter = "IF NOT Exists (SELECT * FROM sys.syslogins WHERE name= '" + user.Username + "') \
                   CREATE Login [" + user.Username + "] WITH password=" + user_pass + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF \
                   ELSE ALTER LOGIN [" + user.Username + "] WITH PASSWORD=" + user_pass + " HASHED, CHECK_POLICY=OFF, CHECK_EXPIRATION=OFF";
                   request.query(user_alter, function(err, records){
-                    if(err){
-                      console.log(err);
-                      errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to Add or Update Login", Details:err}, Retryable:true, Class:"Error"})
-                      return each_cb();
-                    }
                     trans.commit(function(err) {
                         if(err){
                           console.log(err);
@@ -132,11 +131,6 @@ module.exports = {
                   }
                   var request = new mssql.Request(trans);
                   request.query("IF Exists (SELECT * FROM syslogins WHERE name= '" + user.Username + "') DROP LOGIN [" + user.Username + "]", function(err, records){
-                    if(err){
-                      console.log(err);
-                      errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to Drop Login", Details:err}, Retryable:true, Class:"Error"})
-                      return each_cb();
-                    }
                     trans.commit(function(err) {
                       if(err){
                         console.log(err);
@@ -177,11 +171,6 @@ module.exports = {
                 }
                 var request = new mssql.Request(trans);
                 request.query(revoke, function(err, records){
-                  if(err){
-                    console.log(err);
-                    errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to revoke permissions", Details:err}, Retryable:true, Class:"Error"});
-                    return each_cb();
-                  }
                   trans.commit(function(err) {
                     if(err){
                       console.log(err);
@@ -225,11 +214,6 @@ module.exports = {
                 }
                 var request = new mssql.Request(trans);
                 request.query(revoke, function(err, records){
-                  if(err){
-                    console.log(err);
-                    errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to revoke server permissions", Details:err}, Retryable:true, Class:"Error"});
-                    return each_cb();
-                  }
                   trans.commit(function(err) {
                     if(err){
                       console.log(err);
@@ -272,11 +256,6 @@ module.exports = {
                   }
                   var request = new mssql.Request(trans);
                   request.query(grant, function(err, records){
-                    if(err){
-                      console.log(err);
-                      errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to grant permissions", Details:err}, Retryable:true, Class:"Error"});
-                      return each_cb();
-                    }
                     trans.commit(function(err) {
                       if(err){
                         console.log(err);
@@ -307,11 +286,6 @@ module.exports = {
                   }
                   var request = new mssql.Request(trans);
                   request.query(drop, function(err, records){
-                    if(err){
-                      console.log(err);
-                      errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to drop user", Details:err}, Retryable:true, Class:"Error"});
-                      return each_cb();
-                    }
                     trans.commit(function(err) {
                       if(err){
                         console.log(err);
@@ -356,11 +330,6 @@ module.exports = {
                   }
                   var request = new mssql.Request(trans);
                   request.query(grant, function(err, records){
-                    if(err){
-                      console.log(err);
-                      errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to grant Super permissions", Details:err}, Retryable:false, Class:"Warning"});
-                      return each_cb();
-                    }
                     trans.commit(function(err) {
                       if(err){
                         console.log(err);
