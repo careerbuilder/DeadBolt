@@ -212,7 +212,7 @@ module.exports = {
                 trans.on('rollback', function(aborted) {
                   // emited with aborted === true
                   rolledBack = true;
-                  print("rollback called");
+                  console.log("rollback called");
                 });
                 var request = new mssql.Request(trans);
                 request.query(revoke, function(err, records){
@@ -224,7 +224,7 @@ module.exports = {
                           console.log(error);
                           errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to revoke server permissions", Details:err}, Retryable:false, Class:"Error"});
                         }
-                        print("rollback fired");
+                        console.log("rollback fired");
                         each_cb();
                       });
                     }
