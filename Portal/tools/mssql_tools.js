@@ -245,17 +245,17 @@ module.exports = {
                 BEGIN \
                   ALTER SERVER ROLE [processadmin] DROP MEMBER [" + user.Username +"]; \
                   ALTER SERVER ROLE [setupadmin] DROP MEMBER [" + user.Username +"]; \
-                  REVOKE ALTER ANY CONNECTION FROM [" + user.Username + "]; \
-                  REVOKE ALTER ANY LINKED SERVER FROM [" + user.Username + "]; \
-                  REVOKE ALTER ANY LOGIN FROM [" + user.Username + "]; \
-                  REVOKE ALTER ANY SERVER ROLE FROM [" + user.Username + "]; \
-                  REVOKE ALTER SERVER STATE FROM [" + user.Username + "]; \
-                  REVOKE ALTER TRACE FROM [" + user.Username + "]; \
-                  REVOKE CONNECT SQL FROM [" + user.Username + "]; \
-                  REVOKE CREATE ANY DATABASE FROM [" + user.Username + "]; \
-                  REVOKE VIEW ANY DATABASE FROM [" + user.Username + "]; \
-                  REVOKE VIEW ANY DEFINITION FROM [" + user.Username + "]; \
-                  REVOKE VIEW SERVER STATE FROM [" + user.Username + "]; \
+                  REVOKE GRANT OPTION FOR ALTER ANY CONNECTION, ALTER ANY CONNECTION, ALTER ANY CONNECTION FROM [" + user.Username + "] CASCADE; \
+                  REVOKE GRANT OPTION FOR ALTER ANY LINKED SERVER, ALTER ANY LINKED SERVER FROM [" + user.Username + "] CASCADE; \
+                  REVOKE GRANT OPTION FOR ALTER ANY LOGIN, ALTER ANY LOGIN FROM [" + user.Username + "] CASCADE; \
+                  REVOKE GRANT OPTION FOR ALTER ANY SERVER ROLE, ALTER ANY SERVER ROLE FROM [" + user.Username + "] CASCADE; \
+                  REVOKE GRANT OPTION FOR ALTER SERVER STATE, ALTER SERVER STATE FROM [" + user.Username + "] CASCADE; \
+                  REVOKE GRANT OPTION FOR ALTER TRACE, ALTER TRACE FROM [" + user.Username + "] CASCADE; \
+                  REVOKE GRANT OPTION FOR CONNECT SQL, CONNECT SQL FROM [" + user.Username + "] CASCADE; \
+                  REVOKE GRANT OPTION FOR CREATE ANY DATABASE, CREATE ANY DATABASE FROM [" + user.Username + "] CASCADE; \
+                  REVOKE GRANT OPTION FOR VIEW ANY DATABASE, VIEW ANY DATABASE FROM [" + user.Username + "] CASCADE; \
+                  REVOKE GRANT OPTION FOR VIEW ANY DEFINITION, VIEW ANY DEFINITION FROM [" + user.Username + "] CASCADE; \
+                  REVOKE GRANT OPTION FOR VIEW SERVER STATE, VIEW SERVER STATE FROM [" + user.Username + "] CASCADE; \
                 END' \
               EXEC(@SQL)";
               var trans = new mssql.Transaction(conn);
