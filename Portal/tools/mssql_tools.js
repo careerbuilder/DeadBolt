@@ -208,16 +208,37 @@ module.exports = {
                   errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to revoke server permissions", Details:err}, Retryable:true, Class:"Error"});
                   return each_cb();
                 }
+                var rolledBack = false;
+                trans.on('rollback', function(aborted) {
+                  // emited with aborted === true
+                  rolledBack = true;
+                  print("rollback called");
+                });
                 var request = new mssql.Request(trans);
                 request.query(revoke, function(err, records){
-                  trans.commit(function(err) {
-                    if(err){
-                      console.log(err);
-                      errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to revoke server permissions", Details:err}, Retryable:true, Class:"Error"});
-                      return each_cb();
+                  if(err){
+                    console.log(err);
+                    if(!rolledBack){
+                      trans.rollback(function(error){
+                        if(error){
+                          console.log(error);
+                          errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to revoke server permissions", Details:err}, Retryable:false, Class:"Error"});
+                        }
+                        print("rollback fired");
+                        each_cb();
+                      });
                     }
-                    return inner_cb();
-                  });
+                  }
+                  else{
+                    trans.commit(function(err) {
+                      if(err){
+                        console.log(err);
+                        errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to revoke server permissions", Details:err}, Retryable:true, Class:"Error"});
+                        return each_cb();
+                      }
+                      return inner_cb();
+                    });
+                  }
                 });
               });
             },
