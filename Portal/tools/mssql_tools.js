@@ -418,17 +418,17 @@ module.exports = {
                   BEGIN \
                     ALTER SERVER ROLE [processadmin] ADD MEMBER [" + user.Username +"]; \
                     ALTER SERVER ROLE [setupadmin] ADD MEMBER [" + user.Username +"]; \
-                    GRANT ALTER ANY CONNECTION TO [" + user.Username + "] WITH GRANT OPTION; \
-                    GRANT ALTER ANY LINKED SERVER TO [" + user.Username + "] WITH GRANT OPTION; \
-                    GRANT ALTER ANY LOGIN TO [" + user.Username + "] WITH GRANT OPTION; \
-                    GRANT ALTER ANY SERVER ROLE TO [" + user.Username + "] WITH GRANT OPTION; \
-                    GRANT ALTER SERVER STATE TO [" + user.Username + "] WITH GRANT OPTION; \
-                    GRANT ALTER TRACE TO [" + user.Username + "] WITH GRANT OPTION; \
-                    GRANT CONNECT SQL TO [" + user.Username + "] WITH GRANT OPTION; \
-                    GRANT CREATE ANY DATABASE TO [" + user.Username + "] WITH GRANT OPTION; \
-                    GRANT VIEW ANY DATABASE TO [" + user.Username + "] WITH GRANT OPTION; \
-                    GRANT VIEW ANY DEFINITION TO [" + user.Username + "] WITH GRANT OPTION; \
-                    GRANT VIEW SERVER STATE TO [" + user.Username + "] WITH GRANT OPTION; \
+                    GRANT ALTER ANY CONNECTION TO [" + user.Username + "]; \
+                    GRANT ALTER ANY LINKED SERVER TO [" + user.Username + "]; \
+                    GRANT ALTER ANY LOGIN TO [" + user.Username + "]; \
+                    GRANT ALTER ANY SERVER ROLE TO [" + user.Username + "]; \
+                    GRANT ALTER SERVER STATE TO [" + user.Username + "]; \
+                    GRANT ALTER TRACE TO [" + user.Username + "]; \
+                    GRANT CONNECT SQL TO [" + user.Username + "]; \
+                    GRANT CREATE ANY DATABASE TO [" + user.Username + "]; \
+                    GRANT VIEW ANY DATABASE TO [" + user.Username + "]; \
+                    GRANT VIEW ANY DEFINITION TO [" + user.Username + "]; \
+                    GRANT VIEW SERVER STATE TO [" + user.Username + "]; \
                   END' \
                 EXEC(@SQL)";
                 var trans = new mssql.Transaction(conn);
