@@ -4,7 +4,7 @@ var mysql_tools = require('./mysql_tools.js');
 var mssql_tools = require('./mssql_tools.js');
 //var mongo_tools = require('./mongo_tools.js');
 
-var retry_args = {times:3, interval:30000};
+var retry_args = {times:2, interval:30000};
 
 function update(db, init_users, callback){
   var dbinfo = db;
