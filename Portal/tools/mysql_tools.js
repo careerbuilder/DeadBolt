@@ -53,7 +53,7 @@ module.exports = {
           if(username in g_users){
             user = g_users[username];
           }
-          var user_exists_query = 'SELECT Host, Count(*) as `Exists` from mysql.user where User=? Group by Host;';
+          var user_exists_query = 'SELECT Host, plugin from mysql.user where user=?';
           mysql_connection.query(user_exists_query, [user.Username], function(err, results){
             if(err){
               console.log("Select exists failed! Error on DB " + dbinfo.Name +": " + err);
@@ -81,14 +81,33 @@ module.exports = {
               else{
                 var all_exists = false;
                 var local_exists = false;
-                for(var i=0; i< results.length; i++){
-                  if(results[i].Host == '%'){
-                    all_exists = results[i].Exists!=0;
+                var auth_drops = [];
+                results.forEach(function(r, i){
+                  if(r.Host === '%'){
+                    if(r.plugin.search(/auth_pam/i)>-1){
+                      console.log(dbinfo.Name, r.Host, r.plugin);
+                      auth_drops.push(user.Username+'@'+"'"+r.Host+"'");
+                      all_exists = false;
+                    }
+                    else{
+                      all_exists = true;
+                    }
                   }
-                  if(results[i].Host == 'localhost'){
-                    local_exists = results[i].Exists!=0;
+                  else if(r.Host == 'localhost'){
+                    if(r.plugin.search(/auth_pam/i)>-1){
+                      console.log(dbinfo.Name, r.Host, r.plugin);
+                      auth_drops.push(user.Username+'@'+"'"+r.Host+"'");
+                      local_exists = false;
+                    }
+                    else{
+                      local_exists = true;
+                    }
                   }
-                }
+                  else{
+                    console.log(dbinfo.Name, r.Host, r.plugin);
+                    auth_drops.push(user.Username+'@'+"'"+r.Host+"'");
+                  }
+                });
                 if(all_exists){
                   if(user.MySQL_Password){
                     user_log='Updating ' + user.Username +' on ' + dbinfo.Name;
@@ -139,7 +158,7 @@ module.exports = {
                     encryption.decrypt(user.MySQL_Password, function(err, data){
                       if(err){
                         console.log(err);
-                        errors.push({User: user, Database: dbinfo, Error:{Title: "Error Decrypting User password", Details: err}, Retryable:true, Class:"Error"});
+                        errors.push({User: user, Database: dbinfo, Error:{Title: "Error Decrypting User password", Details: err}, Retryable:false, Class:"Error"});
                         return callback();
                       }
                       hash_pass = data;
@@ -148,6 +167,27 @@ module.exports = {
                   }
                   else{
                     cb();
+                  }
+                },
+                function(cb){
+                  if(auth_drops && auth_drops.length > 0){
+                    console.log("Dropping nonstandard logins");
+                    var pre_drop = "Drop User ";
+                    auth_drops.forEach(function(u, i){
+                      pre_drop += (u + ', ');
+                    });
+                    pre_drop = pre_drop.substring(0, pre_drop.length-2) +';'
+                    mysql_connection.query(pre_drop, function(err, res){
+                      if(err){
+                        console.log(err);
+                        errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to drop nonstandard auth users", Details: err}, Retryable:false, Class:"Error"});
+                        return callback();
+                      }
+                      return cb()
+                    });
+                  }
+                  else{
+                    return cb();
                   }
                 },
                 function(cb){
