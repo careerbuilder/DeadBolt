@@ -19,66 +19,72 @@ describe('databases', function(){
       if(args.length > 2){
         var sql_args = args[1];
       }
-      if(args[0].toUpperCase().search('SELECT ID') >-1){
+      if(args[0].search(/SELECT\s+ID/i) >-1){
 
         if(sql_args && sql_args[0]){
-          if(sql_args[0].toUpperCase().search('ERROR')>-1){
+          if(sql_args[0].toString().search(/ERROR/i)>-1){
             return callback("Database Error");
           }
         }
         return callback(null, [{ID:1, Name: 'testing', Type:'mysql', Host: 'localhost', Port:8080, SAUser:'sauser'}]);
       }
-      else if(args[0].toUpperCase().search('SELECT NAME') >-1){
+      else if(args[0].search(/SELECT\s+NAME/i) >-1){
 
         if(sql_args && sql_args[0]){
-          if(sql_args[0].toUpperCase().search('ERROR')>-1){
+          if(sql_args[0].toString().search(/ERROR/i)>-1){
             return callback("Database Error");
           }
         }
         return callback(null, [{ID:1, Name: 'testing', Type:'mysql', Host: 'localhost', Port:8080, SAUser:'sauser'}]);
       }
-      else if(args[0].toUpperCase().search('SELECT *') >-1){
-
+      else if(args[0].search(/select\s+sapass/i) >-1){
         if(sql_args && sql_args[0]){
-          if(sql_args[0].toUpperCase().search('ERROR1')>-1){
+          if(sql_args[0] == -3){
             return callback("Database Error");
           }
-          if(sql_args[0].toUpperCase().search('ERROR4')>-1){
+        }
+        return callback(null, [{SAPass: 'password'}]);
+      }
+      else if(args[0].search(/select\s+\*/i) >-1){
+        if(sql_args && sql_args[0]){
+          if(sql_args[0].toString().search(/ERROR1/i)>-1){
+            return callback("Database Error");
+          }
+          if(sql_args[0].toString().search(/ERROR4/i)>-1){
             return callback(null, [{ID:1, Name: 'error', Type:'mysql', Host: 'localhost', Port:8080, SAUser:'sauser', SAPass: 'password'}]);
           }
         }
         return callback(null, [{ID:1, Name: 'testing', Type:'mysql', Host: 'localhost', Port:8080, SAUser:'sauser', SAPass: 'password'}]);
       }
-      else if(args[0].toUpperCase().search('DELETE FROM GROUPS_') >-1){
+      else if(args[0].search(/DELETE\s+FROM\s+GROUPS_/i) >-1){
 
         if(sql_args && sql_args[0]){
-          if(sql_args[0].toUpperCase().search('ERROR2')>-1){
+          if(sql_args[0].toString().search(/ERROR2/i)>-1){
             return callback("Database Error");
           }
         }
         return callback(null, [{ID:1, Name: 'testing', Type:'mysql', Host: 'localhost', Port:8080, SAUser:'sauser', SAPass: 'password'}]);
       }
-      else if(args[0].toUpperCase().search('DELETE FROM `DATABASES`') >-1){
-
+      else if(args[0].search(/DELETE\s+FROM\s+`DATABASES`/i) >-1){
         if(sql_args && sql_args[0]){
-          if(sql_args[0].toUpperCase().search('ERROR3')>-1){
+          if(sql_args[0].toString().search(/ERROR3/i)>-1){
             return callback("Database Error");
           }
         }
         return callback(null, [{ID:1, Name: 'testing', Type:'mysql', Host: 'localhost', Port:8080, SAUser:'sauser', SAPass: 'password'}]);
       }
-      else if(args[0].toUpperCase().search('INSERT INTO `DATABASES`') >-1){
+      else if(args[0].search(/INSERT\s+INTO\s+`DATABASES`/i) >-1){
         if(sql_args && sql_args[0]){
-          if(sql_args[0].toUpperCase().search('ERROR1')>-1){
+          if(sql_args[0].toString().search(/ERROR1/i)>-1){
             return callback("Database Error");
           }
-          if(sql_args[0].toUpperCase().search('ERROR2')>-1){
+          if(sql_args[0].toString().search(/ERROR2/i)>-1){
             return callback(null, {insertId:-1});
           }
         }
         return callback(null, {insertId:1});
       }
-      else if(args[0].toUpperCase().search('INSERT INTO GROUPS_DATABASES') >-1){
+      else if(args[0].search(/INSERT\s+INTO\s+GROUPS_DATABASES/i) >-1){
         if(sql_args && sql_args[0]){
           if(sql_args[0]===-1){
             return callback("Database Error");
@@ -88,7 +94,7 @@ describe('databases', function(){
       }
       else if(args[0].search(/update\s+`databases`/i) >-1){
         if(sql_args && sql_args[0]){
-          if(sql_args[0].search(/upderror/i)>-1){
+          if(sql_args[0].toString().search(/upderror/i)>-1){
             return callback("Database Error");
           }
         }
@@ -96,7 +102,7 @@ describe('databases', function(){
       }
       else if(args[0].search(/history/i) >-1){
         if(sql_args && sql_args[0]){
-          if(sql_args[0].search(/error/i)>-1){
+          if(sql_args[0].toString().search(/error/i)>-1){
             return callback("Database Error");
           }
         }
@@ -385,6 +391,21 @@ describe('databases', function(){
         .post('/api/databases/')
         .set('Content-Type', 'application/json')
         .send({ID:-1, Name: 'upderror', Type: 'mysql', Host:'localhost', Port: 8080, SAUser:'sauser'})
+        .expect(200)
+        .end(function(err, res){
+          if(err){
+            return done(err);
+          }
+          assert.equal(res.body.Success, false, 'Successful post despite db error');
+          assert(res.body.Error, 'No Error on DB Error');
+          done();
+        });
+      });
+      it('should fail on db error - get SAPass', function(done){
+        request(app)
+        .post('/api/databases/')
+        .set('Content-Type', 'application/json')
+        .send({ID:-3, Name: 'upderror', Type: 'mysql', Host:'localhost', Port: 8080, SAUser:'sauser'})
         .expect(200)
         .end(function(err, res){
           if(err){

@@ -57,7 +57,7 @@ function update_database(body, callback){
           if(err){
             return cb(err);
           }
-          sacreds = results.SAPass;
+          sacreds = results[0].SAPass;
           return cb();
         });
       }
