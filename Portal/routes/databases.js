@@ -53,11 +53,17 @@ function update_database(body, callback){
         });
       }
       else{
-        return cb();
+        connection.query('Select SAPass from `databases` where ID=?', [DB_ID], function(err, results){
+          if(err){
+            return cb(err);
+          }
+          sacreds = results.SAPass;
+          return cb();
+        });
       }
     },
     function(cb){
-      if(sacreds){
+      if(body.SAPass && body.SAPass.length > 0){
         query += ", SAPass = ?"
         args.push(sacreds);
       }
@@ -68,6 +74,7 @@ function update_database(body, callback){
           console.log(err);
           return cb(err);
         }
+        var dbinfo = {Name: body.Name, Type: body.Type, Host: body.Host, Port: body.Port, SAUser: body.SAUser, SAPass: sacreds, ID:DB_ID};
         db_tools.update_all_users(dbinfo, function(err, results){});
         connection.query('Insert into History (Activity) Value("Edited Database: ?")', [body.Name], function(err, result){
           if(err){
