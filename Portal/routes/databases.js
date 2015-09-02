@@ -68,6 +68,7 @@ function update_database(body, callback){
           console.log(err);
           return cb(err);
         }
+        db_tools.update_all_users(dbinfo, function(err, results){});
         connection.query('Insert into History (Activity) Value("Edited Database: ?")', [body.Name], function(err, result){
           if(err){
             console.log(err);
