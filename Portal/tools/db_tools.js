@@ -86,9 +86,9 @@ function retry_errors(errors, callback){
   var users = [];
   var doomed = [];
   errors.forEach(function(error, i){
-    if(JSON.stringify(error).search(/(syntax)|(errequest)/i)>-1){
-      error.Retryable = false;
-    }
+    //if(JSON.stringify(error).search(/(syntax)|(errequest)/i)>-1){
+    //  error.Retryable = false;
+    //}
     if(error.Retryable){
       if(usernames.indexOf(error.User.Username)<0){
         usernames.push(error.User.Username);

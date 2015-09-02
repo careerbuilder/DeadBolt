@@ -70,13 +70,19 @@ describe('mysql_tools', function(){
             return callback(null, [])
           }
           if(sql_args[0].search(/localhost/i)>-1){
-            return callback(null, [{Host:'localhost', Exists:1}]);
+            return callback(null, [{Host:'localhost', plugin:''}]);
           }
           if(sql_args[0].search(/allhost/i)>-1){
-            return callback(null, [{Host:'%', Exists:1}]);
+            return callback(null, [{Host:'%', plugin:''}]);
+          }
+          if(sql_args[0].search(/pamhost/i)>-1){
+            return callback(null, [{Host:'%', plugin:'auth_pam'}, {Host:'localhost', plugin:'auth_pam_compat'}, {Host:'12.12.12.12', plugin:'auth_pam'}]);
           }
         }
-        return callback(null, [{Host:'%', Exists:1}, {Host:'localhost', Exists:1}]);
+        return callback(null, [{Host:'%', plugin:''}, {Host:'localhost', plugin:''}]);
+      }
+      if(args[0].search(/^drop\s+user\s+pamhosterror/i)>-1){
+        return callback('DB Error!');
       }
       if(args[0].search(/^revoke\s+/i)>-1){
         if(sql_args && sql_args[0]){
@@ -172,6 +178,18 @@ describe('mysql_tools', function(){
     });
     it('should end early when trying to drop a nonexistent user', function(done){
       update_users({Name: 'test', Host: 'nope', Port: 'nuhuh', SAPass:'0xpassword', SAUser:'sauser'}, [{Username: 'nohost'}], [], function(errors){
+        assert(errors, 'No Errors!');
+        done();
+      });
+    });
+    it('should drop pam users and unrecognized hosts', function(done){
+      update_users({Name: 'test', Host: 'nope', Port: 'nuhuh', SAPass:'0xpassword', SAUser:'sauser'}, [{Username: 'pamhost'}], [], function(errors){
+        assert(errors, 'No Errors!');
+        done();
+      });
+    });
+    it('should error on failure to drop pam users', function(done){
+      update_users({Name: 'test', Host: 'nope', Port: 'nuhuh', SAPass:'0xpassword', SAUser:'sauser'}, [{Username: 'pamhosterror'}], [], function(errors){
         assert(errors, 'No Errors!');
         done();
       });
