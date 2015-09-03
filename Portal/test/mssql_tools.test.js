@@ -2,7 +2,6 @@ describe('mssql_tools', function(){
   var assert = require('assert');
   var rewire = require('rewire');
   var blanket = require('blanket');
-  global.config = {DB:{}, kmskey: ""};
   var mssql_tools = rewire('../tools/mssql_tools.js');
 
   var mock_encrypt = {
@@ -20,76 +19,28 @@ describe('mssql_tools', function(){
     }
   }
 
-  var commit_error = function(callback){
-    return callback("Transaction Commit Error!");
-  }
-
-  var begin_error = function(callback){
-    return callback("Transaction Begin Error!");
-  }
-
-  var begin = function (callback){
-    return callback();
-  }
-
-  var commit = function (callback){
-    return callback();
-  }
-
-  var query_error = function(sql, callback){
-    return callback("Query Error!");
-  }
-
-  var query = function(sql, callback){
-    return callback();
-  }
-
-  var Transaction = function Transaction(connection){
-    this.conn = connection;
-  }
-
-  Transaction.prototype.begin = begin;
-
-  Transaction.prototype.commit = commit;
-
-  var Request = function Request(transaction){
-    this.trans = transaction;
-  }
-
-  Request.prototype.input = function input(name, type, value){
-    return;
-  }
-
-  Request.prototype.query= query;
-
-  var Connection = function Connection(opts, callback){
-    this.opts = opts;
-    if(opts.server && opts.server.search(/connerror/i)>-1){
-      return callback("DB Connection Error!");
-    }
-    return callback();
-  }
-
-  Connection.prototype.close = function close(){
-    return;
-  }
-
   var mock_mssql = {
-    Connection: Connection,
-    Transaction: Transaction,
-    Request: Request
+    connect: function(config, callback){
+      if(!config.server || config.server.search(/connerror/i)>-1){
+        return callback('DB Connection error!');
+      }
+      return callback(null, {close:function(){}})
+    },
+    query: function(conn, sql, callback){
+      return callback();
+    }
   }
 
   var mssql_revert;
   var encrypt_revert;
   var quiet_revert;
   before(function(){
-    mssql_revert = mssql_tools.__set__('mssql', mock_mssql);
     encrypt_revert = mssql_tools.__set__('encryption', mock_encrypt);
+    mssql_revert = mssql_tools.__set__('mssql_connection', mock_mssql);
     quiet_revert = mssql_tools.__set__('console', {log: function(){}});
   });
-  var update_users = mssql_tools.update_users;
   describe('update users', function(){
+    var update_users = mssql_tools.update_users;
     it('should fail on invalid cipher', function(done){
       update_users({Host: 'nope', Port: 'nuhuh', SAPass:'rd'}, [{Username: 'test'}], [{Username: 'test'}], function(errors){
         assert(errors, 'No Errors!');
@@ -111,55 +62,138 @@ describe('mssql_tools', function(){
       });
     });
     it('should fail on sql injection attempt', function(done){
-      update_users({Host: 'nope', Port: 'nuhuh', SAUser: 'sauser', SAPass:'0xpassword'}, [{Username: 'test'}], [{Username: 'test', SQL_Server_Password:'0xpassword; drop table users; --'}], function(errors){
+      update_users({Host: 'nope', Port: 'nuhuh', SAUser: 'sauser', SAPass:'0xpassword'}, [{Username: 'test'},{Username: 'test; delete * from users; --'}], [{Username: 'test', SQL_Server_Password:'0xpassword; drop table users; --'},{Username: 'test; delete * from users; --'}], function(errors){
         assert(errors, 'No Errors!');
         assert(errors[0].Error.Title.search(/sql\s+inject/i)>-1, 'No Injection error!');
+        done();
       });
-      update_users({Host: 'nope', Port: 'nuhuh', SAUser: 'sauser', SAPass:'0xpassword'}, [{Username: 'test; delete * from users; --'}], [{Username: 'test; delete * from users; --'}], function(errors){
+    });
+    it('should error on db error - add/update/drop login', function(done){
+      var mock_query ={
+        connect: function(config, callback){return callback(null, {close:function(){}})},
+        query: function(conn, sql, callback){
+          if(sql.search(/select\s+\*\s+from\s+(sys\.)?syslogins/i)>-1){
+            return callback('DB Query Error!');
+          }
+          else{
+            return callback();
+          }
+        }
+      };
+      var query_revert = mssql_tools.__set__('mssql_connection', mock_query);
+      update_users({Host: 'nope', Port: 'nuhuh', SAUser: 'sauser', SAPass:'0xpassword'}, [{Username: 'test'},{Username: 'test2'}], [{Username: 'test', SQL_Server_Password:'0xpassword'},{Username: 'test2'}], function(errors){
         assert(errors, 'No Errors!');
-        assert(errors[0].Error.Title.search(/sql\s+inject/i)>-1, 'No Injection error!');
-      });
-      done();
-    });
-    describe('should error on db error - login', function(){
-      it('should fail on transaction begin error', function(done){
-        Transaction.prototype.begin = begin_error;
-        update_users({Host: 'nope', Port: 'nuhuh', SAUser: 'sauser', SAPass:'0xpassword'}, [{Username: 'test'}, {Username: 'nouser'}], [{Username: 'test', SQL_Server_Password:'0xpassword'}], function(errors){
-          assert(errors, 'No Errors!');
-          assert(errors[0].Error.Details.search(/transaction\s+begin/i)>-1, 'No transaction error!');
-          Transaction.prototype.begin = begin;
-          done();
-        });
-      });
-      it('should fail on query error', function(done){
-        Request.prototype.query = query_error;
-        update_users({Host: 'nope', Port: 'nuhuh', SAUser: 'sauser', SAPass:'0xpassword'}, [{Username: 'test'}, {Username: 'nouser'}], [{Username: 'test', SQL_Server_Password:'0xpassword'}], function(errors){
-          assert(errors, 'No Errors!');
-          assert(errors[0].Error.Details.search(/query\s+error/i)>-1, 'No query error!');
-          Request.prototype.query = query;
-          done();
-        });
-      });
-      it('should fail on transaction commit error', function(done){
-        Transaction.prototype.commit = commit_error;
-        update_users({Host: 'nope', Port: 'nuhuh', SAUser: 'sauser', SAPass:'0xpassword'}, [{Username: 'test'}, {Username: 'nouser'}], [{Username: 'test', SQL_Server_Password:'0xpassword'}], function(errors){
-          assert(errors, 'No Errors!');
-          assert(errors[0].Error.Details.search(/transaction\s+commit/i)>-1, 'No transaction error!');
-          Transaction.prototype.commit = commit;
-          done();
-        });
+        query_revert();
+        done();
       });
     });
-    it('should error on db error - drop login');
-    it('should error on db error - revoke permissions');
-    it('should error on db error - add/update user');
-    it('should error on db error - drop user');
-    it('should succeed on drop');
-    it('should succeed on add/update');
+    it('should error on db error - revoke permissions', function(done){
+      var mock_query ={
+        connect: function(config, callback){return callback(null, {close:function(){}})},
+        query: function(conn, sql, callback){
+          if(sql.search(/revoke\s+showplan/i)>-1){
+            return callback('DB Query Error!');
+          }
+          else{
+            return callback();
+          }
+        }
+      };
+      var query_revert = mssql_tools.__set__('mssql_connection', mock_query);
+      update_users({Host: 'nope', Port: 'nuhuh', SAUser: 'sauser', SAPass:'0xpassword'}, [{Username: 'test'},{Username: 'test2'}], [{Username: 'test', SQL_Server_Password:'0xpassword'},{Username: 'test2'}], function(errors){
+        assert(errors, 'No Errors!');
+        query_revert();
+        done();
+      });
+    });
+    it('should error on db error - revoke server permissions', function(done){
+      var mock_query ={
+        connect: function(config, callback){return callback(null, {close:function(){}})},
+        query: function(conn, sql, callback){
+          if(sql.search(/revoke\s+grant\s+option/i)>-1){
+            return callback('DB Query Error!');
+          }
+          else{
+            return callback();
+          }
+        }
+      };
+      var query_revert = mssql_tools.__set__('mssql_connection', mock_query);
+      update_users({Host: 'nope', Port: 'nuhuh', SAUser: 'sauser', SAPass:'0xpassword'}, [{Username: 'test'},{Username: 'test2'}], [{Username: 'test', SQL_Server_Password:'0xpassword'},{Username: 'test2'}], function(errors){
+        assert(errors, 'No Errors!');
+        query_revert();
+        done();
+      });
+    });
+    it('should error on db error - update permissions', function(done){
+      var mock_query ={
+        connect: function(config, callback){return callback(null, {close:function(){}})},
+        query: function(conn, sql, callback){
+          if(sql.search(/grant\s+view\s+definition/i)>-1){
+            return callback('DB Query Error!');
+          }
+          else{
+            return callback();
+          }
+        }
+      };
+      var query_revert = mssql_tools.__set__('mssql_connection', mock_query);
+      var gospel_users = [{Username: 'test', SQL_Server_Password:'0xpassword', Permissions:'SU'},{Username: 'test2', SQL_Server_Password:'0xpassword', Permissions:'DBA'},{Username: 'test3', SQL_Server_Password:'0xpassword', Permissions:'RW'},{Username: 'test4', SQL_Server_Password:'0xpassword', Permissions:'RO'}];
+      update_users({Host: 'nope', Port: 'nuhuh', SAUser: 'sauser', SAPass:'0xpassword'}, [{Username: 'test'},{Username: 'test2'},{Username: 'test3'},{Username: 'test4'}], gospel_users, function(errors){
+        assert(errors, 'No Errors!');
+        query_revert();
+        done();
+      });
+    });
+    it('should error on db error - drop user', function(done){
+      var mock_query ={
+        connect: function(config, callback){return callback(null, {close:function(){}})},
+        query: function(conn, sql, callback){
+          if(sql.search(/drop\s+user/i)>-1){
+            return callback('DB Query Error!');
+          }
+          else{
+            return callback();
+          }
+        }
+      };
+      var query_revert = mssql_tools.__set__('mssql_connection', mock_query);
+      update_users({Host: 'nope', Port: 'nuhuh', SAUser: 'sauser', SAPass:'0xpassword'}, [{Username: 'test'}], [{Username: 'test'}], function(errors){
+        assert(errors, 'No Errors!');
+        query_revert();
+        done();
+      });
+    });
+    it('should error on db error - grant server permissions', function(done){
+      var mock_query ={
+        connect: function(config, callback){return callback(null, {close:function(){}})},
+        query: function(conn, sql, callback){
+          if(sql.search(/grant\s+alter\s+any\s+connection\s+to/i)>-1){
+            return callback('DB Query Error!');
+          }
+          else{
+            return callback();
+          }
+        }
+      };
+      var query_revert = mssql_tools.__set__('mssql_connection', mock_query);
+      update_users({Host: 'nope', Port: 'nuhuh', SAUser: 'sauser', SAPass:'0xpassword'}, [{Username: 'test'}], [{Username: 'test', SQL_Server_Password:'0xpassword', Permissions:'SU'}], function(errors){
+        assert(errors, 'No Errors!');
+        query_revert();
+        done();
+      });
+    });
+    it('should succeed on valid users', function(done){
+      var gospel_users = [{Username: 'test', SQL_Server_Password:'0xpassword', Permissions:'SU'},{Username: 'test2', SQL_Server_Password:'0xpassword', Permissions:'DBA'},{Username: 'test3', SQL_Server_Password:'0xpassword', Permissions:'RW'},{Username: 'test4', SQL_Server_Password:'0xpassword', Permissions:'RO'}, {Username:'test5'}];
+      update_users({Host: 'nope', Port: 'nuhuh', SAUser: 'sauser', SAPass:'0xpassword'}, [{Username: 'test'},{Username: 'test2'},{Username: 'test3'},{Username: 'test4'}, {Username: 'test5'}], gospel_users, function(errors){
+        assert.equal(errors.length, 0, 'Encountered Errors!');
+        done();
+      });
+    });
   });
   after(function(){
-    mssql_revert();
     encrypt_revert();
+    mssql_revert();
     quiet_revert();
   });
 });
