@@ -66,26 +66,26 @@ function update_user(body, callback){
   var add_group_query;
   var group_ids = [];
   var group_where = 'where (';
-  var db_or = "OR ";
+  var db_or = "";
   var values = "";
   var b_groups = body.Groups || {};
   for(key in b_groups){
     group_where += 'groups.ID = ? OR ';
-    db_or += 'Group_ID= ? OR ';
+    db_or += 'Group_ID=? OR ';
     values +='('+User_ID+',?,"'+body.Groups[key]+'"), ';
-    group_ids.push(key);
+    group_ids.push(parseInt(key));
   }
   db_or += '0=1';
   group_where += '0=1)'
-  values = "VALUES"+(values.substring(0,values.length-2));
+  values = "VALUES "+(values.substring(0,values.length-2));
   del_group_query = 'Delete from users_groups where User_ID= ? and Group_ID not in (Select ID from groups '+group_where+');';
   add_group_query = 'Insert into users_groups (User_ID, Group_ID, Permissions) '+values+' ON DUPLICATE KEY UPDATE Permissions=Values(Permissions);';
   if(group_ids.length<1){
     del_group_query = 'Delete from users_groups where User_ID= ?;';
     add_group_query = 'set @dummy = 1';
   }
-  var db_query = "Select DISTINCT * from `databases` where ID in (Select Database_ID from groups_databases where Group_ID in (Select Group_ID from users_groups where User_ID = ? " + db_or + "));";
-  connection.query(db_query, [User_ID].concat(group_ids), function(err, results){
+  var db_query = "Select DISTINCT * from `databases` where ID in (Select Database_ID from groups_databases where ("+db_or+") OR Group_ID in (Select Group_ID from users_groups where User_ID=?));";
+  connection.query(db_query, group_ids.concat([User_ID]), function(err, results){
     if(err){
       console.log(err);
       return callback(err);
