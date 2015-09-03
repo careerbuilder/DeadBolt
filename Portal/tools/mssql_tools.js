@@ -55,7 +55,7 @@ module.exports = {
                 encryption.decrypt(user.SQL_Server_Password, function(err, result){
                   if(err){
                     console.log(err);
-                    errors.push({User: user, Database: dbinfo, Error:{Title: "User Password could not be decrypted", Details:err}, Retryable:true, Class:"Error"});
+                    errors.push({User: user, Database: dbinfo, Error:{Title: "User Password could not be decrypted", Details:err}, Retryable:false, Class:"Error"});
                     return each_cb();
                   }
                   user_pass = result;
