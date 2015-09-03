@@ -34,7 +34,6 @@ module.exports = {
                 console.log('Error committing transaction');
                 return callback(err);
               }
-              console.log('Transaction committed');
               return callback(null, records);
           });
         }
