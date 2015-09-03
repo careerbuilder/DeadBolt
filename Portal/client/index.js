@@ -92,7 +92,6 @@ app.factory('httpRequestInterceptor', function ($cookies) {
   };
 });
 
-
 app.run(["$rootScope", "$location", "toastr", "tabService", function($rootScope, $location, toastr, tabService) {
   $rootScope.$on("$routeChangeError", function(event, current, previous, eventObj) {
     if (eventObj.authenticated === false) {
