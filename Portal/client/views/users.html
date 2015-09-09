@@ -79,6 +79,8 @@
                 <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>Email</strong></span>
                 <input type="email" class="form-control" name="email" placeholder="Email" ng-model="user.Email" required>
               </div>
+              <hr>
+              <p class="text-danger" ng-show="user.hasmysql + user.hasmssql < 1"><strong>User has not set a password</strong></p>
               <!--<p class="text-muted"><em>more user info will go here...</em></p>-->
 
             </div>
