@@ -142,12 +142,12 @@ router.post('/search/:page', function(req, res){
   if(body.Info && body.Info.trim().length > 0){
     var info = "%"+body.Info+"%";
     count_query = 'Select Count(*) as Total from possible_users where (Username like ? OR Email like ? OR FirstName like ? OR LastName like ?);';
-    query = 'Select ID, Username, Email, User_ID, FirstName, LastName from possible_users where (Username like ? OR Email like ? OR FirstName like ? OR LastName like ?) ORDER BY if(User_ID = "" or User_ID is null,1,0),User_ID, Username ASC LIMIT ?,50;';
+    query = 'Select possible_users.ID, possible_users.Username, Email, User_ID, FirstName, LastName, LENGTH(MySQL_Password) as hasmysql, LENGTH(SQL_Server_Password) as hasmssql from possible_users LEFT JOIN users on User_ID = users.ID where (possible_users.Username like ? OR Email like ? OR FirstName like ? OR LastName like ?) ORDER BY if(User_ID = "" or User_ID is null,1,0),User_ID, possible_users.Username ASC LIMIT ?,50;';
     args = [info, info, info, info, start];
   }
   else{
     count_query = 'Select Count(*) as Total from possible_users;';
-    query = 'Select ID, Username, Email, User_ID, FirstName, LastName from possible_users ORDER BY if(User_ID = "" or User_ID is null,1,0),User_ID, Username ASC LIMIT ?, 50;';
+    query = 'Select possible_users.ID, possible_users.Username, Email, User_ID, FirstName, LastName, LENGTH(MySQL_Password) as hasmysql, LENGTH(SQL_Server_Password) as hasmssql from possible_users LEFT JOIN users on User_ID = users.ID ORDER BY if(User_ID = "" or User_ID is null,1,0),User_ID, possible_users.Username ASC LIMIT ?, 50;';
     args = [start];
   }
   connection.query(count_query, args, function(err, results){
