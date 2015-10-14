@@ -228,7 +228,7 @@ module.exports = {
                         permissions_query = "GRANT ALL on `%`.* TO ?, ?@'localhost'";
                       }
                       else if(user.Permissions === "RW"){
-                        permissions_query = "Grant SELECT, INSERT, UPDATE, DELETE ON `%`.* TO ?, ?@'localhost'";
+                        permissions_query = "Grant SELECT, INSERT, UPDATE, DELETE, EXECUTE, SHOW VIEW, CREATE TEMPORARY TABLES ON `%`.* TO ?, ?@'localhost'";
                       }
                       else if(user.Permissions === "RO"){
                         permissions_query = "Grant SELECT ON `%`.* TO ?, ?@'localhost'";
