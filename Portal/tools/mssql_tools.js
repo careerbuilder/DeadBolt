@@ -184,7 +184,7 @@ module.exports = {
                 IF NOT Exists (SELECT * FROM sys.database_principals WHERE name=''" + user.Username + "'') \
                 CREATE USER [" + user.Username + "] FOR LOGIN [" + user.Username + "] WITH DEFAULT_SCHEMA=[dbo];" + sql_roles + " \
                 GRANT VIEW DATABASE STATE TO [" + user.Username + "]; \
-                GRANT VIEW DEFINITION TO [" + user.Username + "];' \
+                GRANT VIEW DEFINITION TO [" + user.Username + "]; \
                 GRANT SHOWPLAN TO [" + user.Username + "];' \
                 FROM MASTER.SYS.DATABASES WHERE database_id > 4 AND state_desc = 'ONLINE' AND name not like '%rdsadmin%' \
                 EXEC(@SQL)";
