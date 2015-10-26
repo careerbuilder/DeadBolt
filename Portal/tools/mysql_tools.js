@@ -73,8 +73,8 @@ module.exports = {
                   user_query2 = "Create User ?@'localhost' Identified by password ?;";
                 }
                 else{
-                  console.log("User " + user.Username + " does not exist on " + dbinfo.Name +" and cannot be removed");
-                  errors.push({User: user, Database: dbinfo, Error:{Title: "User does not Exist and cannot be dropped", Details:" "}, Retryable:false, Class:"Info"});
+                  //console.log("User " + user.Username + " does not exist on " + dbinfo.Name +" and cannot be removed");
+                  //errors.push({User: user, Database: dbinfo, Error:{Title: "User does not Exist and cannot be dropped", Details:" "}, Retryable:false, Class:"Info"});
                   return callback();
                 }
               }
@@ -125,7 +125,7 @@ module.exports = {
                     user_query = 'Create User ? Identified by password ?;';
                   }
                   else{
-                    user_log="User " + user.Username + " does not exist on " + dbinfo.Name +" and cannot be removed";
+                    //user_log="User " + user.Username + " does not exist on " + dbinfo.Name +" and cannot be removed";
                     user_query = 'Set @dummy1=?';
                   }
                 }
@@ -146,7 +146,7 @@ module.exports = {
                     user_query2 = "Create User ?@'localhost' Identified by password ?;";
                   }
                   else{
-                    user_log2="Localhost User " + user.Username + " does not exist on " + dbinfo.Name +" and cannot be removed";
+                    //user_log2="Localhost User " + user.Username + " does not exist on " + dbinfo.Name +" and cannot be removed";
                     user_query2 = 'Set @dummy2=?';
                   }
                 }
