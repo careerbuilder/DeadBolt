@@ -20,7 +20,7 @@ module.exports = {
         return callback(null, body);
       }
       else{
-        return callback(body);
+        return callback(body.Error);
       }
     });
   },
@@ -38,7 +38,7 @@ module.exports = {
         return callback(null, body);
       }
       else{
-        return callback(body);
+        return callback(body.Error);
       }
     });
   }
