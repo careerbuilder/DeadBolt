@@ -16,7 +16,12 @@ module.exports = {
       if(err){
         return callback(err);
       }
-      return callback(null, body);
+      if(body.Success){
+        return callback(null, body);
+      }
+      else{
+        return callback(body);
+      }
     });
   },
   remove_user_from_AD: function(username, callback){
@@ -29,7 +34,12 @@ module.exports = {
       if(err){
         return callback(err, body);
       }
-      return callback(null, body);
+      if(body.Success){
+        return callback(null, body);
+      }
+      else{
+        return callback(body);
+      }
     });
   }
 }
