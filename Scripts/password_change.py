@@ -1,10 +1,9 @@
-__author__ = 'ayost'
-
 import mysql.connector
 import requests
+import binascii
 import hashlib
-import pymssql
 import getpass
+import random
 import codecs
 import boto3
 import json
@@ -83,7 +82,8 @@ def change_password(username, password):
     for key in passwords:
         user[key] = passwords[key]
     save_passwords(username, passwords, config['kms_keyname'])
-    r = requests.post(api_info['host'] + '/users/', json=user, headers={'authorization': api_info['Session']}, verify=False)
+    r = requests.post(api_info['host'] + '/users/', json=user, headers={'authorization': api_info['Session']},
+                      verify=False)
     res = r.json()
     print(res)
 
@@ -107,28 +107,27 @@ def get_passwords(creds):
 
 def get_mysql_pass(creds):
     password = creds['password']
-    cursor = cnx.cursor()
-    query = "Select PASSWORD('" + password + "');"
-    cursor.execute(query)
-    result = ""
-    for res in cursor:
-        result = res[0]
-    cursor.close()
-    # print(result)
-    return result
+    s1 = hashlib.sha1()
+    s2 = hashlib.sha1()
+    s1.update(password.encode('utf8'))
+    s2.update(binascii.unhexlify(s1.hexdigest()))
+    return '*' + s2.hexdigest().upper()
 
 
 def get_mssql_pass(creds):
     password = creds['password']
-    mssql_db = config['mssql']
-    mssql_conn = pymssql.connect(server=mssql_db['host'], port=mssql_db['port'], user=mssql_db['user'], password=mssql_db['password'])
-    cursor = mssql_conn.cursor()
-    cursor.execute('Select PWDENCRYPT(%s)', password)
-    raw_pass = cursor.fetchone()[0]
-    mssql_pass = "0x"
-    for byte in raw_pass:
-        mssql_pass += int_to_hex(byte)
-    mssql_conn.close()
+    chars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+             'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+             'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+             'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+             'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+    s1 = hashlib.sha512()
+    salt = (''.join(random.choice(chars) for i in range(4))).encode('utf8')
+    b1 = password.encode('utf16')[2:]
+    s1.update(b1 + salt)
+    digest = s1.digest()
+    mssqlhash = salt + digest
+    mssql_pass = '0x0200' + binascii.hexlify(mssqlhash).decode()
     return mssql_pass
 
 
@@ -139,8 +138,9 @@ def get_mongo_pass(creds):
 def get_cassandra_pass(creds):
     return None
 
+
 def get_postgres_pass(creds):
-    password = creds['password']+creds['username']
+    password = creds['password'] + creds['username']
     md5 = hashlib.md5()
     md5.update(password.encode('utf8'))
     enc_bytes = md5.digest()
@@ -149,42 +149,45 @@ def get_postgres_pass(creds):
         enc_password += int_to_hex(byte)
     return enc_password
 
+
 def get_oracle_pass(creds):
     return None
 
+
 def int_to_hex(num):
     digit = {
-        0:'0',
-        1:'1',
-        2:'2',
-        3:'3',
-        4:'4',
-        5:'5',
-        6:'6',
-        7:'7',
-        8:'8',
-        9:'9',
-        10:'A',
-        11:'B',
-        12:'C',
-        13:'D',
-        14:'E',
-        15:'F'
+        0: '0',
+        1: '1',
+        2: '2',
+        3: '3',
+        4: '4',
+        5: '5',
+        6: '6',
+        7: '7',
+        8: '8',
+        9: '9',
+        10: 'A',
+        11: 'B',
+        12: 'C',
+        13: 'D',
+        14: 'E',
+        15: 'F'
     }
     hexstring = ""
     while num > 0:
-        hexstring = digit[num%16] + hexstring
-        num = num//16
-    while len(hexstring)<2:
-        hexstring = str(0)+hexstring
+        hexstring = digit[num % 16] + hexstring
+        num = num // 16
+    while len(hexstring) < 2:
+        hexstring = str(0) + hexstring
     return hexstring
+
 
 def main():
     if len(sys.argv) < 2:
         print("No username given!")
         return "Failure"
     username = sys.argv[1]
-    if len(sys.argv)>=3:
+    if len(sys.argv) >= 3:
         password = sys.argv[2]
     else:
         password = getpass.getpass()
@@ -201,12 +204,14 @@ if __name__ == "__main__":
         config = secrets
         db_info = config['db']
         api_info = config['api']
-        login = requests.post(api_info['host'] + '/login/', data={'email': api_info['username'], 'password': api_info['password']}, verify=False)
+        login = requests.post(api_info['host'] + '/login/',
+                              data={'email': api_info['username'], 'password': api_info['password']}, verify=False)
         response = login.json()
         if 'Success' in response and response['Success']:
             api_info['Session'] = response['Session']
         secret_file.close()
-        cnx = mysql.connector.connect(host=db_info['host'], password=db_info['password'], user=db_info['user'], database=db_info['database'], port=db_info['port'])
+        cnx = mysql.connector.connect(host=db_info['host'], password=db_info['password'], user=db_info['user'],
+                                      database=db_info['database'], port=db_info['port'])
         kms_connection = boto3.client('kms')
         main()
         cnx.close()
