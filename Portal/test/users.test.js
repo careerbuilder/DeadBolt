@@ -31,7 +31,7 @@ describe('users', function(){
         }
         return callback(null, [{Total: 100}]);
       }
-      if(args[0].search(/^select\s+id,\s+username/i)>-1){
+      if(args[0].search(/^select\s+possible_users.id,\s+possible_users.username/i)>-1){
         if(sql_args && sql_args[0]){
           if(sql_args[0] == -50 || sql_args[4] == -50){
             return callback("Database Error");
