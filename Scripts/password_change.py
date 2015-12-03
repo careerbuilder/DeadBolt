@@ -82,7 +82,7 @@ def change_password(username, password):
     for key in passwords:
         user[key] = passwords[key]
     save_passwords(username, passwords, config['kms_keyname'])
-    r = requests.post(api_info['host'] + '/users/', json=user, headers={'authorization': api_info['Session']},
+    r = requests.post(api_info['host'] + '/users/', json=user, headers={'Authorization': api_info['Session']},
                       verify=False)
     res = r.json()
     print(res)
@@ -205,11 +205,14 @@ if __name__ == "__main__":
         db_info = config['db']
         api_info = config['api']
         login = requests.post(api_info['host'] + '/login/',
-                              data={'email': api_info['username'], 'password': api_info['password']}, verify=False)
+                              data={'Email': api_info['username'], 'Password': api_info['password']}, verify=False)
         response = login.json()
         if 'Success' in response and response['Success']:
             api_info['Session'] = response['Session']
-        secret_file.close()
+        else:
+            print('Login unsucessful')
+            print(response['Error'])
+            exit(1)
         cnx = mysql.connector.connect(host=db_info['host'], password=db_info['password'], user=db_info['user'],
                                       database=db_info['database'], port=db_info['port'])
         kms_connection = boto3.client('kms')
