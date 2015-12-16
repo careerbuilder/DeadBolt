@@ -21,7 +21,7 @@ app.controller('DBCtrl', function($http, $scope, $cookies, $cookieStore, $locati
         $scope.searchResults = data.Results;
       }
     });
-  }
+  };
 
   $scope.refreshSearch=function(){
     $http.post('/api/databases/search/', {Info:''}).success(function(data){
@@ -31,23 +31,23 @@ app.controller('DBCtrl', function($http, $scope, $cookies, $cookieStore, $locati
         $scope.searchResults = data.Results;
       }
     });
-  }
+  };
 
   $scope.edit=function(index){
     $scope.isSearching=false;
     $scope.isEditing = true;
     $scope.database = $scope.searchResults[index];
     $scope.dbRef = JSON.stringify($scope.searchResults[index]);
-  }
+  };
 
   $scope.change_pass=function(){
     $scope.editing_pass = true;
-  }
+  };
 
   $scope.cancel_change_pass=function(){
     $scope.editing_pass = false;
     delete $scope.database.SAPass;
-  }
+  };
 
   $scope.nochange=function(){
     if($scope.dbRef){
@@ -56,14 +56,14 @@ app.controller('DBCtrl', function($http, $scope, $cookies, $cookieStore, $locati
     else{
       return false;
     }
-  }
+  };
 
   $scope.addDB=function(){
     $scope.database = {};
     $scope.dbRef=null;
     $scope.isEditing = true;
     $scope.isSearching = false;
-  }
+  };
 
   $scope.saveDB=function(){
     var dbdata = JSON.parse(JSON.stringify($scope.database));
@@ -74,7 +74,7 @@ app.controller('DBCtrl', function($http, $scope, $cookies, $cookieStore, $locati
         toastr.success("Database updated successfuly!");
       }
     });
-  }
+  };
 
   $scope.removeDB=function(){
     var dbid = $scope.database.ID;
@@ -85,6 +85,6 @@ app.controller('DBCtrl', function($http, $scope, $cookies, $cookieStore, $locati
       $scope.database = {};
       toastr.success("Database removed");
     });
-  }
+  };
 
   });

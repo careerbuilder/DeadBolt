@@ -30,14 +30,18 @@
               <th>Type</th>
               <th>Host</th>
               <th>Port</th>
+              <th>SSL</th>
             </tr>
             <tr ng-repeat="db in searchResults">
               <td><button class="btn btn-primary" ng-click="edit($index)">Edit</button></td>
               <td>{{db.Name}}</td>
-              <th>{{db.Type}}</th>
-              <th>{{db.Host}}</th>
-              <th>{{db.Port}}</th>
-            </tr>
+              <td>{{db.Type}}</td>
+              <td>{{db.Host}}</td>
+              <td>{{db.Port}}</td>
+              <td>
+                <span class="glyphicon glyphicon-ok" style="color:green;" ng-show="db.ForceSSL"></span>
+                <span class="glyphicon glyphicon-remove" style="color:red;" ng-hide="db.ForceSSL"></span>
+              </td>
             </tr>
           </table>
         </div>
@@ -69,6 +73,10 @@
               <div class="input-group" ng-class="{'has-error': (databaseform.port.$invalid && databaseform.port.$dirty)}">
                 <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>Port</strong></span>
                 <input type="text" class="form-control" name="port" placeholder="Database Port" ng-model="database.Port" required>
+              </div>
+              <div class="input-group">
+                <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>Force SSL</strong></span>
+                <input type="checkbox" class="form-control" name="forcesssl" ng-model="database.ForceSSL" ng-change="printdb(database)">
               </div>
               <div class="input-group" ng-class="{'has-error': (databaseform.sauser.$invalid && databaseform.sauser.$dirty)}">
                 <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>SA User</strong></span>
