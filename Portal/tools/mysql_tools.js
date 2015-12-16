@@ -222,7 +222,7 @@ module.exports = {
                       }
                       var permissions_query;
                       if(user.Permissions === "SU"){
-                        permissions_query = "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, RELOAD, PROCESS, REFERENCES, INDEX, ALTER, SHOW DATABASES, CREATE TEMPORARY TABLES, LOCK TABLES, EXECUTE, REPLICATION SLAVE, REPLICATION CLIENT, CREATE VIEW, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, CREATE USER, EVENT, TRIGGER ON *.* TO ?, ?@'localhost' WITH GRANT OPTION";
+                        permissions_query = "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, RELOAD, PROCESS, REFERENCES, INDEX, ALTER, SHOW DATABASES, CREATE TEMPORARY TABLES, LOCK TABLES, EXECUTE, REPLICATION SLAVE, REPLICATION CLIENT, CREATE VIEW, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, CREATE USER, EVENT, TRIGGER ON *.* TO ?, ?@'localhost'";
                       }
                       else if(user.Permissions === "DBA"){
                         permissions_query = "GRANT ALL on `%`.* TO ?, ?@'localhost'";
@@ -235,6 +235,12 @@ module.exports = {
                       }
                       else{
                         permissions_query = "Grant USAGE ON `%`.* TO ?, ?@'localhost'";
+                      }
+                      if(dbinfo.ForceSSL){
+                        permissions_query += " REQUIRE SSL";
+                      }
+                      if(user.Permissions === "SU"){
+                        permissions_query += " WITH GRANT OPTION";
                       }
                       async.series([
                         function(cb2){
