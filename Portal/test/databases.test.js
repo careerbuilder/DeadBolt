@@ -19,9 +19,18 @@ describe('databases', function(){
       if(args.length > 2){
         var sql_args = args[1];
       }
+      if(args[0] instanceof Object){
+        sql_args = args[0].values || [];
+        args[0] = args[0].sql;
+      }
       if(args[0].search(/SELECT\s+ID/i) >-1){
-
         if(sql_args && sql_args[0]){
+          if(sql_args[0].toString().search(/ERROR1/i)>-1){
+            return callback(null, []);
+          }
+          if(sql_args[0].toString().search(/ERROR2/i)>-1){
+            return callback(null, [{ID:-1}]);
+          }
           if(sql_args[0].toString().search(/ERROR/i)>-1){
             return callback("Database Error");
           }
@@ -155,6 +164,9 @@ describe('databases', function(){
     enc_revert = databases.__set__('encryption', mock_encrypt);
     tools_revert = databases.__set__('db_tools', mock_db_tools);
     quiet_revert = databases.__set__('console', {log:function(){}});
+  });
+  describe('convert TinyInt', function(){
+
   });
   describe('GET /', function(){
     it('should return an error on db error', function(done){
@@ -339,11 +351,41 @@ describe('databases', function(){
           done();
         });
       });
+      it('should fail on db error - select ID', function(done){
+        request(app)
+        .post('/api/databases/')
+        .set('Content-Type', 'application/json')
+        .send({Name: 'error', Type: 'mysql', Host:'error', Port: 8080, SAUser:'sauser', SAPass: 'somepass'})
+        .expect(200)
+        .end(function(err, res){
+          if(err){
+            return done(err);
+          }
+          assert.equal(res.body.Success, false, 'Successful post despite db error');
+          assert(res.body.Error, 'No Error on DB Error');
+          done();
+        });
+      });
+      it('should fail on empty resultset', function(done){
+        request(app)
+        .post('/api/databases/')
+        .set('Content-Type', 'application/json')
+        .send({Name: 'testdb', Type: 'mysql', Host:'error1', Port: 8080, SAUser:'sauser', SAPass: 'somepass'})
+        .expect(200)
+        .end(function(err, res){
+          if(err){
+            return done(err);
+          }
+          assert.equal(res.body.Success, false, 'Successful post despite db error');
+          assert(res.body.Error, 'No Error on DB Error');
+          done();
+        });
+      });
       it('should fail on db error - insert groups_databases', function(done){
         request(app)
         .post('/api/databases/')
         .set('Content-Type', 'application/json')
-        .send({Name: 'error2', Type: 'mysql', Host:'localhost', Port: 8080, SAUser:'sauser', SAPass: 'somepass'})
+        .send({Name: 'testdb', Type: 'mysql', Host:'error2', Port: 8080, SAUser:'sauser', SAPass: 'somepass'})
         .expect(200)
         .end(function(err, res){
           if(err){
@@ -452,6 +494,6 @@ describe('databases', function(){
     db_revert();
     enc_revert();
     tools_revert();
-    quiet_revert
+    quiet_revert();
   });
 });

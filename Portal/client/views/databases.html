@@ -62,8 +62,6 @@
                   <option>mysql</option>
                   <option>aurora</option>
                   <option>mssql</option>
-                  <option>mongo</option>
-                  <option>cassandra</option>
                 </select>
               </div>
               <div class="input-group" ng-class="{'has-error': (databaseform.host.$invalid && databaseform.host.$dirty)}">
@@ -74,7 +72,7 @@
                 <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>Port</strong></span>
                 <input type="text" class="form-control" name="port" placeholder="Database Port" ng-model="database.Port" required>
               </div>
-              <div class="input-group">
+              <div class="input-group" ng-show="database.Type.toLowerCase()==='mysql' || database.Type.toLowerCase()==='aurora'">
                 <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>Force SSL</strong></span>
                 <input type="checkbox" class="form-control" name="forcesssl" ng-model="database.ForceSSL" ng-change="printdb(database)">
               </div>
