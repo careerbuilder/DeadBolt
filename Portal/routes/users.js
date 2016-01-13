@@ -213,10 +213,13 @@ router.delete('/:id', function(req,res){
     var user = results[0];
     var username = user.Username;
     adapi.remove_user_from_AD(username, function(err, result){
+      console.log('removing', username);
       if(err){
-        console.log(err);
+        console.log('Error removing ' + username, err);
       }
-      console.log(result);
+      else{
+        console.log(result);
+      }
     });
     var db_query = "Select DISTINCT * from `databases` where ID in (Select Database_ID from groups_databases where Group_ID in (Select Group_ID from users_groups where User_ID = ?))";
     connection.query(db_query, [user_id], function(err, results){
