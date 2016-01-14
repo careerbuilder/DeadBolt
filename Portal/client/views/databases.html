@@ -39,8 +39,8 @@
               <td>{{db.Host}}</td>
               <td>{{db.Port}}</td>
               <td>
-                <span class="glyphicon glyphicon-ok" style="color:green;" ng-show="db.ForceSSL"></span>
-                <span class="glyphicon glyphicon-remove" style="color:red;" ng-hide="db.ForceSSL"></span>
+                <span class="glyphicon glyphicon-ok" style="color:green;" ng-show="db.ForceSSL==1"></span>
+                <span class="glyphicon glyphicon-remove" style="color:red;" ng-hide="db.ForceSSL==1"></span>
               </td>
             </tr>
           </table>
@@ -74,7 +74,7 @@
               </div>
               <div class="input-group" ng-show="database.Type.toLowerCase()==='mysql' || database.Type.toLowerCase()==='aurora'">
                 <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>Force SSL</strong></span>
-                <input type="checkbox" class="form-control" name="forcesssl" ng-model="database.ForceSSL" ng-change="printdb(database)">
+                <input type="checkbox" class="form-control" name="forcessl" ng-model="database.ForceSSL" ng-true-value="1" ng-false-value="0">
               </div>
               <div class="input-group" ng-class="{'has-error': (databaseform.sauser.$invalid && databaseform.sauser.$dirty)}">
                 <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>SA User</strong></span>

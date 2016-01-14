@@ -5,13 +5,6 @@ var connection = require('../middleware/mysql');
 var encryption = require('../middleware/encryption');
 var db_tools = require('../tools/db_tools');
 
-function tinyIntToBoolean(field, next){
-  if (field.type == 'TINY' && field.length == 1) {
-    return (field.string() == '1'); // 1 = true, 0 = false
-  }
-  return next();
-};
-
 function add_database(body, callback){
   encryption.encrypt(body.SAPass, function(err, data){
     if(err){
@@ -131,11 +124,7 @@ router.post('/', function(req, res){
 });
 
 router.get('/', function(req, res){
-  var opts = {
-    sql:'Select ID, Name, Type, Host, Port, ForceSSL from `databases`;',
-    typeCast: tinyIntToBoolean
-  };
-  connection.query(opts, function(err, results){
+  connection.query('Select ID, Name, Type, Host, Port, ForceSSL from `databases`;', function(err, results){
     if(err){
       console.log(err);
       return res.send({Success:false, Error:err});
@@ -149,19 +138,14 @@ router.post('/search', function(req, res){
   var query = "";
   var args = [];
   if(body && body.Info && body.Info.trim().length > 0){
-    var info = "%"+body.Info+"%";
-    query = 'Select ID, Name, Type, Host, Port, SAUser, ForceSSL from `databases` where (Name like ? OR Type like ? OR Host like ? OR Port like ? OR SAUser like ?);';
+    var info = "%"+body.Info.toString()+"%";
+    query = 'Select `ID`, `Name`, `Type`, `Host`, `Port`, `SAUser`, `ForceSSL` from `databases` where (`Name` like ? OR `Type` like ? OR `Host` like ? OR `Port` like ? OR `SAUser` like ?);';
     args = [info, info, info, info, info];
   }
   else{
     query = 'Select ID, Name, Type, Host, Port, SAUser, ForceSSL from `databases`;';
   }
-  var opts = {
-    sql:query,
-    typeCast: tinyIntToBoolean,
-    values:args
-  };
-  connection.query(opts, function(err, results){
+  connection.query(query, args,  function(err, results){
     if(err){
       console.log(err);
       return res.send({Success: false, Error: err});
@@ -188,12 +172,7 @@ router.get('/:groupname', function(req, res){
 
 router.delete('/:id', function(req,res){
   var db_id = req.params.id;
-  var opts = {
-    sql:"Select * from `databases` where ID = ? LIMIT 1;",
-    values: [db_id],
-    typeCast: tinyIntToBoolean
-  };
-  connection.query(opts, function(err, data){
+  connection.query("Select * from `databases` where ID = ? LIMIT 1;", [db_id], function(err, data){
     if(err){
       console.log(err);
       return res.send({Success: false, Error: err});
