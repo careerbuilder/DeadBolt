@@ -99,7 +99,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
   }
 
   $scope.applyGroups = function(userinfo, callback){
-    if(userinfo.User_ID){
+    if(userinfo.Active){
       $http.get('/api/groups/'+userinfo.Username).success(function(data){
         if(data.Success){
           callback(null, data.Results);
@@ -118,7 +118,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
     var userinfo = $scope.searchResults[index];
     var usergroups = [];
     $scope.userRef = null;
-    if(userinfo.User_ID){
+    if(userinfo.Active){
       $scope.userRef = JSON.stringify(userinfo);
     }
     $scope.applyGroups(userinfo, function(err, results){
@@ -164,7 +164,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
     });
     $http.post('/api/users', userdata).success(function(data){
       if(data.Success){
-        $scope.user.User_ID = data.ID;
+        $scope.user.Active = data.Active;
         $scope.refreshSearch();
         toastr.success("User updated successfuly!");
       }
@@ -177,7 +177,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
   }
 
   $scope.removeUser=function(){
-    var uid = $scope.user.User_ID;
+    var uid = $scope.user.ID;
     $http.delete('/api/users/' + uid).success(function(data){
       $scope.user = {};
       $scope.refreshSearch();

@@ -28,8 +28,8 @@
               <th>Last Name</th>
               <th>Email</th>
             </tr>
-            <tr ng-repeat="user in searchResults track by $index" ng-class="{'success':user.User_ID, 'warning':!user.User_ID}" >
-              <td><button class="btn" ng-click="edit($index)" role="button" ng-class="{'btn-success':user.User_ID, 'btn-warning':!user.User_ID}">{{user.User_ID ? 'Edit' : 'Add'}}</button></td>
+            <tr ng-repeat="user in searchResults track by $index" ng-class="{'success':user.Active, 'warning':!user.Active}" >
+              <td><button class="btn" ng-click="edit($index)" role="button" ng-class="{'btn-success':user.Active, 'btn-warning':!user.Active}">{{user.Active==1? 'Edit' : 'Add'}}</button></td>
               <td>{{user.Username}}</td>
               <td>{{user.FirstName}}</td>
               <td>{{user.LastName}}</td>
@@ -112,11 +112,11 @@
           <br />
           <div class="row">
             <div class="col-xs-5">
-              <button class="btn btn-success" ng-click="saveUser()" ng-disabled="userform.$invalid || nochange()">{{user.User_ID ? 'Save Changes' : 'Add User'}}</button>
+              <button class="btn btn-success" ng-click="saveUser()" ng-disabled="userform.$invalid || nochange()">{{user.Active ? 'Save Changes' : 'Add User'}}</button>
             </div>
             <div class="col-xs-1">&nbsp;</div>
             <div class="col-xs-3">
-              <button class="btn btn-danger" ng-disabled="!user.User_ID" ng-click="removeUser()">Delete User</button>
+              <button class="btn btn-danger" ng-disabled="!user.Active" ng-click="removeUser()">Delete User</button>
             </div>
           </div>
         </form>

@@ -4,18 +4,59 @@ app.factory('authService', ['$q', '$http','$cookies', function($q, $http, $cooki
 
   var session;
   var auth_cookie = $cookies.get('rdsapit');
-	if(auth_cookie){
-	   session = auth_cookie;
-	}
+  var admins = [];
+  var fullAdmin = false;
+
+  function getAdmin(callback){
+    $http.post('/api/auth').then(function(res){
+      var data = res.data;
+      if(data.Success){
+        if(data.FullAdmin){
+          fullAdmin = data.FullAdmin;
+        }
+        if(data.Admins){
+          admins = data.Admins;
+        }
+        return callback(null, admins);
+      }
+      else{
+        return callback({authenticated: false});
+      }
+    }, function(err){
+      return callback({authenticated: false});
+    });
+  }
+
+  if(auth_cookie){
+     session = auth_cookie;
+     getAdmin(function(err, admins){
+       if(err){
+         console.log('Invalid Session');
+       }
+       else{
+         console.log('resuming session');
+       }
+     });
+  }
 
   return {
     getSession: function(){
       return session;
     },
+    isAdmin: function(){
+      return fullAdmin;
+    },
     hasAccess: function(){
       var deferred = $q.defer();
-      if(!!session){
-        deferred.resolve(true);
+      if(session){
+        getAdmin(function(err, admins){
+          if(err){
+            deferred.reject(err);
+          }
+          else{
+            deferred.resolve(admins);
+          }
+        });
       }
       else{
         deferred.reject({authenticated: false});
@@ -30,7 +71,14 @@ app.factory('authService', ['$q', '$http','$cookies', function($q, $http, $cooki
           var data = res.data;
           if(data.Success){
             session = data.Session;
-            deferred.resolve(session);
+            getAdmin(function(err, admins){
+              if(err){
+                deferred.reject(err);
+              }
+              else{
+                deferred.resolve(admins);
+              }
+            });
           }
           else{
             deferred.reject(data.Error);
@@ -70,6 +118,8 @@ app.factory('authService', ['$q', '$http','$cookies', function($q, $http, $cooki
       $cookies.remove('rdsapit');
       auth_cookie = null;
       session = null;
+      admins = [];
+      fullAdmin = false;
     }
   }
 }]);

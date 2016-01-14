@@ -9,49 +9,30 @@ router.get('/', function(req, res){
   return res.send("Welcome to the API");
 });
 
-router.post('/auth', function(req, res){
-  if(!req.body || !req.body.Session){
-    return res.send({Success: false, valid: false});
-  }
-  var body = req.body;
-  connection.query('Select Expires from Sessions where Session_ID= ? LIMIT 1;', [body.Session], function(err, results){
-    if(err){
-      console.log(err);
-      return res.send({Success:false, valid: false, Error: err});
-    }
-    if(results.length > 0){
-      result = results[0];
-      var now = ~~(new Date().getTime()/1000)
-      var valid = now <= result.Expires;
-      return res.send({Success:true, valid:valid});
-    }
-    else{
-      return res.send({Success:false, valid:false});
-    }
-  });
-});
-
 router.post('/signup', function(req,res){
   var body = req.body;
-  connection.query("Select Active from portal_users where Email=?", [body.Email], function(err, results){
+  if(!body.Email){
+    return res.send({Success:false, Error:"No Email!"});
+  }
+  if(!body.Password){
+    return res.send({Success:false, Error:"No Password!"});
+  }
+  connection.query("Select Portal_Password, Active from users where Email=?", [body.Email], function(err, results){
     if(err){
       console.log(err);
       return res.send({Success: false, Error: err});
     }
     if(results.length < 1){
-      return res.send({Success: false, Error: "Sorry, Signup is invite only at this time."});
+      return res.send({Success: false, Error: "User not found"});
     }
     if(results[0].Active && results[0].Active != 0){
       return res.send({Success: false, Error: "Sorry, This user has already registered."});
     }
-    if(!body.Password){
-      return res.send({Success:false, Error:"No Password!"});
-    }
     var salt = uuid.v4();
-    var shasum = crypto.createHash('sha256');
+    var shasum = crypto.createHash('sha512');
     shasum.update(salt + body.Password);
     var passwordhash = shasum.digest('hex');
-    connection.query("Update Portal_Users set Salt=?, Password = ?, Active=1 where Email=?;", [salt, passwordhash, body.Email], function(err, results){
+    connection.query("Update Users set Portal_Salt=?, Portal_Password = ?, Active=1 where Email=?;", [salt, passwordhash, body.Email], function(err, results){
       if(err){
         console.log(err);
         return res.send({Success:false, Error: err});
@@ -61,30 +42,34 @@ router.post('/signup', function(req,res){
   });
 });
 
+
 router.post('/login', function(req,res){
   var body = req.body;
+  if(!body.Email){
+    return res.send({Success: false, Error: "No Email!"});
+  }
+  if(!body.Password){
+    return res.send({Success: false, Error: "No Password!"});
+  }
   var sessionid = uuid.v4();
   var now = ~~(new Date().getTime()/1000);
   //-----------------h-* m/h* s/m----------
   var later = now + (6 * 60 * 60);
-  connection.query("Select Email, Salt, Password from Portal_Users where (Email= ? and Active=1) LIMIT 1;", [body.Email], function(err, results){
+  connection.query("Select ID, Email, Portal_Salt, Portal_Password from Users where (Email= ? and Active=1) and ID in (select User_ID from users_groups) LIMIT 1;", [body.Email], function(err, results){
     if(err){
       console.log(err);
       return res.send({Success:false, Error: "Error connecting to database:\n" + err});
     }
     else if(results.length < 1){
-      return res.send({Success:false, Error: "Invalid username"});
+      return res.send({Success:false, Error: "Not a valid User"});
     }
-    if(!body.Password){
-      return res.send({Success: false, Error: "No Password!"});
-    }
-    var shasum = crypto.createHash('sha256');
-    shasum.update(results[0].Salt + body.Password);
+    var shasum = crypto.createHash('sha512');
+    shasum.update(results[0].Portal_Salt + body.Password);
     var passcheck = shasum.digest('hex');
-    if(results[0].Password != passcheck){
+    if(results[0].Portal_Password != passcheck){
       return res.send({Success: false, Error: "Incorrect Password"});
     }
-    connection.query("Insert into Sessions (Session_ID, Expires) Values(?, ?)", [sessionid, later], function(err, results){
+    connection.query("Insert into Sessions (Session_ID, Expires, User_ID) Values(?, ?, ?)", [sessionid, later, results[0].ID], function(err, results){
       if(err){
         console.log(err);
         return res.send({Succes:false, Error: "Error generating session ID:\n" + err});
@@ -100,6 +85,32 @@ router.use(function(req, res, next){
   return auth.auth(req, res, next);
 });
 
+router.post('/auth', function(req, res){
+  if(res.locals.user.Admins.indexOf(-1)>-1){
+    return res.send({Success: true, FullAdmin: true, Admins: res.locals.user.Admins});
+  }
+  else{
+    return res.send({Success: true, FullAdmin: false, Admins: res.locals.user.Admins});
+  }
+});
+
+router.use('/users/', require('./users.js'));
+router.use('/errors/', require('./errors.js'));
+
+router.use(function(req, res, next){
+  if(!res.locals.user || !res.locals.user.Admins || res.locals.user.Admins.length<1){
+    return res.send({Success: false, Error: 'No Auth!'});
+  }
+  else{
+    if(res.locals.user.Admins.indexOf(-1)<0){
+      return res.send({Success: false, Error: 'Not a full Admin!'});
+    }
+    else{
+      return next();
+    }
+  }
+});
+
 router.get('/history/:timelength', function(req,res){
   var past = req.params.timelength;
   connection.query('Select Time, Activity from History WHERE Time BETWEEN DATE_SUB(NOW(), INTERVAL ? DAY) AND NOW() ORDER BY ID DESC LIMIT 15;', [past], function(err, results){
@@ -110,9 +121,6 @@ router.get('/history/:timelength', function(req,res){
     return res.send({Success: true, History:results});
   });
 });
-
-router.use('/errors/', require('./errors.js'))
-router.use('/users/', require('./users.js'));
 router.use('/groups/', require('./groups.js'));
 router.use('/databases/', require('./databases.js'));
 

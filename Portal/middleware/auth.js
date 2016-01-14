@@ -6,7 +6,7 @@ module.exports= {
     if(!auth || auth.length<1){
       return res.send({Success:false, valid:false, Error: "Unauthorized to perform this request"});
     }
-    connection.query('Select Expires from Sessions where Session_ID= ? LIMIT 1;', [auth], function(err, results){
+    connection.query('Select User_ID, Expires from Sessions where Session_ID= ? LIMIT 1;', [auth], function(err, results){
       if(err){
         return res.send({Success:false, valid: false, Error: err});
       }
@@ -15,10 +15,35 @@ module.exports= {
         var now = ~~(new Date().getTime()/1000)
         var valid = now <= result.Expires;
         if(valid){
-         return next(); 
+          var q = 'Select users.ID, users.Username, ug.Group_ID from users left join (Select User_ID, Group_ID from users_groups where GroupAdmin =1) ug on ug.User_ID=users.ID where users.ID=?;';
+          connection.query(q, [results[0].User_ID], function(err, results){
+            if(err){
+              return res.send({Success:false, valid: false, Error: err});
+            }
+            if(result.length<1){
+              return res.send({Success:false, valid: false, Error: 'Invalid Session'});
+            }
+            var user = {
+              Username:results[0].Username,
+              ID: results[0].ID,
+              Admins: []
+            };
+            results.forEach(function(g){
+              if(g.Group_ID){
+                user.Admins.push(g.Group_ID);
+              }
+            });
+            if(user.Admins.length<1){
+              return res.send({Success:false, valid: false, Error: 'Not an Admin of any groups'});
+            }
+            res.locals.user = user;
+            return next();
+          });
         }
       }
-      return res.send({Success:false, valid:false});
+      else{
+        return res.send({Success:false, valid:false});
+      }
     });
   }
-}
+};

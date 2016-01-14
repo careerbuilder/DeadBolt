@@ -6,6 +6,7 @@ import getpass
 import random
 import codecs
 import boto3
+import uuid
 import json
 import sys
 import re
@@ -37,11 +38,11 @@ def decrypt_password(enc_pass):
     return dec_obj['Plaintext']
 
 
-def save_passwords(username, passwords, keyname):
-    query = "INSERT INTO Users (Username, "
-    values = "VALUES (%(username)s, "
-    update = "ON DUPLICATE KEY UPDATE MySQL_Password=VALUES(MySQL_Password), SQL_Server_Password=Values(SQL_Server_Password), Mongo_Password=Values(Mongo_Password), Cassandra_Password=Values(Cassandra_Password);"
-    args = {'username': username}
+def save_passwords(username, passwords, portal_creds, keyname):
+    query = "INSERT INTO Users (Username, Portal_Password, Portal_Salt, "
+    values = "VALUES (%(username)s, %(portal_pass)s, %(portal_salt)s, "
+    update = "ON DUPLICATE KEY UPDATE MySQL_Password=VALUES(MySQL_Password), SQL_Server_Password=Values(SQL_Server_Password), Mongo_Password=Values(Mongo_Password), Cassandra_Password=Values(Cassandra_Password), Portal_Password=Values(Portal_Password), Portal_Salt=VALUES(Portal_Salt);"
+    args = {'username': username, 'portal_pass': portal_creds['Password'], 'portal_salt':portal_creds['Salt']}
     i = 1
     for key in passwords:
         query += key + ", "
@@ -57,9 +58,10 @@ def save_passwords(username, passwords, keyname):
 
 
 def change_password(username, password):
-    passwords = get_passwords({'username': username, 'password': password})
+    creds = {'username': username, 'password': password}
+    passwords = get_passwords(creds)
     cursor = cnx.cursor()
-    query = "Select FirstName, LastName, Email, User_ID from possible_users where Username=%(username)s"
+    query = "Select FirstName, LastName, Email, ID from users where Username=%(username)s"
     cursor.execute(query, {'username': username})
     user = {
         'Username': username,
@@ -69,19 +71,18 @@ def change_password(username, password):
         user['FirstName'] = res[0]
         user['LastName'] = res[1]
         user['Email'] = res[2]
-        if (len(res) >= 4) and (res[3] is not None):
-            user['User_ID'] = res[3]
+        user['ID'] = res[3]
     if ('FirstName' not in user) and ('LastName' not in user) and ('Email' not in user):
         print("User is not in possible User list")
         exit(-1)
-    if 'User_ID' in user:
+    if 'Active' in user and user['Active'] ==1:
         q2 = "Select Group_ID, Permissions from users_groups where User_ID = %(id)s"
-        cursor.execute(q2, {'id': user['User_ID']})
+        cursor.execute(q2, {'id': user['ID']})
         for res in cursor:
             user['Groups'][res[0]] = res[1]
     for key in passwords:
         user[key] = passwords[key]
-    save_passwords(username, passwords, config['kms_keyname'])
+    save_passwords(username, passwords, get_portal_creds(creds), config['kms_keyname'])
     r = requests.post(api_info['host'] + '/users/', json=user, headers={'Authorization': api_info['Session']},
                       verify=False)
     res = r.json()
@@ -129,6 +130,13 @@ def get_mssql_pass(creds):
     mssqlhash = salt + digest
     mssql_pass = '0x0200' + binascii.hexlify(mssqlhash).decode()
     return mssql_pass
+
+
+def get_portal_creds(creds):
+    salt = str(uuid.uuid4())
+    sha512 = hashlib.sha512()
+    sha512.update((salt + creds['password']).encode('utf8'))
+    return {'Salt': salt, 'Password': sha512.hexdigest()}
 
 
 def get_mongo_pass(creds):
@@ -202,10 +210,13 @@ if __name__ == "__main__":
         secrets = json.load(secret_file)
         secret_file.close()
         config = secrets
-        db_info = config['db']
         api_info = config['api']
-        login = requests.post(api_info['host'] + '/login/',
-                              data={'Email': api_info['username'], 'Password': api_info['password']}, verify=False)
+        # db_info = config['db']
+        cfj = open(os.path.join(cur_dir, '..','Portal','config.json'), 'r')
+        dbconfig = json.load(cfj)
+        cfj.close()
+        db_info = dbconfig['DB']
+        login = requests.post(api_info['host'] + '/login/', data={'Email': api_info['username'], 'Password': api_info['password']}, verify=False)
         response = login.json()
         if 'Success' in response and response['Success']:
             api_info['Session'] = response['Session']

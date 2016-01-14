@@ -19,49 +19,42 @@ function add_user(body, callback){
     FirstName: body.FirstName,
     LastName: body.LastName,
     Email: body.Email
-  }
+  };
   adapi.add_user_to_AD(user, function(err, result){
     if(err){
       console.log(err);
       return callback(err);
     }
     console.log(result || "");
-    var query = 'Insert into Users (Username) value (?) ON Duplicate KEY UPDATE Username=Username';
+    var query = 'Update `users` set `Active`=1 where `Username` = ?';
     connection.query(query, [body.Username], function(err, result){
       if(err){
         console.log(err);
         return callback(err);
       }
-      User_ID = result.insertId;
-      connection.query('Update possible_users set User_ID = ? where Username = ?', [User_ID, body.Username], function(err, result){
+      var plaintext = 'An account has been created for you on the CBsiteDB active directory, for use in RDS Identity management. To activate this account, please navigate to https://password.cbsitedb.net/accounts/Reset and unlock the account.\n ' +
+      'username: ' + body.Username  + '\nUpon setting a password, all databases to which you have access will be accessible using that username and password. If you have any questions, email Adam.Yost@careerbuilder.com';
+      var html = '<h1>An Account Has Been Created For You</h1><p>An account has been created for you on the CBsiteDB active directory, for use in RDS Identity management. To activate this account, please navigate to <a href="https://password.cbsitedb.net/accounts/Reset">https://password.cbsitedb.net/accounts/Reset</a> and unlock the account.</p>\n' +
+      '<h4>username: ' + body.Username  + '</h4>\n<p>Upon setting a password, all databases to which you have access will be accessible using that username and password. If you have any questions, email <a href="mailto:Adam.Yost@careerbuilder.com">Adam.Yost@careerbuilder.com</a></p>';
+      transporter.sendMail({
+        from: 'DeadBolt@cbsitedb.net',
+        to: body.Email,
+        subject: 'Identity Added to Databases',
+        text: plaintext,
+        html: html
+      }, function(err, info){
         if(err){
           console.log(err);
-          return callback(err);
         }
-        var plaintext = 'An account has been created for you on the CBsiteDB active directory, for use in RDS Identity management. To activate this account, please navigate to https://password.cbsitedb.net/accounts/Reset and unlock the account.\n ' +
-        'username: ' + body.Username  + '\nUpon setting a password, all databases to which you have access will be accessible using that username and password. If you have any questions, email Adam.Yost@careerbuilder.com';
-        var html = '<h1>An Account Has Been Created For You</h1><p>An account has been created for you on the CBsiteDB active directory, for use in RDS Identity management. To activate this account, please navigate to <a href="https://password.cbsitedb.net/accounts/Reset">https://password.cbsitedb.net/accounts/Reset</a> and unlock the account.</p>\n' +
-        '<h4>username: ' + body.Username  + '</h4>\n<p>Upon setting a password, all databases to which you have access will be accessible using that username and password. If you have any questions, email <a href="mailto:Adam.Yost@careerbuilder.com">Adam.Yost@careerbuilder.com</a></p>';
-        transporter.sendMail({
-          from: 'DeadBolt@cbsitedb.net',
-          to: body.Email,
-          subject: 'Identity Added to Databases',
-          text: plaintext,
-          html: html
-        }, function(err, info){
-          if(err){
-            console.log(err);
-          }
-          body.User_ID = User_ID;
-          return callback(null, body);
-        });
+        body.Active=1;
+        return callback(null, body);
       });
     });
   });
 }
 
 function update_user(body, callback){
-  var User_ID = body.User_ID;
+  var User_ID = body.ID;
   var del_group_query;
   var add_group_query;
   var group_ids = [];
@@ -136,27 +129,23 @@ router.post('/search/:page', function(req, res){
   var body = req.body;
   var page = req.params.page;
   var start=  page * 50;
-  var query = "";
-  var count_query = "";
   var args = [];
+  var count_query = 'Select Count(*) as Total from users';
+  var query = 'Select ID, Username, Email, FirstName, LastName, LENGTH(MySQL_Password) as hasmysql, LENGTH(SQL_Server_Password) as hasmssql, Active from users';
   if(body.Info && body.Info.trim().length > 0){
     var info = "%"+body.Info+"%";
-    count_query = 'Select Count(*) as Total from possible_users where (Username like ? OR Email like ? OR FirstName like ? OR LastName like ?);';
-    query = 'Select possible_users.ID, possible_users.Username, Email, User_ID, FirstName, LastName, LENGTH(possible_users.MySQL_Password) as hasmysql, LENGTH(possible_users.SQL_Server_Password) as hasmssql from possible_users LEFT JOIN users on User_ID = users.ID where (possible_users.Username like ? OR Email like ? OR FirstName like ? OR LastName like ?) ORDER BY if(User_ID = "" or User_ID is null,1,0),User_ID, possible_users.Username ASC LIMIT ?,50;';
-    args = [info, info, info, info, start];
+    args = [info, info, info, info];
+    count_query += ' where (Username like ? OR Email like ? OR FirstName like ? OR LastName like ?)';
+    query += ' where (Username like ? OR Email like ? OR FirstName like ? OR LastName like ?)';
   }
-  else{
-    count_query = 'Select Count(*) as Total from possible_users;';
-    query = 'Select possible_users.ID, possible_users.Username, Email, User_ID, FirstName, LastName, LENGTH(possible_users.MySQL_Password) as hasmysql, LENGTH(possible_users.SQL_Server_Password) as hasmssql from possible_users LEFT JOIN users on User_ID = users.ID ORDER BY if(User_ID = "" or User_ID is null,1,0),User_ID, possible_users.Username ASC LIMIT ?, 50;';
-    args = [start];
-  }
-  connection.query(count_query, args, function(err, results){
+  connection.query(count_query +';', args, function(err, results){
     if(err){
       console.log(err);
       return res.send({Success: false, Error: err});
     }
     var total = results[0].Total;
-    connection.query(query, args, function(err, users){
+    args.push(start);
+    connection.query(query + ' ORDER BY Active DESC, Username ASC LIMIT ?,50;', args, function(err, users){
       if(err){
         console.log(err);
         return res.send({Success: false, Error: err});
@@ -168,10 +157,10 @@ router.post('/search/:page', function(req, res){
 
 router.post('/', function(req, res){
   var body = req.body;
-  var exists = !!body.User_ID;
+  var exists = !!body.Active;
   async.waterfall([
     function(callback){
-      if(body.User_ID){
+      if(body.Active && body.Active == 1){
         return callback(null, body);
       }
       add_user(body, callback);
@@ -191,7 +180,7 @@ router.post('/', function(req, res){
         if(err){
           console.log(err);
         }
-        return callback(null, userinfo.User_ID);
+        return callback(null, userinfo.Active);
       });
     }
   ], function(err, result){
@@ -199,8 +188,22 @@ router.post('/', function(req, res){
       console.log(err);
       return res.send({Success:false, Error: err});
     }
-    return res.send({Success:true, User_ID: result});
+    return res.send({Success:true, Active: result});
   });
+});
+
+router.use(function(req, res, next){
+  if(!res.locals.user || !res.locals.user.Admins || res.locals.user.Admins.length<1){
+    return res.send({Success: false, Error: 'No Auth!'});
+  }
+  else{
+    if(res.locals.user.Admins.indexOf(-1)<0){
+      return res.send({Success: false, Error: 'Not a full Admin!'});
+    }
+    else{
+      return next();
+    }
+  }
 });
 
 router.delete('/:id', function(req,res){
@@ -240,23 +243,17 @@ router.delete('/:id', function(req,res){
           });
         }, function(err){
           console.log("All Databases Updated to remove " + username);
-          connection.query('Delete from users where ID = ?', [user_id], function(err, result){
+          connection.query('Update Users set Active = 0 where ID = ?;', [user_id], function(err, result){
             if(err){
               console.log(err);
               return res.send({Success:false, Error: err});
             }
-            connection.query("Update possible_users set User_ID = null where User_ID = ?", [user_id], function(err, result){
+            connection.query('Insert into History (Activity) Value("Deleted user: ?")', [username], function(err, result){
               if(err){
                 console.log(err);
-                return res.send({Success:false, Error: err});
+                return res.send({Success: true, Error: "History error: " + err.toString(), });
               }
-              connection.query('Insert into History (Activity) Value("Deleted user: ?")', [username], function(err, result){
-                if(err){
-                  console.log(err);
-                  return res.send({Success: true, Error: "History error: " + err.toString(), });
-                }
-                return res.send({Success: true});
-              });
+              return res.send({Success: true});
             });
           });
         });

@@ -81,6 +81,11 @@ app.controller('PageController', function($http, $scope, $location, authService,
 	$scope.isLoggedIn = function(){
 		return !!authService.getSession();
 	}
+
+	$scope.isAdmin = function(){
+		return !!authService.isAdmin();
+	}
+
 });
 
 app.factory('httpRequestInterceptor', function ($cookies) {
