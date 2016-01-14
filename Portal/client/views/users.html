@@ -61,7 +61,7 @@
         <p class="text-muted" ng-click="isEditing=false; isSearching=true" style="cursor: pointer;"><span class="glyphicon glyphicon-menu-up"></span><strong> up to users</strong></p>
         <form class="simpleForm" name="userform">
           <div class="row">
-            <div class="col-sm-5">
+            <div class="col-sm-4">
               <h3>User Info</h3>
               <div class="input-group" ng-class="{'has-error': (userform.username.$invalid && userform.username.$dirty)}">
                 <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>Username</strong></span>
@@ -84,7 +84,7 @@
               <!--<p class="text-muted"><em>more user info will go here...</em></p>-->
             </div>
             <div class="col-sm-1">&nbsp;</div>
-            <div class="col-sm-6">
+            <div class="col-sm-7">
               <h3>Groups</h3>
               <div class="table-responsive" style="overflow-y: scroll;">
                 <table class="table table-striped table-condensed">
@@ -95,15 +95,16 @@
                     <th>DBA</th>
                     <th>RW</th>
                     <th>RO</th>
+                    <th class="col-xs-2">Group Admin</th>
                   </tr>
                   <tr ng-repeat="group in groups">
-                    <td class="col-xs-1"><input type="checkbox" ng-model="group.Checked" ng-change="groupChanged(group)"></td>
-                    <td class="col-xs-5">{{group.Name}}</td>
-                    <td class="col-xs-1"><input type="radio" name="{{group}}" value="SU" ng-disabled="!group.Checked" ng-model="group.Permissions" ng-required="group.Checked && !group.Permissions"></td>
-                    <td class="col-xs-1"><input type="radio" name="{{group}}" value="DBA" ng-disabled="!group.Checked" ng-model="group.Permissions" ng-required="group.Checked && !group.Permissions"></td>
-                    <td class="col-xs-1"><input type="radio" name="{{group}}" value="RW" ng-disabled="!group.Checked" ng-model="group.Permissions" ng-required="group.Checked && !group.Permissions"></td>
-                    <td class="col-xs-1"><input type="radio" name="{{group}}" value="RO" ng-disabled="!group.Checked" ng-model="group.Permissions" ng-required="group.Checked && !group.Permissions"></td>
-                    </td>
+                    <td class="col-xs-1"><input type="checkbox" ng-model="group.Checked" ng-change="groupChanged(group)" ng-disabled="!isAdmin(group.ID)"></td>
+                    <td class="col-xs-4" ng-class="{'text-muted': !isAdmin(group.ID)}">{{group.Name}}</td>
+                    <td class="col-xs-1"><input type="radio" name="{{group}}" value="SU" ng-disabled="!isAdmin(group.ID) || !group.Checked" ng-model="group.Permissions" ng-required="group.Checked && !group.Permissions"></td>
+                    <td class="col-xs-1"><input type="radio" name="{{group}}" value="DBA" ng-disabled="!isAdmin(group.ID) || !group.Checked" ng-model="group.Permissions" ng-required="group.Checked && !group.Permissions"></td>
+                    <td class="col-xs-1"><input type="radio" name="{{group}}" value="RW" ng-disabled="!isAdmin(group.ID) || !group.Checked" ng-model="group.Permissions" ng-required="group.Checked && !group.Permissions"></td>
+                    <td class="col-xs-1"><input type="radio" name="{{group}}" value="RO" ng-disabled="!isAdmin(group.ID) || !group.Checked" ng-model="group.Permissions" ng-required="group.Checked && !group.Permissions"></td>
+                    <td class="col-xs-1 text-center"><input type="checkbox" ng-disabled="!isAdmin(group.ID) || !group.Checked" ng-model="group.GroupAdmin" ng-required="group.Checked" ng-true-value="1" ng-false-value="0"></td>
                   </tr>
                 </table>
               </div>

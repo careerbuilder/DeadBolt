@@ -53,6 +53,8 @@ function add_user(body, callback){
   });
 }
 
+//@TODO: rewrite group change detection, look for allowed changes.
+
 function update_user(body, callback){
   var User_ID = body.ID;
   var del_group_query;

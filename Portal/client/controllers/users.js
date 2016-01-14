@@ -1,6 +1,6 @@
 'use strict';
 
-app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $location, toastr, tabService){
+app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $location, toastr, authService, tabService){
   tabService.setTab(1);
 
   $scope.searchResults = [];
@@ -18,6 +18,10 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
       }
     }
   });
+
+  $scope.isAdmin=function(groupid){
+    return authService.isAdmin() || (authService.getAdmins().indexOf(groupid)>-1);
+  };
 
   $scope.search=function(pagenum){
     $http.post('/api/users/search/'+pagenum, $scope.searchCreds).success(function(data){
@@ -112,7 +116,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
     else{
       callback(null, {});
     }
-  }
+  };
 
   $scope.edit=function(index){
     var userinfo = $scope.searchResults[index];
@@ -123,7 +127,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
     }
     $scope.applyGroups(userinfo, function(err, results){
       if(err){
-        toastr.error('err','Something went wrong');
+        toastr.error(err,'Something went wrong');
       }
       else{
         var usergroups = results;
@@ -143,7 +147,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
         $scope.user = userinfo;
       }
     });
-  }
+  };
 
   $scope.nochange=function(){
     if($scope.userRef){
@@ -152,7 +156,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
     else{
       return false;
     }
-  }
+  };
 
   $scope.saveUser=function(){
     var userdata = JSON.parse(JSON.stringify($scope.user));
@@ -174,7 +178,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
     }, function(err){
       toastr.error(err);
     });
-  }
+  };
 
   $scope.removeUser=function(){
     var uid = $scope.user.ID;

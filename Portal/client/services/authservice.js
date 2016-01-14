@@ -46,6 +46,9 @@ app.factory('authService', ['$q', '$http','$cookies', function($q, $http, $cooki
     isAdmin: function(){
       return fullAdmin;
     },
+    getAdmins: function(){
+      return admins;
+    },
     hasAccess: function(){
       var deferred = $q.defer();
       if(session){

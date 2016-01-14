@@ -111,6 +111,38 @@ router.get('/', function(req, res){
   });
 });
 
+
+router.get('/:username', function(req, res){
+  var username = req.params.username;
+  var query = 'Select groups.Name, users_groups.Permissions, users_groups.GroupAdmin from groups Join users_groups on users_groups.Group_ID=groups.ID where users_groups.User_ID=(Select ID from users where Username=?);'
+  connection.query(query, [username], function(err, results){
+    if(err){
+      console.log(err);
+      return res.send({Success:false, Error:err});
+    }
+    var groups = {};
+    for(var i=0; i<results.length; i++){
+      groups[results[i].Name] = results[i].Permissions;
+    }
+    return res.send({Success:true, Results: groups});
+  });
+});
+
+
+router.use(function(req, res, next){
+  if(!res.locals.user || !res.locals.user.Admins || res.locals.user.Admins.length<1){
+    return res.send({Success: false, Error: 'No Auth!'});
+  }
+  else{
+    if(res.locals.user.Admins.indexOf(-1)<0){
+      return res.send({Success: false, Error: 'Not a full Admin!'});
+    }
+    else{
+      return next();
+    }
+  }
+});
+
 router.post('/search', function(req, res){
   var body = req.body;
   var query = "";
@@ -129,22 +161,6 @@ router.post('/search', function(req, res){
       return res.send({Success: false, Error: err});
     }
     return res.send({Success: true, Results:results});
-  });
-});
-
-router.get('/:username', function(req, res){
-  var username = req.params.username;
-  var query = 'Select groups.Name, users_groups.Permissions from groups Join users_groups on users_groups.Group_ID=groups.ID where users_groups.User_ID=(Select ID from users where Username=?);'
-  connection.query(query, [username], function(err, results){
-    if(err){
-      console.log(err);
-      return res.send({Success:false, Error:err});
-    }
-    var groups = {};
-    for(var i=0; i<results.length; i++){
-      groups[results[i].Name] = results[i].Permissions;
-    }
-    return res.send({Success:true, Results: groups});
   });
 });
 

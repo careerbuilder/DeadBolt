@@ -55,7 +55,7 @@ router.post('/login', function(req,res){
   var now = ~~(new Date().getTime()/1000);
   //-----------------h-* m/h* s/m----------
   var later = now + (6 * 60 * 60);
-  connection.query("Select ID, Email, Portal_Salt, Portal_Password from Users where (Email= ? and Active=1) and ID in (select User_ID from users_groups) LIMIT 1;", [body.Email], function(err, results){
+  connection.query("Select ID, Email, Portal_Salt, Portal_Password from Users where (Email= ? and Active=1) and ID in (select User_ID from users_groups where GroupAdmin=1) LIMIT 1;", [body.Email], function(err, results){
     if(err){
       console.log(err);
       return res.send({Success:false, Error: "Error connecting to database:\n" + err});
@@ -94,8 +94,19 @@ router.post('/auth', function(req, res){
   }
 });
 
-router.use('/users/', require('./users.js'));
+router.get('/history/:timelength', function(req,res){
+  var past = req.params.timelength;
+  connection.query('Select Time, Activity from History WHERE Time BETWEEN DATE_SUB(NOW(), INTERVAL ? DAY) AND NOW() ORDER BY ID DESC LIMIT 15;', [past], function(err, results){
+    if(err){
+      console.log(err);
+      return res.send({Success:false, Error:err});
+    }
+    return res.send({Success: true, History:results});
+  });
+});
 router.use('/errors/', require('./errors.js'));
+router.use('/users/', require('./users.js'));
+router.use('/groups/', require('./groups.js'));
 
 router.use(function(req, res, next){
   if(!res.locals.user || !res.locals.user.Admins || res.locals.user.Admins.length<1){
@@ -111,17 +122,6 @@ router.use(function(req, res, next){
   }
 });
 
-router.get('/history/:timelength', function(req,res){
-  var past = req.params.timelength;
-  connection.query('Select Time, Activity from History WHERE Time BETWEEN DATE_SUB(NOW(), INTERVAL ? DAY) AND NOW() ORDER BY ID DESC LIMIT 15;', [past], function(err, results){
-    if(err){
-      console.log(err);
-      return res.send({Success:false, Error:err});
-    }
-    return res.send({Success: true, History:results});
-  });
-});
-router.use('/groups/', require('./groups.js'));
 router.use('/databases/', require('./databases.js'));
 
 module.exports = router;
