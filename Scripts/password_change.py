@@ -61,25 +61,26 @@ def change_password(username, password):
     creds = {'username': username, 'password': password}
     passwords = get_passwords(creds)
     cursor = cnx.cursor()
-    query = "Select FirstName, LastName, Email, ID from users where Username=%(username)s"
+    query = "Select FirstName, LastName, Email, ID, Active from users where Username=%(username)s"
     cursor.execute(query, {'username': username})
     user = {
         'Username': username,
-        'Groups': {}
+        'Groups': []
     }
     for res in cursor:
         user['FirstName'] = res[0]
         user['LastName'] = res[1]
         user['Email'] = res[2]
         user['ID'] = res[3]
+        user['Active'] = res[4]
     if ('FirstName' not in user) and ('LastName' not in user) and ('Email' not in user):
         print("User is not in possible User list")
         exit(-1)
-    if 'Active' in user and user['Active'] ==1:
-        q2 = "Select Group_ID, Permissions from users_groups where User_ID = %(id)s"
+    if 'Active' in user and user['Active'] == 1:
+        q2 = "Select Group_ID, Permissions, GroupAdmin from users_groups where User_ID = %(id)s"
         cursor.execute(q2, {'id': user['ID']})
         for res in cursor:
-            user['Groups'][res[0]] = res[1]
+            user['Groups'].append({'Group_ID': res[0], 'Permissions': res[1], 'GroupAdmin':res[3]})
     for key in passwords:
         user[key] = passwords[key]
     save_passwords(username, passwords, get_portal_creds(creds), config['kms_keyname'])
@@ -95,6 +96,7 @@ def get_passwords(creds):
     mssql_p = get_mssql_pass(creds)
     mongo_p = get_mongo_pass(creds)
     cassandra_p = get_cassandra_pass(creds)
+    # postgres_p = get_postgres_pass(creds)
     if mysql_p is not None:
         passwords['MySQL_Password'] = mysql_p
     if mssql_p is not None:
@@ -151,43 +153,12 @@ def get_postgres_pass(creds):
     password = creds['password'] + creds['username']
     md5 = hashlib.md5()
     md5.update(password.encode('utf8'))
-    enc_bytes = md5.digest()
-    enc_password = "md5"
-    for byte in enc_bytes:
-        enc_password += int_to_hex(byte)
+    enc_password = "md5" + md5.hexdigest()
     return enc_password
 
 
 def get_oracle_pass(creds):
     return None
-
-
-def int_to_hex(num):
-    digit = {
-        0: '0',
-        1: '1',
-        2: '2',
-        3: '3',
-        4: '4',
-        5: '5',
-        6: '6',
-        7: '7',
-        8: '8',
-        9: '9',
-        10: 'A',
-        11: 'B',
-        12: 'C',
-        13: 'D',
-        14: 'E',
-        15: 'F'
-    }
-    hexstring = ""
-    while num > 0:
-        hexstring = digit[num % 16] + hexstring
-        num = num // 16
-    while len(hexstring) < 2:
-        hexstring = str(0) + hexstring
-    return hexstring
 
 
 def main():
