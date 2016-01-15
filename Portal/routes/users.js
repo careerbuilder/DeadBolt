@@ -174,7 +174,7 @@ function update_user(body, caller, callback){
 
 router.get('/:groupid', function(req, res){
   var groupid = req.params.groupid;
-  connection.query('Select users.Username, users_groups.Permissions, users_group.GroupAdmin from users Join users_groups on users_groups.User_ID = users.ID where users_groups.Group_ID= ? Order by GroupAdmin DESC, (users_groups.Permissions+0) ASC;', [groupid], function(err, results){
+  connection.query('Select users.Username, users_groups.Permissions, users_groups.GroupAdmin from users Join users_groups on users_groups.User_ID = users.ID where users_groups.Group_ID= ? Order by GroupAdmin DESC, (users_groups.Permissions+0) ASC;', [groupid], function(err, results){
     if(err){
       console.log(err);
       return res.send({Success: false, Error: err});
