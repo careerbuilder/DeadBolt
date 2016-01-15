@@ -114,17 +114,13 @@ router.get('/', function(req, res){
 
 router.get('/:username', function(req, res){
   var username = req.params.username;
-  var query = 'Select groups.Name, users_groups.Permissions, users_groups.GroupAdmin from groups Join users_groups on users_groups.Group_ID=groups.ID where users_groups.User_ID=(Select ID from users where Username=?);'
+  var query = 'Select groups.ID as Group_ID, groups.Name, users_groups.Permissions, users_groups.GroupAdmin from groups Join users_groups on users_groups.Group_ID=groups.ID where users_groups.User_ID=(Select ID from users where Username=?);'
   connection.query(query, [username], function(err, results){
     if(err){
       console.log(err);
       return res.send({Success:false, Error:err});
     }
-    var groups = {};
-    for(var i=0; i<results.length; i++){
-      groups[results[i].Name] = results[i].Permissions;
-    }
-    return res.send({Success:true, Results: groups});
+    return res.send({Success:true, Results: results});
   });
 });
 

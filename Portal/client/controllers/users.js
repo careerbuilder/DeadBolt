@@ -14,7 +14,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
   $http.get('/api/groups').success(function(data){
     if(data.Success){
       for(var i=0; i<data.Results.length; i++){
-        $scope.groups.push({Checked:false, Name:data.Results[i].Name, ID:data.Results[i].ID});
+        $scope.groups.push({Checked:false, Name:data.Results[i].Name, Group_ID:data.Results[i].ID});
       }
     }
   });
@@ -88,6 +88,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
   $scope.groupChanged=function(group){
     if(!group.Checked){
       group.Permissions='';
+      group.GroupAdmin =0;
     }
   }
 
@@ -132,13 +133,21 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
       else{
         var usergroups = results;
         $scope.groups.forEach(function(g){
-          if(g.Name in usergroups){
-            g.Checked = true;
-            g.Permissions = usergroups[g.Name];
+          var found = false;
+          for(var i=0; i<usergroups.length; i++){
+            var ug = usergroups[i];
+            if(ug.Group_ID == g.Group_ID){
+              g.Checked = true;
+              g.Permissions = ug.Permissions;
+              g.GroupAdmin = ug.GroupAdmin;
+              found = true;
+              break;
+            }
           }
-          else{
+          if(!found){
             g.Checked = false;
             g.Permissions = "";
+            g.GroupAdmin = 0;
           }
         });
         $scope.groupsRef = JSON.stringify($scope.groups);
@@ -160,10 +169,10 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
 
   $scope.saveUser=function(){
     var userdata = JSON.parse(JSON.stringify($scope.user));
-    userdata.Groups = {};
+    userdata.Groups = [];
     $scope.groups.forEach(function(group, i){
       if(group.Checked){
-        userdata.Groups[group.ID]=group.Permissions;
+        userdata.Groups.push({ID: group.Group_ID, Permissions: group.Permissions, GroupAdmin:group.GroupAdmin});
       }
     });
     $http.post('/api/users', userdata).success(function(data){

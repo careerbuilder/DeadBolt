@@ -54,62 +54,107 @@ function add_user(body, callback){
 }
 
 //@TODO: rewrite group change detection, look for allowed changes.
-
-function update_user(body, callback){
+function update_user(body, caller, callback){
   var User_ID = body.ID;
-  var del_group_query;
-  var add_group_query;
-  var group_ids = [];
-  var group_where = 'where (';
-  var db_or = "";
-  var values = "";
-  var b_groups = body.Groups || {};
-  for(key in b_groups){
-    group_where += 'groups.ID = ? OR ';
-    db_or += 'Group_ID=? OR ';
-    values +='('+User_ID+',?,"'+body.Groups[key]+'"), ';
-    group_ids.push(parseInt(key));
-  }
-  db_or += '0=1';
-  group_where += '0=1)'
-  values = "VALUES "+(values.substring(0,values.length-2));
-  del_group_query = 'Delete from users_groups where User_ID= ? and Group_ID not in (Select ID from groups '+group_where+');';
-  add_group_query = 'Insert into users_groups (User_ID, Group_ID, Permissions) '+values+' ON DUPLICATE KEY UPDATE Permissions=Values(Permissions);';
-  if(group_ids.length<1){
-    del_group_query = 'Delete from users_groups where User_ID= ?;';
-    add_group_query = 'set @dummy = 1';
-  }
-  var db_query = "Select DISTINCT * from `databases` where ID in (Select Database_ID from groups_databases where ("+db_or+") OR Group_ID in (Select Group_ID from users_groups where User_ID=?));";
-  connection.query(db_query, group_ids.concat([User_ID]), function(err, results){
+  // get User info to update databases
+  connection.query('Select * from users where ID = ?', [User_ID], function(err, userinfo){
     if(err){
-      console.log(err);
       return callback(err);
     }
-    var affected_dbs = results || [];
-    connection.query("Select * from users where users.ID=?;", [User_ID], function(err, results){
+    if(userinfo.length<1){
+      return callback('No User with that ID!');
+    }
+    var user = userinfo[0];
+    //get old user_groups
+    connection.query('Select Group_ID as ID, Permissions, GroupAdmin from users_groups where User_ID = ?', [User_ID], function(err, results){
       if(err){
-        console.log(err);
         return callback(err);
       }
-      var userinfo = results
-      connection.query(del_group_query, [User_ID].concat(group_ids), function(err, results){
+      var adds = [];
+      var dels = [];
+      body.Groups.forEach(function(g){
+        var found=false;
+        for(var i =0; i<results.length; i++){
+          var r = results[i];
+          if(r.ID === g.ID){
+            found = true;
+            if(r.Permissions !== g.Permissions || r.GroupAdmin!==g.GroupAdmin){
+              adds.push(g);
+            }
+            break;
+          }
+        }
+        if(!found){
+          adds.push(g);
+        }
+      });
+      results.forEach(function(r){
+        var found=false;
+        for(var i =0; i<body.Groups.length; i++){
+          var g = body.Groups[i];
+          if(g.ID === r.ID){
+              found = true;
+              break;
+          }
+        }
+        if(!found){
+          dels.push(r);
+        }
+      });
+      var totChange = adds.concat(dels);
+      if(totChange.length===0){
+        return callback(null, body);
+      }
+      //full admins can do what they want
+      if(caller.Admins.indexOf(-1)<0){
+        //group admins can only edit their own group
+        for(var i=0; i<totChange.length; i++){
+          var gchange = totChange[i];
+          if(caller.Admins.indexOf(gchange.ID)<0){
+            return callback('Not Authorized to make this change');
+          }
+        }
+      }
+      var binstert = adds.map(x => [User_ID, x.ID, x.Permissions, x.GroupAdmin]);
+      var q = 'Set @dummy=1;';
+      if(binstert.length >0){
+        q = 'Insert into `users_groups` (`User_ID`, `Group_ID`, `Permissions`, `GroupAdmin`) VALUES ' + connection.escape(binstert) + ' ON DUPLICATE KEY UPDATE `Permissions`=VALUES(`Permissions`), `GroupAdmin`=VALUES(`GroupAdmin`)';
+      }
+      // add/update groups that are still gospel
+      connection.query(q, function(err, result){
         if(err){
-          console.log(err);
           return callback(err);
         }
-        connection.query(add_group_query, group_ids, function(err, results){
+        var delIDs = dels.map(x => x.ID);
+        var delq = 'Set @dummy=1';
+        if(delIDs.length > 0){
+          delq = 'Delete from users_groups where Group_ID in (' + connection.escape(delIDs)+');';
+        }
+        // delete groups no longer allowed
+        connection.query(delq, function(err, result){
           if(err){
-            console.log(err);
             return callback(err);
           }
-          async.each(affected_dbs,function(db, inner_callback){
-            db_tools.update_users(db, userinfo, function(errs){
-              inner_callback();
+          var changedIDs = totChange.map(x => x.ID);
+          if(changedIDs.length <1){
+            return callback(null, body);
+          }
+          else{
+            var dbq = 'Select Distinct * from `databases` where ID in (Select Database_ID from groups_databases where Group_ID in (' + connection.escape(changedIDs)+'));';
+            connection.query(dbq, function(err, dbs){
+              if(err){
+                return callback(err);
+              }
+              async.each(dbs,function(db, inner_callback){
+                db_tools.update_users(db, user, function(errs){
+                  inner_callback();
+                });
+              }, function(err, result){
+                console.log("All Databases Updated for " + body.Username);
+              });
+              return callback(null, body);
             });
-          }, function(err, result){
-            console.log("All Databases Updated for " + body.Username);
-          });
-          callback(null, body);
+          }
         });
       });
     });
@@ -168,7 +213,7 @@ router.post('/', function(req, res){
       add_user(body, callback);
     },
     function(arg1, callback){
-      update_user(arg1, callback);
+      update_user(arg1, res.locals.user, callback);
     },
     function(userinfo, callback){
       var activity = "";
