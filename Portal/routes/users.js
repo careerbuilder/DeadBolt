@@ -6,6 +6,7 @@ var nodemailer = require('nodemailer');
 var sesTransport = require('nodemailer-ses-transport');
 var transporter = nodemailer.createTransport(sesTransport());
 var adapi = require('../middleware/adapi');
+var auth = require('../middleware/auth');
 var connection = require('../middleware/mysql');
 var encryption = require('../middleware/encryption');
 var db_tools = require('../tools/db_tools');
@@ -53,7 +54,6 @@ function add_user(body, callback){
   });
 }
 
-//@TODO: rewrite group change detection, look for allowed changes.
 function update_user(body, caller, callback){
   var User_ID = body.ID;
   // get User info to update databases
@@ -240,17 +240,7 @@ router.post('/', function(req, res){
 });
 
 router.use(function(req, res, next){
-  if(!res.locals.user || !res.locals.user.Admins || res.locals.user.Admins.length<1){
-    return res.send({Success: false, Error: 'No Auth!'});
-  }
-  else{
-    if(res.locals.user.Admins.indexOf(-1)<0){
-      return res.send({Success: false, Error: 'Not a full Admin!'});
-    }
-    else{
-      return next();
-    }
-  }
+  return auth.isAdmin(req, res, next);
 });
 
 router.delete('/:id', function(req,res){
