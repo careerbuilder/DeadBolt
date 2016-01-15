@@ -19,7 +19,6 @@ router.post('/signup', function(req,res){
   }
   connection.query("Select Portal_Password, Active from users where Email=?", [body.Email], function(err, results){
     if(err){
-      console.log(err);
       return res.send({Success: false, Error: err});
     }
     if(results.length < 1){
@@ -51,10 +50,6 @@ router.post('/login', function(req,res){
   if(!body.Password){
     return res.send({Success: false, Error: "No Password!"});
   }
-  var sessionid = uuid.v4();
-  var now = ~~(new Date().getTime()/1000);
-  //-----------------h-* m/h* s/m----------
-  var later = now + (6 * 60 * 60);
   connection.query("Select ID, Email, Portal_Salt, Portal_Password from Users where (Email= ? and Active=1) and ID in (select User_ID from users_groups where GroupAdmin=1) LIMIT 1;", [body.Email], function(err, results){
     if(err){
       console.log(err);
@@ -69,6 +64,10 @@ router.post('/login', function(req,res){
     if(results[0].Portal_Password != passcheck){
       return res.send({Success: false, Error: "Incorrect Password"});
     }
+    var sessionid = uuid.v4();
+    var now = ~~(new Date().getTime()/1000);
+    //-----------------h-* m/h* s/m----------
+    var later = now + (6 * 60 * 60);
     connection.query("Insert into Sessions (Session_ID, Expires, User_ID) Values(?, ?, ?)", [sessionid, later, results[0].ID], function(err, results){
       if(err){
         console.log(err);

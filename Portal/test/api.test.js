@@ -20,6 +20,63 @@ describe('api', function(){
       if(args.length > 2){
         sql_args = args[1];
       }
+      // Signup
+      if(args[0].search(/SELECT\s+Portal_Password,\s+ACTIVE/i)>-1){
+        if(args.length< 3 || !args[1][0]){
+          return callback('No Email Provided!');
+        }
+        if(args[1][0].search(/INVALID/i)>-1){
+          return callback(null, []);
+        }
+        else if(args[1][0].search(/EXISTING/i)>-1){
+          return callback(null, [{Portal_Password:'password', Active: 1}]);
+        }
+        else if(args[1][0].search(/^Error/i)>-1){
+          return callback('DBError!');
+        }
+        else{
+          return callback(null, [{Portal_Password:'password', Active: 0}]);
+        }
+      }
+      if(args[0].search(/UPDATE\s+Users/i)>-1){
+        if(args.length< 3 || args[1].length < 3){
+          return callback('Missing arguments!');
+        }
+        if(args[1][2].search(/updERROR/i) >-1){
+          return callback('Database lookup error');
+        }
+        else{
+          return callback();
+        }
+      }
+      // LogIn
+      if(args[0].search(/SELECT\s+ID,\s+EMAIL,/i)>-1){
+        if(args.length< 3 || !args[1][0]){
+          return callback('No Email Provided!');
+        }
+        if(args[1][0].search(/INVALID/i)>-1){
+          return callback(null, []);
+        }
+        else{
+          var salt = 'randomstring'
+          var shasum = crypto.createHash('sha512');
+          shasum.update(salt + 'password');
+          var passcheck = shasum.digest('hex');
+          return callback(null, [{ID: 1, Email:args[1][0], Salt: salt, Portal_Password:passcheck, Portal_Salt:salt}]);
+        }
+      }
+      if(args[0].search(/INSERT\s+INTO\s+SESSIONS/i)>-1){
+        if(args.length< 3 || !args[1][0]){
+          return callback('No sessionid Provided!');
+        }
+        if(args.length< 3 || !args[1][1]){
+          return callback('No expiration Provided!');
+        }
+        else{
+          return callback();
+        }
+      }
+      //
       if(args[0].search(/SELECT\s+EXPIRES/i)>-1){
         if(args.length< 3 || !args[1][0]){
           return callback('No Session Token Provided!');
@@ -35,57 +92,6 @@ describe('api', function(){
         }
         else{
           return callback(null, [{Expires: ~~(new Date().getTime()/1000)+500}]);
-        }
-      }
-      if(args[0].search(/SELECT\s+ACTIVE/i)>-1){
-        if(args.length< 3 || !args[1][0]){
-          return callback('No Email Provided!');
-        }
-        if(args[1][0].search(/INVALID/i)>-1){
-          return callback(null, []);
-        }
-        else if(args[1][0].search(/EXISTING/i)>-1){
-          return callback(null, [{Active: 1}]);
-        }
-        else{
-          return callback(null, [{Active: 0}]);
-        }
-      }
-      if(args[0].search(/UPDATE\s+PORTAL/i)>-1){
-        if(args.length< 3 || args[1].length < 3){
-          return callback('Missing arguments!');
-        }
-        if(args[1][2].search(/ERROR/i) >-1){
-          return callback('Database lookup error');
-        }
-        else{
-          return callback();
-        }
-      }
-      if(args[0].search(/SELECT\s+EMAIL,/i)>-1){
-        if(args.length< 3 || !args[1][0]){
-          return callback('No Email Provided!');
-        }
-        if(args[1][0].search(/INVALID/i)>-1){
-          return callback(null, []);
-        }
-        else{
-          var salt = 'randomstring'
-          var shasum = crypto.createHash('sha256');
-          shasum.update(salt + 'password');
-          var passcheck = shasum.digest('hex');
-          return callback(null, [{Email:args[1][0], Salt: salt, Password:passcheck}]);
-        }
-      }
-      if(args[0].search(/INSERT\s+INTO\s+SESSIONS/i)>-1){
-        if(args.length< 3 || !args[1][0]){
-          return callback('No sessionid Provided!');
-        }
-        if(args.length< 3 || !args[1][1]){
-          return callback('No expiration Provided!');
-        }
-        else{
-          return callback();
         }
       }
       if(args[0].search(/SELECT\s+TIME/i)>-1){
@@ -104,6 +110,7 @@ describe('api', function(){
 
   var mockAuth = {
     auth: function(req, res, next){
+      res.locals.user= {Username: 'test', 'Admins':[-1]};
       return next();
     }
   }
@@ -128,83 +135,6 @@ describe('api', function(){
       .expect(200, done);
     });
   });
-  describe('POST /auth', function(){
-    it('should fail when no token is provided', function(done){
-      request(app)
-      .post('/api/auth/')
-      .set('Content-Type', 'application/json')
-      .expect(200)
-      .end(function(err, res){
-        if(err){
-          return done(err);
-        }
-        assert.equal(res.body.Success, false, 'Succeeded with no token');
-        assert.equal(res.body.valid, false, 'Invalid token considered valid');
-        done();
-      });
-    });
-    it('should error on db error', function(done){
-      request(app)
-      .post('/api/auth/')
-      .set('Content-Type', 'application/json')
-      .send({Session: "ErrorSessionToken"})
-      .expect(200)
-      .end(function(err, res){
-        if(err){
-          return done(err);
-        }
-        assert.equal(res.body.Success, false, 'Succeeded on db error');
-        assert.equal(res.body.valid, false, 'Invalid token considered valid');
-        assert(res.body.Error, 'No Error on error');
-        done();
-      });
-    });
-    it('should fail when an invalid session token is provided', function(done){
-      request(app)
-      .post('/api/auth/')
-      .set('Content-Type', 'application/json')
-      .send({Session: "InvalidSessionToken"})
-      .expect(200)
-      .end(function(err, res){
-        if(err){
-          return done(err);
-        }
-        assert.equal(res.body.Success, false, 'Succeeded with invalid creds');
-        assert.equal(res.body.valid, false, 'Invalid token considered valid');
-        done();
-      });
-    });
-    it('should fail when an expired token is provided', function(done){
-      request(app)
-        .post('/api/auth/')
-        .set('Content-Type', 'application/json')
-        .send({Session: "expiredSessionToken"})
-        .expect(200)
-        .end(function(err, res){
-          if(err){
-            return done(err);
-          }
-          assert(res.body.Success, 'Succeeded with expired creds');
-          assert.equal(res.body.valid, false, 'Expired token considered valid');
-          done();
-        });
-    });
-    it('should succeed when a valid token is provided', function(done){
-      request(app)
-      .post('/api/auth/')
-      .set('Content-Type', 'application/json')
-      .send({Session: "validSessionToken"})
-      .expect(200)
-      .end(function(err, res){
-        if(err){
-          return done(err);
-        }
-        assert(res.body.Success, 'Session lookup failed');
-        assert(res.body.valid, 'Session considered invalid despite future expiration');
-        done();
-      });
-    });
-  });
   describe('POST /signup', function(){
     it('should error on null email', function(done){
       request(app)
@@ -217,36 +147,6 @@ describe('api', function(){
           return done(err);
         }
         assert(res.body.Error, 'No error on null email!');
-        done();
-      });
-    });
-    it('should err on uninvited email', function(done){
-      request(app)
-      .post('/api/signup')
-      .set('Content-Type', 'application/json')
-      .send({Email:'invalidemail'})
-      .expect(200)
-      .end(function(err, res){
-        if(err){
-          return done(err);
-        }
-        assert(res.body.Error, 'No error on invalid email');
-        assert.equal(res.body.Success, false, 'Treating invalid email as success');
-        done();
-      });
-    });
-    it('should err on existing email', function(done){
-      request(app)
-      .post('/api/signup')
-      .set('Content-Type', 'application/json')
-      .send({Email:'existingemail'})
-      .expect(200)
-      .end(function(err, res){
-        if(err){
-          return done(err);
-        }
-        assert(res.body.Error, 'No error on existing email');
-        assert.equal(res.body.Success, false, 'Treating existing email as success');
         done();
       });
     });
@@ -265,11 +165,56 @@ describe('api', function(){
         done();
       });
     });
-    it('should throw an error on db connection error', function(done){
+    it('should err on uninvited email', function(done){
+      request(app)
+      .post('/api/signup')
+      .set('Content-Type', 'application/json')
+      .send({Email:'invalidemail', Password:'password'})
+      .expect(200)
+      .end(function(err, res){
+        if(err){
+          return done(err);
+        }
+        assert(res.body.Error, 'No error on invalid email');
+        assert.equal(res.body.Success, false, 'Treating invalid email as success');
+        done();
+      });
+    });
+    it('should err on existing email', function(done){
+      request(app)
+      .post('/api/signup')
+      .set('Content-Type', 'application/json')
+      .send({Email:'existingemail', Password:'password'})
+      .expect(200)
+      .end(function(err, res){
+        if(err){
+          return done(err);
+        }
+        assert(res.body.Error, 'No error on existing email');
+        assert.equal(res.body.Success, false, 'Treating existing email as success');
+        done();
+      });
+    });
+    it('should throw an error on db connection error - lookup', function(done){
       request(app)
       .post('/api/signup')
       .set('Content-Type', 'application/json')
       .send({Email:'erroremail', Password:'password'})
+      .expect(200)
+      .end(function(err, res){
+        if(err){
+          return done(err);
+        }
+        assert(res.body.Error, 'No error despite Database Error');
+        assert.equal(res.body.Success, false, 'Succeeded despite db error!');
+        done();
+      });
+    });
+    it('should throw an error on db connection error - update', function(done){
+      request(app)
+      .post('/api/signup')
+      .set('Content-Type', 'application/json')
+      .send({Email:'upderroremail', Password:'password'})
       .expect(200)
       .end(function(err, res){
         if(err){
@@ -362,12 +307,12 @@ describe('api', function(){
           args.push(arguments[i]);
         }
         var callback = args[args.length-1]; //last arg is callback
-        if(args[0].toUpperCase().search('SELECT EMAIL,')>-1){
+        if(args[0].toUpperCase().search('SELECT ID, EMAIL,')>-1){
           var salt = 'randomstring'
-          var shasum = crypto.createHash('sha256');
+          var shasum = crypto.createHash('sha512');
           shasum.update(salt + 'password');
           var passcheck = shasum.digest('hex');
-          return callback(null, [{Email:args[1][0], Salt: salt, Password:passcheck}]);
+          return callback(null, [{ID:1, Email:args[1][0], Salt: salt, Portal_Password:passcheck, Portal_Salt:salt}]);
         }
         else{
           return callback("Database Error!");
@@ -404,6 +349,62 @@ describe('api', function(){
         assert(res.headers['set-cookie'], 'No session cookie included');
         done();
       });
+    });
+  });
+  describe('POST /auth', function(){
+    it('should error on bad access', function(done){
+      var error_revert = api.__set__('auth',{
+        auth: function(req, res, next){
+          return res.send({Success: false, Error: 'UnAuthorized'});
+        }
+      });
+      request(app)
+      .post('/api/auth/')
+      .set('Content-Type', 'application/json')
+      .expect(200)
+      .end(function(err, res){
+        if(err){
+          return done(err);
+        }
+        assert.equal(res.body.Success, false, 'Succeeded on auth error');
+        error_revert();
+        done();
+      });
+    });
+    it('should return limited auth', function(done){
+      var error_revert = api.__set__('auth',{
+        auth: function(req, res, next){
+          res.locals.user = {Username:"test", Admins:[2,3,4]}
+          return next();
+        }
+      });
+      request(app)
+      .post('/api/auth/')
+      .set('Content-Type', 'application/json')
+      .expect(200)
+      .end(function(err, res){
+        if(err){
+          return done(err);
+        }
+        assert.equal(res.body.Success, true, 'did not succeed with valid creds');
+        assert.equal(res.body.FullAdmin, false, 'group admin considered full');
+        error_revert();
+        done();
+      });
+    });
+    it('should succeed as full user', function(done){
+      request(app)
+        .post('/api/auth/')
+        .set('Content-Type', 'application/json')
+        .expect(200)
+        .end(function(err, res){
+          if(err){
+            return done(err);
+          }
+          assert(res.body.Success, 'Did not succeed as full Admin');
+          assert(res.body.FullAdmin, 'Was not considered admin');
+          done();
+        });
     });
   });
   describe('GET /history/:time', function(){
