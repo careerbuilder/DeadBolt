@@ -19,6 +19,24 @@ describe('groups', function(){
       if(args.length > 2){
         var sql_args = args[1];
       }
+      // Get / and search
+      if(args[0].search(/SELECT\s+ID,\s+Name\s+from\s+groups/i)>-1){
+        if(sql_args && sql_args[0]){
+          if(sql_args[0].search(/ERROR/i)>-1){
+            return callback("Database Error");
+          }
+        }
+        return callback(null, [{ID: 1, Name: 'testgroup'}, {ID:2, Name:'testgroup2'}]);
+      }
+      // get/:username
+      if(args[0].search(/SELECT\s+GROUPS\.ID\s+as\s+Group_ID/i)>-1){
+        if(sql_args && sql_args[0]){
+          if(sql_args[0].search(/ERROR/i)>-1){
+            return callback("Database Error");
+          }
+        }
+        return callback(null, [{Group_ID: 1, Name: 'testgroup', Permissions:"RW", GroupAdmin:0}, {Group_ID:2, Name:'testgroup2', Permissions:"SU", GroupAdmin:0}]);
+      }
       if(args[0].toUpperCase().search('INSERT INTO GROUPS_DATABASES')>-1){
         if(sql_args && sql_args[0]){
           if(sql_args[0]==-4){
@@ -42,22 +60,6 @@ describe('groups', function(){
           }
         }
         return callback(null, {insertId:1});
-      }
-      if(args[0].toUpperCase().search('SELECT ID,')>-1){
-        if(sql_args && sql_args[0]){
-          if(sql_args[0].toUpperCase().search('ERROR')>-1){
-            return callback("Database Error");
-          }
-        }
-        return callback(null, [{ID: 1, Name: 'testgroup'}, {ID:2, Name:'testgroup2'}]);
-      }
-      if(args[0].toUpperCase().search('SELECT GROUPS')>-1){
-        if(sql_args && sql_args[0]){
-          if(sql_args[0].toUpperCase().search('ERROR')>-1){
-            return callback("Database Error");
-          }
-        }
-        return callback(null, [{ID: 1, Name: 'testgroup', Permissions:"RW"}, {ID:2, Name:'testgroup2', Permissions:"SU"}]);
       }
       if(args[0].toUpperCase().search('SELECT NAME FROM `DATABASES`')>-1){
         if(sql_args && sql_args[0]){
@@ -143,6 +145,17 @@ describe('groups', function(){
     }
   }
 
+  var mockAuth = {
+    auth: function(req, res, next){
+      res.locals.user= {Username: 'test', 'Admins':[-1]};
+      return next();
+    },
+    isAdmin: function(req,res,next){
+      res.locals.user= {Username: 'test', 'Admins':[-1]};
+      return next();
+    }
+  };
+
   var app = express();
   app.use(bodyParser.urlencoded({extended: true}));
   app.use(bodyParser.json());
@@ -155,6 +168,7 @@ describe('groups', function(){
     db_revert = groups.__set__('connection', mock_db);
     tools_revert = groups.__set__('db_tools', mock_db_tools);
     quiet_revert = groups.__set__('console', {log:function(){}});
+    auth_revert = groups.__set__('auth', mockAuth);
   });
   describe('GET /', function(){
     it('should error on DB Error', function(done){
@@ -176,6 +190,28 @@ describe('groups', function(){
       .end(function(err, res){
         assert(res.body.Success, 'Unsuccessful request');
         assert(res.body.Results, 'No groups returned');
+        done();
+      });
+    });
+  });
+  describe('GET /:username', function(){
+    it('should error on DB Error', function(done){
+      request(app)
+      .get('/api/groups/error')
+      .expect(200)
+      .end(function(err, res){
+        assert.equal(res.body.Success, false, 'Successful despite DB Error');
+        assert(res.body.Error, 'No Error on DB Error');
+        done();
+      });
+    });
+    it('should return groups for a user', function(done){
+      request(app)
+      .get('/api/groups/user')
+      .expect(200)
+      .end(function(err, res){
+        assert(res.body.Success, 'Unsuccessful request');
+        assert(res.body.Results, 'No Results');
         done();
       });
     });
@@ -213,28 +249,6 @@ describe('groups', function(){
       .end(function(err, res){
         assert(res.body.Success, 'Unsuccessful request');
         assert(res.body.Results, 'No groups returned');
-        done();
-      });
-    });
-  });
-  describe('GET /:username', function(){
-    it('should error on DB Error', function(done){
-      request(app)
-      .get('/api/groups/error')
-      .expect(200)
-      .end(function(err, res){
-        assert.equal(res.body.Success, false, 'Successful despite DB Error');
-        assert(res.body.Error, 'No Error on DB Error');
-        done();
-      });
-    });
-    it('should return groups for a user', function(done){
-      request(app)
-      .get('/api/groups/user')
-      .expect(200)
-      .end(function(err, res){
-        assert(res.body.Success, 'Unsuccessful request');
-        assert(res.body.Results, 'No Results');
         done();
       });
     });
@@ -504,5 +518,6 @@ describe('groups', function(){
     db_revert();
     tools_revert();
     quiet_revert();
+    auth_revert();
   });
 });

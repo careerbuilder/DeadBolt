@@ -45,5 +45,18 @@ module.exports= {
         return res.send({Success:false, valid:false});
       }
     });
+  },
+  isAdmin: function(req, res, next){
+    if(!res.locals.user || !res.locals.user.Admins || res.locals.user.Admins.length<1){
+      return res.send({Success: false, Error: 'No Auth!'});
+    }
+    else{
+      if(res.locals.user.Admins.indexOf(-1)<0){
+        return res.send({Success: false, Error: 'Not a full Admin!'});
+      }
+      else{
+        return next();
+      }
+    }
   }
 };

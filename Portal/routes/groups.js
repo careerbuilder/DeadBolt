@@ -4,6 +4,7 @@ var async = require('async');
 var connection = require('../middleware/mysql');
 var encryption = require('../middleware/encryption');
 var db_tools = require('../tools/db_tools');
+var auth = require('../middleware/auth');
 
 
 function add_group(body, callback){
@@ -124,26 +125,15 @@ router.get('/:username', function(req, res){
   });
 });
 
-
-router.use(function(req, res, next){
-  if(!res.locals.user || !res.locals.user.Admins || res.locals.user.Admins.length<1){
-    return res.send({Success: false, Error: 'No Auth!'});
-  }
-  else{
-    if(res.locals.user.Admins.indexOf(-1)<0){
-      return res.send({Success: false, Error: 'Not a full Admin!'});
-    }
-    else{
-      return next();
-    }
-  }
+router.use(function(req,res,next){
+  return auth.isAdmin(req, res, next);
 });
 
 router.post('/search', function(req, res){
   var body = req.body;
   var query = "";
   var args = [];
-  if(body.Info && body.Info.length > 0){
+  if(body && body.Info && body.Info.length > 0){
     var info = "%"+body.Info+"%";
     query = 'Select ID, Name from groups where Name like ?';
     args = [info];

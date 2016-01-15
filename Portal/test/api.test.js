@@ -76,24 +76,7 @@ describe('api', function(){
           return callback();
         }
       }
-      //
-      if(args[0].search(/SELECT\s+EXPIRES/i)>-1){
-        if(args.length< 3 || !args[1][0]){
-          return callback('No Session Token Provided!');
-        }
-        if(args[1][0].search(/EXPIRED/i)>-1){
-          return callback(null, [{Expires: ~~(new Date().getTime()/1000)-500}]);
-        }
-        if(args[1][0].search(/INVALID/i)>-1){
-          return callback(null, []);
-        }
-        if(args[1][0].search(/ERROR/i)>-1){
-          return callback("ERROR");
-        }
-        else{
-          return callback(null, [{Expires: ~~(new Date().getTime()/1000)+500}]);
-        }
-      }
+      //History
       if(args[0].search(/SELECT\s+TIME/i)>-1){
         if(args.length< 3 || !args[1][0]){
           return callback('No Timerange Provided!');
