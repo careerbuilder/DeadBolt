@@ -11,6 +11,16 @@ var connection = require('../middleware/mysql');
 var encryption = require('../middleware/encryption');
 var db_tools = require('../tools/db_tools');
 
+var test_switch = {
+  auth: function(req, res, next){
+    return next();
+  }
+};
+//This lets us overwrite in test to load in res.locals
+router.use(function(req,res,next){
+  return test_switch.auth(req, res, next);
+});
+
 function add_user(body, callback){
   if(!body || !body.Username || !body.FirstName || !body.LastName || !body.Email){
     return callback("No User info");
@@ -26,7 +36,7 @@ function add_user(body, callback){
       console.log(err);
       return callback(err);
     }
-    console.log(result || "");
+    console.log(result);
     var query = 'Update `users` set `Active`=1 where `Username` = ?';
     connection.query(query, [body.Username], function(err, result){
       if(err){
@@ -72,7 +82,8 @@ function update_user(body, caller, callback){
       }
       var adds = [];
       var dels = [];
-      body.Groups.forEach(function(g){
+      var groups = body.Groups || [];
+      groups.forEach(function(g){
         var found=false;
         for(var i =0; i<results.length; i++){
           var r = results[i];
@@ -90,8 +101,8 @@ function update_user(body, caller, callback){
       });
       results.forEach(function(r){
         var found=false;
-        for(var i =0; i<body.Groups.length; i++){
-          var g = body.Groups[i];
+        for(var i =0; i<groups.length; i++){
+          var g = groups[i];
           if(g.ID === r.ID){
               found = true;
               break;
@@ -163,7 +174,7 @@ function update_user(body, caller, callback){
 
 router.get('/:groupid', function(req, res){
   var groupid = req.params.groupid;
-  connection.query('Select users.Username, users_groups.Permissions from users Join users_groups on users_groups.User_ID = users.ID where users_groups.Group_ID= ? Order by (users_groups.Permissions+0) ASC;', [groupid], function(err, results){
+  connection.query('Select users.Username, users_groups.Permissions, users_group.GroupAdmin from users Join users_groups on users_groups.User_ID = users.ID where users_groups.Group_ID= ? Order by GroupAdmin DESC, (users_groups.Permissions+0) ASC;', [groupid], function(err, results){
     if(err){
       console.log(err);
       return res.send({Success: false, Error: err});
@@ -250,6 +261,9 @@ router.delete('/:id', function(req,res){
       console.log(err);
       return res.send({Success: false, Error: err});
     }
+    if(results.length<1){
+      return res.send({Success: false, Error: 'No such user!'});
+    }
     var user = results[0];
     var username = user.Username;
     adapi.remove_user_from_AD(username, function(err, result){
@@ -257,7 +271,7 @@ router.delete('/:id', function(req,res){
       if(err){
         console.log('Error removing ' + username, err);
       }
-      else{
+      else if(result){
         console.log(result);
       }
     });
