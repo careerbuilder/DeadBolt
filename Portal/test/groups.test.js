@@ -37,7 +37,7 @@ describe('groups', function(){
         }
         return callback(null, [{Group_ID: 1, Name: 'testgroup', Permissions:"RW", GroupAdmin:0}, {Group_ID:2, Name:'testgroup2', Permissions:"SU", GroupAdmin:0}]);
       }
-      if(args[0].toUpperCase().search('INSERT INTO GROUPS_DATABASES')>-1){
+      if(args[0].search(/INSERT\s+INTO\s+GROUPS_DATABASES/i)>-1){
         if(sql_args && sql_args[0]){
           if(sql_args[0]==-4){
             return callback("Database Error");
@@ -45,7 +45,7 @@ describe('groups', function(){
         }
         return callback(null, {insertId:1});
       }
-      if(args[0].toUpperCase().search('DELETE FROM GROUPS_DATABASES')>-1){
+      if(args[0].search(/DELETE\s+FROM\s+GROUPS_DATABASES/i)>-1){
         if(sql_args && sql_args[0]){
           if(sql_args[0]==-3){
             return callback("Database Error");
@@ -53,15 +53,15 @@ describe('groups', function(){
         }
         return callback(null, {});
       }
-      if(args[0].toUpperCase().search('INSERT INTO GROUPS ')>-1){
+      if(args[0].search(/INSERT\s+INTO\s+GROUPS\s+/i)>-1){
         if(sql_args && sql_args[0]){
-          if(sql_args[0].toUpperCase().search('ERROR')>-1){
+          if(sql_args[0].search(/ERROR/i)>-1){
             return callback("Database Error");
           }
         }
         return callback(null, {insertId:1});
       }
-      if(args[0].toUpperCase().search('SELECT NAME FROM `DATABASES`')>-1){
+      if(args[0].search(/SELECT\s+NAME\s+FROM\s+`DATABASES`/i)>-1){
         if(sql_args && sql_args[0]){
           if(sql_args[0]==-1){
             return callback("Database Error");
@@ -72,7 +72,7 @@ describe('groups', function(){
         }
         return callback(null, [{Name: 'testdb'}, {Name:'testdb2'}]);
       }
-      if(args[0].toUpperCase().search('INSERT INTO HISTORY')>-1){
+      if(args[0].search(/INSERT\s+INTO\s+HISTORY/i)>-1){
         if(sql_args && sql_args[0]){
           if(sql_args[0] == 1){
             return callback(null, {insertId: 1});
@@ -80,21 +80,21 @@ describe('groups', function(){
           if(sql_args[0] == -8){
             return callback("Database Error");
           }
-          if(sql_args[0].toUpperCase().search('HISTERROR')>-1){
+          if(sql_args[0].search(/HISTERROR/i)>-1){
             return callback("Database Error");
           }
         }
         return callback(null, {insertId: 1});
       }
-      if(args[0].toUpperCase().search('`DATABASES`.NAME')>-1){
+      if(args[0].search(/`DATABASES`.NAME/i)>-1){
         if(sql_args && sql_args[0]){
-          if(sql_args[0].toUpperCase().search('ERROR')>-1){
+          if(sql_args[0].search(/ERROR/i)>-1){
             return callback("Database Error");
           }
         }
         return callback(null, [{ID:1, Name: 'testdb'}, {ID:2, Name:'testdb2'}]);
       }
-      if(args[0].toUpperCase().search('FROM USERS WHERE')>-1){
+      if(args[0].search(/FROM\s+USERS\s+WHERE/i)>-1){
         if(sql_args && sql_args[0]){
           if(sql_args[0]==-5){
             return callback("Database Error");
@@ -102,7 +102,7 @@ describe('groups', function(){
         }
         return callback(null, [{ID:1, Name: 'testuser'}, {ID:2, Name:'testuser2'}]);
       }
-      if(args[0].toUpperCase().search('FROM `DATABASES` WHERE ID')>-1){
+      if(args[0].search(/FROM\s+`DATABASES`\s+WHERE\s+ID/i)>-1){
         if(sql_args && sql_args[0]){
           if(sql_args[0]==-1){
             return callback("Database Error");
@@ -110,7 +110,7 @@ describe('groups', function(){
         }
         return callback(null, [{ID:1, Name: 'testuser'}, {ID:2, Name:'testuser2'}]);
       }
-      if(args[0].toUpperCase().search('DELETE FROM USERS_GROUPS')>-1){
+      if(args[0].search(/DELETE\s+FROM\s+USERS_GROUPS/i)>-1){
         if(sql_args && sql_args[0]){
           if(sql_args[0]==-6){
             return callback("Database Error");
@@ -118,7 +118,7 @@ describe('groups', function(){
         }
         return callback();
       }
-      if(args[0].toUpperCase().search('DELETE FROM GROUPS')>-1){
+      if(args[0].search(/DELETE\s+FROM\s+GROUPS/i)>-1){
         if(sql_args && sql_args[0]){
           if(sql_args[0]==-7){
             return callback("Database Error");
