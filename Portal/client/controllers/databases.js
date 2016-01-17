@@ -59,7 +59,7 @@ app.controller('DBCtrl', function($http, $scope, $cookies, $cookieStore, $locati
   };
 
   $scope.addDB=function(){
-    $scope.database = {};
+    $scope.database = {ForceSSL:0};
     $scope.dbRef=null;
     $scope.isEditing = true;
     $scope.isSearching = false;
