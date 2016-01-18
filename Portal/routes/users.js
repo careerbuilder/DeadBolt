@@ -276,8 +276,9 @@ router.put('/password/:username', function(req, res){
           inner_callback();
         });
       }, function(err, result){
-        console.log("All Databases Updated for " + body.Username);
+        console.log("All Databases Updated for " + req.params.username);
       });
+      return res.send({Success: true});
     });
   });
 });
