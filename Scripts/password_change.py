@@ -39,19 +39,15 @@ def decrypt_password(enc_pass):
 
 
 def save_passwords(username, passwords, portal_creds, keyname):
-    query = "INSERT INTO Users (Username, Portal_Password, Portal_Salt, "
-    values = "VALUES (%(username)s, %(portal_pass)s, %(portal_salt)s, "
-    update = "ON DUPLICATE KEY UPDATE MySQL_Password=VALUES(MySQL_Password), SQL_Server_Password=Values(SQL_Server_Password), Mongo_Password=Values(Mongo_Password), Cassandra_Password=Values(Cassandra_Password), Portal_Password=Values(Portal_Password), Portal_Salt=VALUES(Portal_Salt);"
+    query = "Update Users set Portal_Password= %(portal_pass)s, Portal_Salt=%(portal_salt)s, "
     args = {'username': username, 'portal_pass': portal_creds['Password'], 'portal_salt':portal_creds['Salt']}
     i = 1
     for key in passwords:
-        query += key + ", "
-        values += "%(arg" + str(i) + ")s, "
+        query += key + "= %(arg" + str(i) + ")s, "
         args['arg' + str(i)] = re.sub(r'b\'(.*?)\'', r'\1', str(encrypt_password(keyname, passwords[key])))
         i += 1
-    query = query[0:-2] + ") "
-    values = values[0:-2] + ") "
-    sql = query + values + update
+    query = query[0:-2] + " Where Username= %(username)s;"
+    sql = query
     cursor = cnx.cursor()
     cursor.execute(sql, args)
     cnx.commit()
@@ -80,11 +76,11 @@ def change_password(username, password):
         q2 = "Select Group_ID, Permissions, GroupAdmin from users_groups where User_ID = %(id)s"
         cursor.execute(q2, {'id': user['ID']})
         for res in cursor:
-            user['Groups'].append({'Group_ID': res[0], 'Permissions': res[1], 'GroupAdmin':res[3]})
+            user['Groups'].append({'ID': res[0], 'Permissions': res[1], 'GroupAdmin':res[2]})
     for key in passwords:
         user[key] = passwords[key]
     save_passwords(username, passwords, get_portal_creds(creds), config['kms_keyname'])
-    r = requests.post(api_info['host'] + '/users/', json=user, headers={'Authorization': api_info['Session']}, verify=False)
+    r = requests.put(api_info['host'] + '/users/password/'+username, headers={'Authorization': api_info['Session']}, verify=False)
     res = r.json()
     print(res)
 
@@ -181,11 +177,11 @@ if __name__ == "__main__":
         secret_file.close()
         config = secrets
         api_info = config['api']
-        db_info = config['db']
-        # cfj = open(os.path.join(cur_dir, '..','Portal','config.json'), 'r')
-        # dbconfig = json.load(cfj)
-        # cfj.close()
-        # db_info = dbconfig['DB']
+        #db_info = config['db']
+        cfj = open(os.path.join(cur_dir, '..','Portal','config.json'), 'r')
+        dbconfig = json.load(cfj)
+        cfj.close()
+        db_info = dbconfig['DB']
         login = requests.post(api_info['host'] + '/login/', data={'Email': api_info['username'], 'Password': api_info['password']}, verify=False)
         response = login.json()
         if 'Success' in response and response['Success']:

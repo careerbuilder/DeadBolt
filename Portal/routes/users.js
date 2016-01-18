@@ -254,6 +254,34 @@ router.use(function(req, res, next){
   return auth.isAdmin(req, res, next);
 });
 
+router.put('/password/:username', function(req, res){
+  connection.query('Select * from users where Username = ?;', [req.params.username], function(err, users){
+    if(err){
+      return res.send({Success: false, Error:err});
+    }
+    if(users.length<1){
+      return res.send({Success: false, Error: 'No user by that username'});
+    }
+    var user = users[0];
+    var dbq = 'Select `databases`.* from `databases` join `groups_databases` on `groups_databases`.`Database_ID` = `databases`.`ID` join `users_groups` on `users_groups`.`Group_ID`=`groups_databases`.`Group_ID` join `users` on `users`.`ID` = `users_groups`.`User_ID` where `Users`.`Username`=?;';
+    connection.query(dbq, [req.params.username], function(err, results){
+      if(err){
+        return res.send({Success: false, Error:err});
+      }
+      if(results.length<1){
+        return res.send({Success: true});
+      }
+      async.each(results,function(db, inner_callback){
+        db_tools.update_users(db, user, function(errs){
+          inner_callback();
+        });
+      }, function(err, result){
+        console.log("All Databases Updated for " + body.Username);
+      });
+    });
+  });
+});
+
 router.delete('/:id', function(req,res){
   var user_id = req.params.id;
   connection.query("Select * from users where ID = ?", [user_id], function(err, results){
