@@ -84,8 +84,7 @@ def change_password(username, password):
     for key in passwords:
         user[key] = passwords[key]
     save_passwords(username, passwords, get_portal_creds(creds), config['kms_keyname'])
-    r = requests.post(api_info['host'] + '/users/', json=user, headers={'Authorization': api_info['Session']},
-                      verify=False)
+    r = requests.post(api_info['host'] + '/users/', json=user, headers={'Authorization': api_info['Session']}, verify=False)
     res = r.json()
     print(res)
 
@@ -182,11 +181,11 @@ if __name__ == "__main__":
         secret_file.close()
         config = secrets
         api_info = config['api']
-        # db_info = config['db']
-        cfj = open(os.path.join(cur_dir, '..','Portal','config.json'), 'r')
-        dbconfig = json.load(cfj)
-        cfj.close()
-        db_info = dbconfig['DB']
+        db_info = config['db']
+        # cfj = open(os.path.join(cur_dir, '..','Portal','config.json'), 'r')
+        # dbconfig = json.load(cfj)
+        # cfj.close()
+        # db_info = dbconfig['DB']
         login = requests.post(api_info['host'] + '/login/', data={'Email': api_info['username'], 'Password': api_info['password']}, verify=False)
         response = login.json()
         if 'Success' in response and response['Success']:

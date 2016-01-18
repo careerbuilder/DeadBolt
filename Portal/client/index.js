@@ -35,14 +35,14 @@ app.config(['$routeProvider', '$httpProvider', function($routeProvider, $httpPro
 		controller: 'GroupCtrl',
 		templateUrl: 'views/groups.html',
 		resolve:{
-			auth: ["authService", function(authService) {return authService.hasAccess();}]
+			auth: ["authService", function(authService) {return authService.hasAdminAccess();}]
 		}
 	})
 	.when('/databases', {
 		controller: 'DBCtrl',
 		templateUrl: 'views/databases.html',
 		resolve:{
-			auth: ["authService", function(authService) {return authService.hasAccess();}]
+			auth: ["authService", function(authService) {return authService.hasAdminAccess();}]
 		}
 	})
   .when('/users', {
@@ -104,5 +104,10 @@ app.run(["$rootScope", "$location", "toastr", "tabService", function($rootScope,
 			tabService.setTab(-1);
       $location.path("/login");
     }
+		else if (eventObj.AdminAuth === false) {
+			toastr.error('Unauthorized to view this page');
+			tabService.setTab(-1);
+			$location.path("/");
+		}
   });
 }]);

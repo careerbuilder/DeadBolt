@@ -49,6 +49,28 @@ app.factory('authService', ['$q', '$http','$cookies', function($q, $http, $cooki
     getAdmins: function(){
       return admins;
     },
+    hasAdminAccess: function(){
+      var deferred = $q.defer();
+      if(session){
+        getAdmin(function(err, admins){
+          if(err){
+            deferred.reject(err);
+          }
+          else{
+            if(admins.indexOf(-1)>-1){
+              deferred.resolve(admins);
+            }
+            else{
+              deferred.reject({AdminAuth: false});
+            }
+          }
+        });
+      }
+      else{
+        deferred.reject({AdminAuth: false});
+      }
+      return deferred.promise;
+    },
     hasAccess: function(){
       var deferred = $q.defer();
       if(session){
