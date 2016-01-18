@@ -157,7 +157,7 @@ function update_user(body, caller, callback){
                 return callback(err);
               }
               async.each(dbs,function(db, inner_callback){
-                db_tools.update_users(db, user, function(errs){
+                db_tools.update_users(db, [user], function(errs){
                   inner_callback();
                 });
               }, function(err, result){
@@ -272,7 +272,7 @@ router.put('/password/:username', function(req, res){
         return res.send({Success: true});
       }
       async.each(results,function(db, inner_callback){
-        db_tools.update_users(db, user, function(errs){
+        db_tools.update_users(db, [user], function(errs){
           inner_callback();
         });
       }, function(err, result){
