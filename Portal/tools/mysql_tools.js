@@ -157,7 +157,7 @@ module.exports = {
                   permissions_query = "GRANT ALL on `%`.* TO ? IDENTIFIED BY PASSWORD ?, ?@'localhost' IDENTIFIED BY PASSWORD ?";
                 }
                 else if(user.Permissions === "RW"){
-                  permissions_query = "Grant SELECT, INSERT, UPDATE, DELETE, EXECUTE, SHOW VIEW, CREATE TEMPORARY TABLES ON `%`.* TO ? IDENTIFIED BY PASSWORD ?, ?@'localhost' IDENTIFIED BY PASSWORD ?";
+                  permissions_query = "Grant SELECT, INSERT, UPDATE, DELETE, EXECUTE, SHOW VIEW, PROCESS, CREATE TEMPORARY TABLES ON `%`.* TO ? IDENTIFIED BY PASSWORD ?, ?@'localhost' IDENTIFIED BY PASSWORD ?";
                 }
                 else if(user.Permissions === "RO"){
                   permissions_query = "Grant SELECT ON `%`.* TO ? IDENTIFIED BY PASSWORD ?, ?@'localhost' IDENTIFIED BY PASSWORD ?";
