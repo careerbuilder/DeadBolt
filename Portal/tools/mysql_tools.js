@@ -150,20 +150,17 @@ module.exports = {
               },
               function(cb){
                 var permissions_query;
-                if(user.Permissions === "SU"){
+                if(user.Permissions === "SU" || user.Permissions === "DBA"){
                   permissions_query = "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, RELOAD, PROCESS, REFERENCES, INDEX, ALTER, SHOW DATABASES, CREATE TEMPORARY TABLES, LOCK TABLES, EXECUTE, REPLICATION SLAVE, REPLICATION CLIENT, CREATE VIEW, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, CREATE USER, EVENT, TRIGGER ON *.* TO ? IDENTIFIED BY PASSWORD ?, ?@'localhost' IDENTIFIED BY PASSWORD ?";
                 }
-                else if(user.Permissions === "DBA"){
-                  permissions_query = "GRANT ALL on `%`.* TO ? IDENTIFIED BY PASSWORD ?, ?@'localhost' IDENTIFIED BY PASSWORD ?";
-                }
                 else if(user.Permissions === "RW"){
-                  permissions_query = "Grant SELECT, INSERT, UPDATE, DELETE, EXECUTE, SHOW VIEW, PROCESS, CREATE TEMPORARY TABLES ON `%`.* TO ? IDENTIFIED BY PASSWORD ?, ?@'localhost' IDENTIFIED BY PASSWORD ?";
+                  permissions_query = "Grant SELECT, INSERT, UPDATE, DELETE, EXECUTE, SHOW VIEW, PROCESS, CREATE TEMPORARY TABLES ON *.* TO ? IDENTIFIED BY PASSWORD ?, ?@'localhost' IDENTIFIED BY PASSWORD ?";
                 }
                 else if(user.Permissions === "RO"){
-                  permissions_query = "Grant SELECT ON `%`.* TO ? IDENTIFIED BY PASSWORD ?, ?@'localhost' IDENTIFIED BY PASSWORD ?";
+                  permissions_query = "Grant SELECT ON *.* TO ? IDENTIFIED BY PASSWORD ?, ?@'localhost' IDENTIFIED BY PASSWORD ?";
                 }
                 else{
-                  permissions_query = "Grant USAGE ON `%`.* TO ? IDENTIFIED BY PASSWORD ?, ?@'localhost' IDENTIFIED BY PASSWORD ?";
+                  permissions_query = "Grant USAGE ON *.* TO ? IDENTIFIED BY PASSWORD ?, ?@'localhost' IDENTIFIED BY PASSWORD ?";
                 }
                 if(dbinfo.ForceSSL){
                   permissions_query += " REQUIRE SSL";
