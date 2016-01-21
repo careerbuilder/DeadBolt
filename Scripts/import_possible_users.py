@@ -74,19 +74,6 @@ def get_new_userlist():
 
 
 def filter_info(info):
-    #alphanum = re.compile(r'^[a-zA-Z]+$')
-    # cbemail = re.compile(r'^[a-zA-Z]+\.[a-zA-Z]+@careerbuilder\.co(m|\.uk)$', re.IGNORECASE)
-    #clean = []
-    #for obj in info:
-    #    isclean = True
-    #    for key in obj:
-    #        if key == "Email":
-    #            continue
-    #        if not alphanum.match(obj[key]):
-    #            isclean = False
-    #            break
-    #    if isclean:
-    #        clean.append(obj)
     email_list = {}
     for user in info:
         if 'Email' not in user or len(user['Email'])<1:
@@ -102,7 +89,7 @@ def filter_info(info):
 
 
 def get_existing_users():
-    query = 'Select `Username`, `LastName`, `FirstName`, `Email`, `User_ID` from `possible_users`;'
+    query = 'Select `Username`, `LastName`, `FirstName`, `Email`, `ID`, `Active` from `users`;'
     cursor = cnx.cursor()
     cursor.execute(query)
     old_users = {}
@@ -115,10 +102,11 @@ def get_existing_users():
             'Username': info[0],
             'LastName': info[1],
             'FirstName': info[2],
-            'Email': email
+            'Email': email,
+            'ID': info[4]
         }
-        if len(info) > 4:
-            if info[4] is not None:
+        if len(info) > 5:
+            if info[5] == 1:
                 existing_users[email] = info[4]
         old_users[email.lower()].append(user)
     return old_users
@@ -131,16 +119,21 @@ def compare_users(new_dict, old_dict):
     #updated = diff.changed()
     changes['Added'] = list(new_keys)
     changes['Removed'] = list(removed_keys)
+    totalChanged = len(changes['Added']) + len(changes['Removed'])
+    if totalChanged > 12:
+        print('More than 1 dozen records staged for update.\nAborting!\nTo proceed anyway, re-run with the -f or --force flag set')
+        # send_email(totalChanged)
+        exit(0)
     for old_user in removed_keys:
         user = old_dict[old_user][0]
         if old_user in existing_users:
-            user['ID'] = existing_users[old_user]
+            user['Active'] = True
         remove_user(user)
     new_users = []
     for new_user in new_keys:
         new_users.append(new_dict[new_user][0])
     add_users(new_users)
-    #for ud in updated:
+    # for ud in updated:
     #    user = new_dict[ud][0]
     #    if ud in existing_users:
     #        user['ID'] = existing_users[ud]
@@ -150,24 +143,32 @@ def compare_users(new_dict, old_dict):
 def add_users(user_list):
     if len(user_list) < 1:
         return
-    sql = "Insert into `possible_users` (Username, FirstName, LastName, Email) Values "
+    sql = "Insert into `users` (Username, FirstName, LastName, Email) Values "
+    args = {}
+    i = 1
     for user in user_list:
-        sql += '("' + user['Username'] + '", "' + user['FirstName'] + '", "' + user['LastName'] + '", "' + user['Email'] + '"), '
+        sql += '(%(username' + str(i) + ')s, %(firstname' + str(i) + ')s, %(lastname' + str(i) + ')s, %(email' + str(i) + ')s), '
+        args['username' + str(i)] = user['Username']
+        args['firstname' + str(i)] = user['FirstName']
+        args['lastname' + str(i)] = user['LastName']
+        args['email' + str(i)] = user['Email']
+        i += 1
     sql = sql[0:len(sql) - 2]
-    sql += " ON DUPLICATE KEY UPDATE Username=Values(Username), FirstName=Values(FirstName), LastName=Values(LastName)"
+    sql += " ON DUPLICATE KEY UPDATE Username=Values(Username), FirstName=Values(FirstName), LastName=Values(LastName);"
     cursor = cnx.cursor()
-    cursor.execute(sql)
+    cursor.execute(sql, args)
     cnx.commit()
 
 
 def remove_user(user):
-    if 'ID' in user and user['ID'] is not None:
+    if 'Active' in user and user['Active']:
         r = requests.delete(api_info['host'] + "/users/" + str(user['ID']), headers={'authorization': api_info['Session']}, verify=False)
         res = r.json()
         print(res)
-    sql = "Delete from `possible_users` where `Username` = '" + user['Username'] + "';"
+    sql = "Delete from `users` where `Username` = %(username)s;"
+    args = {'username': user['Username']}
     cursor = cnx.cursor()
-    cursor.execute(sql)
+    cursor.execute(sql, args)
     cnx.commit()
 
 
