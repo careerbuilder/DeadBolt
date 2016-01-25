@@ -161,7 +161,7 @@ def compare_users(new_dict, old_dict):
             user['Active'] = True
             activedels.append(user)
         del_users.append(user)
-    if len(del_users) >= 5 and forced is False:
+    if len(activedels) >= 5 and forced is False:
         print('\nAborting!\nMore than 5 Active records staged for delete.\nTo proceed anyway, re-run with the -f or --force flag set')
         email_users('DELETE_WARNING', activedels)
         exit(1)
