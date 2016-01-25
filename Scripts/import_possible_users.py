@@ -6,6 +6,7 @@ import boto3
 import json
 import gzip
 import sys
+import os
 import re
 
 existing_users = {}
@@ -217,11 +218,12 @@ def backup_users():
 
 if __name__ == '__main__':
     forced = False
+    script_loc = os.path.abspath(os.path.dirname(sys.argv[0]))
     if len(sys.argv)> 1:
         if sys.argv[1] == '-f' or sys.argv[1] == '--force':
             forced = True
     try:
-        secret_file = open('./script_creds.secret', 'r')
+        secret_file = open(os.path.join(script_loc, './script_creds.secret'), 'r')
         secrets = json.load(secret_file)
         secret_file.close()
     except FileNotFoundError:
@@ -242,7 +244,7 @@ if __name__ == '__main__':
         compare_users(filter_info(newusers), get_existing_users())
         cnx.close()
         email_users('SUCCESS', changes)
-        log = open('./output_log.log', 'a')
+        log = open(os.path.join(script_loc,'./output_log.log'), 'a')
         json.dump(changes, log, indent=2, sort_keys=True)
         log.close()
     else:
