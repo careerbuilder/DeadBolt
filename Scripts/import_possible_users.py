@@ -61,7 +61,7 @@ class DictDiffer(object):
 
 
 def email_users(msg_type, msg_object):
-    ses = boto3.client('ses')
+    ses = boto3.client('ses', region_name='us-east-1')
     subject = 'Deadbolt User Import'
     if msg_type == 'DELETE_WARNING':
         subject = 'More than 5 active users staged for delete!'
@@ -81,8 +81,9 @@ def email_users(msg_type, msg_object):
     }
     ses.send_email(Source=secrets['Email']['From'], Destination={'ToAddresses':secrets['Email']['To']}, ReplyToAddresses=secrets['Email']['ReplyTo'], Message=msg)
 
+
 def get_new_userlist():
-    s3 = boto3.resource('s3')
+    s3 = boto3.resource('s3', region_name='us-east-1')
     bucket = s3.Bucket(secrets['S3']['Bucket'])
     newest = None
     for csv in bucket.objects.filter(Prefix=secrets['S3']['Prefix']):
