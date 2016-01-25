@@ -103,7 +103,7 @@ def get_new_userlist():
         info = re.split(r'\s*,\s*', row)
         if len(info) != 4:
             continue
-        if 'hhrepid' in info[0]:
+        if 'hhrepid' in info[0].lower():
             continue
         user = {'Username': info[0],
                 'LastName': info[1],
