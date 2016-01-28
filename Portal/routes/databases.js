@@ -178,12 +178,12 @@ router.delete('/:id', function(req,res){
       return res.send({Success: false, Error: err});
     }
     var dbinfo = data[0];
-    db_tools.update_all_users(dbinfo, function(errors){
-      var query = "Delete from groups_databases where Database_ID = ?";
-      connection.query(query, [db_id], function(err, result){
-        if(err){
-          return res.send({Success:false, Error: err});
-        }
+    var query = "Delete from groups_databases where Database_ID = ?";
+    connection.query(query, [db_id], function(err, result){
+      if(err){
+        return res.send({Success:false, Error: err});
+      }
+      db_tools.update_all_users(dbinfo, function(errors){
         connection.query('Delete from `databases` where ID = ?', [db_id], function(err, result){
           if(err){
             return res.send({Success:false, Error: err});
