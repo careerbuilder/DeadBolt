@@ -12,7 +12,7 @@ function add_database(body, callback){
     }
     var sacreds = data;
     var args = [body.Name, body.Type, body.Host, body.Port, body.SAUser, sacreds, body.ForceSSL];
-    var query = 'Insert into `databases` (Name, Type, Host, Port, SAUser, SAPass, ForceSSL) values (?, ?, ?, ?, ?, ?, ?) On Duplicate key Update Name=Values(name), Host=Values(Host), Port=Values(Port), Type=Values(Type), SAUser=Values(SAUser), SAPass=Values(SAPass), ForceSSL=Values(ForceSSL);';
+    var query = 'Insert into `databases` (Name, Type, Host, Port, SAUser, SAPass, ForceSSL) values (?, ?, ?, ?, ?, ?, ?) On Duplicate key Update Name=Values(Name), Host=Values(Host), Port=Values(Port), Type=Values(Type), SAUser=Values(SAUser), SAPass=Values(SAPass), ForceSSL=Values(ForceSSL);';
     connection.query(query, args, function(err, result){
       if(err){
         return callback(err);

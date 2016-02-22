@@ -73,7 +73,7 @@ module.exports = {
                 Password: user_pass
               };
               var attempt = "";
-              for(field in inputs){
+              for(var field in inputs){
                 var val = inputs[field];
                 if(val && !val.match(/^[a-z0-9]+$/i)){
                   valid = false;
@@ -83,7 +83,7 @@ module.exports = {
               }
               if(!valid){
                 errors.push({User: user, Database: dbinfo, Error:{Title: "SQL Injection Attempt!", Details:'User has a field containing invlaid characters, possibly for malicious purposes'}, Retryable:false, Class:"Warning"});
-                return inner_cb('SQL Injection attempt!\n\t' + val);
+                return inner_cb('SQL Injection attempt!\n\t' + attempt);
               }
               else{
                 return inner_cb();
@@ -101,7 +101,7 @@ module.exports = {
               console.log("Beginning " + operation + " for ", user.Username);
               mssql_connection.query(conn, login_query, function(err, results){
                 if(err){
-                  errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to "+operation, Details:err}, Retryable:false, Class:"Error"})
+                  errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to "+operation, Details:err}, Retryable:false, Class:"Error"});
                   return inner_cb(err);
                 }
                 return inner_cb();

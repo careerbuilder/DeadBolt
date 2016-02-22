@@ -67,7 +67,7 @@ module.exports = {
               });
               return top_callback(errors);
             }
-            return callback(null, connection2)
+            return callback(null, connection2);
           });
         }
         else{
@@ -102,9 +102,9 @@ module.exports = {
                 local_exists = true;
               }
             });
-            var user_query = "Set @dummy=1;"
+            var user_query = "Set @dummy=1;";
             if(all_exists && local_exists){
-              user_query ="Drop User ?, ?@'localhost';"
+              user_query ="Drop User ?, ?@'localhost';";
             }
             else{
               if(all_exists){
@@ -215,7 +215,7 @@ module.exports = {
         if(mysql_pool){
           mysql_pool.end();
         }
-        top_callback(results)
+        top_callback(results);
     });
   }
 };
