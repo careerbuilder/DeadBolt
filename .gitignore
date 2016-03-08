@@ -7,3 +7,5 @@ bower_components/
 Portal/config.json
 *.ignore
 
+PasswordManger/config.json
+PasswordManger/client/lib/

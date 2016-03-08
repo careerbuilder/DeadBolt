@@ -1,5 +1,6 @@
 var router      = require('express').Router();
 var uuid        = require('node-uuid');
+var crypto      = require('crypto');
 var connection  = require('../middleware/db');
 var hashes      = require('../middleware/passwordhash');
 var deadbolt    = require('../middleware/deadbolt');
@@ -104,6 +105,11 @@ router.use(function(req, res, next){
       return next();
     }
   });
+});
+
+router.get('/', function(req, res){
+  //if you made it this far, you have access
+  return res.send({Success: true, User: res.locals.user});
 });
 
 router.post('/changePassword', function(req, res){

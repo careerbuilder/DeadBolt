@@ -1,10 +1,21 @@
 var express    	= require('express');
 var bodyParser 	= require('body-parser');
-var app        	= express();
-app.use(bodyParser.json());
-global.config = require('./config.json');
+var ejs         = require('ejs');
+var path        = require('path');
 
+var app        	= express();
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+global.config = require('./config.json');
 var port = 3000;
+
+/*
+*----------------Handle Client-----------
+*/
+app.set('view engine','html');
+app.engine('html', ejs.renderFile);
+app.use(express.static(path.join(__dirname, 'client')));
 
 
 // ROUTES FOR THE API
@@ -30,9 +41,7 @@ if(global.config.SSL){
   https.createServer({
     key: fs.readFileSync(global.config.SSL.keyfile),
     cert: fs.readFileSync(global.config.SSL.certfile)
-    },
-    app)
-    .listen(port);
+  },app).listen(port);
 }
 else{
   app.listen(port);
