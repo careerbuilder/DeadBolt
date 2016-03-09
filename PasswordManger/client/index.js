@@ -1,6 +1,7 @@
 var app = angular.module('PasswordPortal', ['ngRoute', 'ngCookies', 'toastr']);
 
 app.config(['$routeProvider', '$httpProvider', function($routeProvider, $httpProvider) {
+	$httpProvider.interceptors.push('httpRequestInterceptor');
 	$routeProvider.when('/', {
 		controller: 'AuthCtrl',
 		templateUrl: 'views/auth.html',
@@ -17,8 +18,9 @@ app.config(['$routeProvider', '$httpProvider', function($routeProvider, $httpPro
 			ResetID: ["$route", function($route){return $route.current.params.resetid;}]
 		}
 	})
-	.otherwise({redirectTo: '/'});
-  $httpProvider.interceptors.push('httpRequestInterceptor');
+	.otherwise({
+		templateUrl: 'views/404.html'
+	});
 }]);
 
 app.controller('PageController', function($http, $scope, $location, authService, toastr){
