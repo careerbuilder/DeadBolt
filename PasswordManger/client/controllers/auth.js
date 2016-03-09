@@ -18,7 +18,7 @@ app.controller('AuthCtrl', function($http, $scope, $location, toastr, authServic
     authService.forgotPassword($scope.forgot.Email)
     .then(function(){
       toastr.success('Reset password email sent!');
-      $location.path('/');
+      $location.path('/login');
     }, function(err){
       $scope.loginResult =  {Success: false, Message:err};
     });

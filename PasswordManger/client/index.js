@@ -3,11 +3,27 @@ var app = angular.module('PasswordPortal', ['ngRoute', 'ngCookies', 'toastr']);
 app.config(['$routeProvider', '$httpProvider', function($routeProvider, $httpProvider) {
 	$httpProvider.interceptors.push('httpRequestInterceptor');
 	$routeProvider.when('/', {
+		controller: 'MainCtrl',
+		templateUrl: 'views/main.html',
+		resolve:{
+			auth: ["authService", function(authService) {return authService.hasAccess();}]
+		}
+	})
+	.when('/login', {
 		controller: 'AuthCtrl',
 		templateUrl: 'views/auth.html',
 		resolve:{
 			isLoggingin: function(){
 				return true;
+			}
+		}
+	})
+	.when('/forgot', {
+		controller: 'AuthCtrl',
+		templateUrl: 'views/auth.html',
+		resolve:{
+			isLoggingin: function(){
+				return false;
 			}
 		}
 	})
@@ -27,7 +43,7 @@ app.controller('PageController', function($http, $scope, $location, authService,
 
 	$scope.logOut = function(){
 		authService.logOut();
-		$location.path('/');
+		$location.path('/login');
 	};
 
 	$scope.isLoggedIn = function(){
