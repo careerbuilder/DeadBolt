@@ -9,6 +9,7 @@ router.get('/', function(req, res){
   return res.send("Welcome to the API");
 });
 
+/*
 router.post('/signup', function(req,res){
   var body = req.body;
   if(!body.Email){
@@ -24,7 +25,7 @@ router.post('/signup', function(req,res){
     if(results.length < 1){
       return res.send({Success: false, Error: "User not found"});
     }
-    if(results[0].Active && results[0].Active != 0){
+    if(results[0].Active && results[0].Active !== 0){
       return res.send({Success: false, Error: "Sorry, This user has already registered."});
     }
     var salt = uuid.v4();
@@ -40,7 +41,7 @@ router.post('/signup', function(req,res){
     });
   });
 });
-
+*/
 
 router.post('/login', function(req,res){
   var body = req.body;
@@ -50,19 +51,14 @@ router.post('/login', function(req,res){
   if(!body.Password){
     return res.send({Success: false, Error: "No Password!"});
   }
-  connection.query("Select ID, Email, Portal_Salt, Portal_Password from Users where (Email= ? and Active=1) and ID in (select User_ID from users_groups where GroupAdmin=1) LIMIT 1;", [body.Email], function(err, results){
+  //call out to password manager for auth
+  connection.query("Select ID, Email from Users where (Email= ? and Active=1) and ID in (select User_ID from users_groups where GroupAdmin=1) LIMIT 1;", [body.Email], function(err, results){
     if(err){
       console.log(err);
       return res.send({Success:false, Error: "Error connecting to database:\n" + err});
     }
     else if(results.length < 1){
       return res.send({Success:false, Error: "Not a valid User"});
-    }
-    var shasum = crypto.createHash('sha512');
-    shasum.update(results[0].Portal_Salt + body.Password);
-    var passcheck = shasum.digest('hex');
-    if(results[0].Portal_Password != passcheck){
-      return res.send({Success: false, Error: "Incorrect Password"});
     }
     var sessionid = uuid.v4();
     var now = ~~(new Date().getTime()/1000);
