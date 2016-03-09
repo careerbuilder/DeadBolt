@@ -3,9 +3,9 @@ Create Schema IF NOT EXISTS `passwordportal`;
 CREATE TABLE IF NOT EXISTS `users` (
   `ID` int(11) NOT NULL AUTO_INCREMENT,
   `Username` varchar(128) NOT NULL,
-  `Email` varchar(200) NOT NULL,
-  `FirstName` varchar(45) NOT NULL,
-  `LastName` varchar(45) NOT NULL,
+  `Email` varchar(200) DEFAULT NULL,
+  `FirstName` varchar(45) DEFAULT NULL,
+  `LastName` varchar(45) DEFAULT NULL,
   `IsAdmin` tinyint(1) NOT NULL DEFAULT '0',
   `IsSVC` tinyint(1) NOT NULL DEFAULT '0',
   `Reset_ID` varchar(100) DEFAULT NULL,
@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS `sessions` (
   `Expires` bigint(20) DEFAULT NULL,
   `Active` tinyint(1) DEFAULT '1',
   PRIMARY KEY (`ID`),
+  UNIQUE KEY `User_ID_UNIQUE` (`User_ID`),
   KEY `sessionuser_idx` (`User_ID`),
   CONSTRAINT `sessionuser` FOREIGN KEY (`User_ID`) REFERENCES `users` (`ID`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

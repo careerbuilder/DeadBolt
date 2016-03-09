@@ -5,7 +5,7 @@ app.factory('authService', ['$q', '$http','$cookies', function($q, $http, $cooki
   var IsAdmin = false;
 
   function getAdmin(callback){
-    $http.post('/api/auth').then(function(res){
+    $http.get('/api/auth').then(function(res){
       var data = res.data;
       if(data.Success){
         if(data.User.IsAdmin){
@@ -27,7 +27,7 @@ app.factory('authService', ['$q', '$http','$cookies', function($q, $http, $cooki
      getAdmin(function(err, admins){
        if(err){
          console.log('Invalid Session');
-         cookies.remove('dbpp_sc');
+         $cookies.remove('dbpp_sc');
        }
        else{
          console.log('resuming session');
@@ -92,6 +92,8 @@ app.factory('authService', ['$q', '$http','$cookies', function($q, $http, $cooki
           var data = res.data;
           if(data.Success){
             session = data.Session;
+            user = data.User;
+            $cookies.put('dbpp_sc', session);
             deferred.resolve(data.User);
           }
           else{
@@ -106,10 +108,27 @@ app.factory('authService', ['$q', '$http','$cookies', function($q, $http, $cooki
       }
       return deferred.promise;
     },
+    forgotPassword:function(email){
+      var deferred = $q.defer();
+      $http.post('/api/auth/forgot', {Email: email})
+      .then(function(res){
+        var data = res.data;
+        if(data.Success){
+          deferred.resolve(true);
+        }
+        else{
+          deferred.reject(data.Error);
+        }
+      }, function(){
+        deferred.reject('Could not reach Authentication Service');
+      });
+      return deferred.promise;
+    },
     logOut: function(){
       $cookies.remove('dbpp_sc');
       auth_cookie = null;
       session = null;
+      user = null;
       IsAdmin = false;
     }
   };

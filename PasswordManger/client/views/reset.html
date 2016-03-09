@@ -2,22 +2,24 @@
 <div class="container">
   <div class="col-md-6 col-md-offset-3">
     <div class="row" style="background-color:#DBDBDB; border:outset 4px; padding:2px 10px 2px 10px;">
-      <div class="form-group" ng-show="loggingIn">
-        <h3>Log In</h3>
-        <form class="simple-form" name="loginform" ng-submit="loginform.$valid && logIn()" novalidate>
-          <div class="input-group form-group" ng-class="{'has-error': (loginform.username.$invalid && loginform.username.$dirty)}">
+      <div class="form-group">
+        <h3>Set a New Password</h3>
+        <form class="simple-form" name="resetform" ng-submit="resetform.$valid && reset()" novalidate>
+          <div class="input-group form-group" ng-class="{'has-error': (resetform.username.$invalid && resetform.username.$dirty)}">
             <span class="input-group-addon" id="username" style="text-align:left; min-width:100px;"><b>Username</b></span>
             <input type="text" class="form-control" placeholder="Username" name="username" ng-model="auth.Username" required />
           </div>
-          <div class="input-group form-group" ng-class="{'has-error': (loginform.password.$invalid && loginform.password.$dirty)}">
+          <div class="input-group form-group" ng-class="{'has-error': (resetform.password.$invalid && resetform.password.$dirty)}">
             <span class="input-group-addon" id="Password" style="text-align:left; min-width:100px;"><b>Password</b></span>
             <input type="password" class="form-control" placeholder="Password" name="password" ng-pattern="/\S{8,}/i" ng-model="auth.Password" required />
           </div>
+          <div class="input-group form-group" ng-class="{'has-error': (resetform.Password2.$invalid && resetform.Password2.$dirty)}">
+            <span class="input-group-addon" id="confirmpassword" style="text-align:left; min-width:100px;"><b>Confirm</b></span>
+            <input type="password" class="form-control" placeholder="Password again" name="Password2" ng-model="auth.password2" compare-to="auth.Password"/>
+          </div>
         </form>
-        <a href="javascript:void(0)" ng-click="loggingIn=false" class="pull-right"><em><u>Forgot your password?</u></em></a>
-        <br />
         <hr>
-        <button class="btn btn-lg btn-primary btn-block" type="submit" ng-click="logIn()" ng-disabled="loginform.$invalid">Log in</button>
+        <button class="btn btn-lg btn-primary btn-block" type="submit" ng-click="reset()" ng-disabled="resetform.$invalid">Reset</button>
       </div>
     </div>
   </div>
