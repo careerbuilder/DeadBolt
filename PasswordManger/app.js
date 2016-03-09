@@ -17,7 +17,10 @@ app.set('view engine','html');
 app.engine('html', ejs.renderFile);
 app.use(express.static(path.join(__dirname, 'client')));
 
-
+app.use(function(req, res, next){
+	res.locals.port = port;
+	return next();
+});
 // ROUTES FOR THE API
 // =============================================================================
 app.use('/api', require('./routes/api'));
