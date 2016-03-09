@@ -2,9 +2,6 @@ var express = require('express');
 var router = express.Router();
 var request = require('request');
 var async = require('async');
-var nodemailer = require('nodemailer');
-var sesTransport = require('nodemailer-ses-transport');
-var transporter = nodemailer.createTransport(sesTransport());
 var adapi = require('../middleware/adapi');
 var auth = require('../middleware/auth');
 var connection = require('../middleware/mysql');
@@ -26,41 +23,21 @@ function add_user(body, callback){
     return callback("No User info");
   }
   var user = {
-    UserName: body.Username,
+    Username: body.Username,
     FirstName: body.FirstName,
     LastName: body.LastName,
-    Email: body.Email
+    Email: body.Email,
+    IsSVC: false
   };
-  adapi.add_user_to_AD(user, function(err, result){
+  //@TODO: call out to password portal
+  var query = 'Update `users` set `Active`=1 where `Username` = ?';
+  connection.query(query, [body.Username], function(err, result){
     if(err){
       console.log(err);
       return callback(err);
     }
-    console.log(result);
-    var query = 'Update `users` set `Active`=1 where `Username` = ?';
-    connection.query(query, [body.Username], function(err, result){
-      if(err){
-        console.log(err);
-        return callback(err);
-      }
-      var plaintext = 'An account has been created for you on the CBsiteDB active directory, for use in RDS Identity management. To activate this account, please navigate to https://password.cbsitedb.net/accounts/Reset and unlock the account.\n ' +
-      'username: ' + body.Username  + '\nUpon setting a password, all databases to which you have access will be accessible using that username and password. If you have any questions, email Adam.Yost@careerbuilder.com';
-      var html = '<h1>An Account Has Been Created For You</h1><p>An account has been created for you on the CBsiteDB active directory, for use in RDS Identity management. To activate this account, please navigate to <a href="https://password.cbsitedb.net/accounts/Reset">https://password.cbsitedb.net/accounts/Reset</a> and unlock the account.</p>\n' +
-      '<h4>username: ' + body.Username  + '</h4>\n<p>Upon setting a password, all databases to which you have access will be accessible using that username and password. If you have any questions, email <a href="mailto:Adam.Yost@careerbuilder.com">Adam.Yost@careerbuilder.com</a></p>';
-      transporter.sendMail({
-        from: 'DeadBolt@cbsitedb.net',
-        to: body.Email,
-        subject: 'Identity Added to Databases',
-        text: plaintext,
-        html: html
-      }, function(err, info){
-        if(err){
-          console.log(err);
-        }
-        body.Active=1;
-        return callback(null, body);
-      });
-    });
+    body.Active=1;
+    return callback(null, body);
   });
 }
 
@@ -254,8 +231,19 @@ router.use(function(req, res, next){
   return auth.isAdmin(req, res, next);
 });
 
-router.put('/password/:username', function(req, res){
-  connection.query('Select * from users where Username = ?;', [req.params.username], function(err, users){
+router.post('/passwordchange', function(req, res){
+  var passwords = req.body.Passwords;
+  Object.keys(passwords).forEach(function(p){
+    encryption.encrypt(passwords[p], function(err, enc){
+      if(err){
+        return;
+      }
+      else{
+        passwords[p] = enc;
+      }
+    });
+  });
+  connection.query('Select ID from users where Username = ?;', [req.body.Username], function(err, users){
     if(err){
       return res.send({Success: false, Error:err});
     }
@@ -263,22 +251,27 @@ router.put('/password/:username', function(req, res){
       return res.send({Success: false, Error: 'No user by that username'});
     }
     var user = users[0];
-    var dbq = 'Select `databases`.* from `databases` join `groups_databases` on `groups_databases`.`Database_ID` = `databases`.`ID` join `users_groups` on `users_groups`.`Group_ID`=`groups_databases`.`Group_ID` join `users` on `users`.`ID` = `users_groups`.`User_ID` where `Users`.`Username`=?;';
-    connection.query(dbq, [req.params.username], function(err, results){
+    connection.query('Update `users` set `MySQL_Password`=?, `SQL_Server_Password`=? Where `ID`=?;', [passwords.mysql, passwords.mssql, user.ID], function(err, result){
       if(err){
         return res.send({Success: false, Error:err});
       }
-      if(results.length<1){
-        return res.send({Success: true});
-      }
-      async.each(results,function(db, inner_callback){
-        db_tools.update_users(db, [user], function(errs){
-          inner_callback();
+      var dbq = 'Select `databases`.* from `databases` join `groups_databases` on `groups_databases`.`Database_ID` = `databases`.`ID` join `users_groups` on `users_groups`.`Group_ID`=`groups_databases`.`Group_ID` join `users` on `users`.`ID` = `users_groups`.`User_ID` where `Users`.`Username`=?;';
+      connection.query(dbq, [req.body.Username], function(err, results){
+        if(err){
+          return res.send({Success: false, Error:err});
+        }
+        if(results.length<1){
+          return res.send({Success: true});
+        }
+        async.each(results,function(db, inner_callback){
+          db_tools.update_users(db, [user], function(errs){
+            inner_callback();
+          });
+        }, function(err, result){
+          console.log("All Databases Updated for " + req.body.Username);
         });
-      }, function(err, result){
-        console.log("All Databases Updated for " + req.params.username);
+        return res.send({Success: true});
       });
-      return res.send({Success: true});
     });
   });
 });
