@@ -111,9 +111,9 @@ router.post('/forgot', function(req, res){
   }
 });
 
-router.post('/reset/:resetid', function(req, res){
-  var resetid = req.params.resetid;
-  connection.query('Select ID from Users where Reset_ID=? and Username=? LIMIT 1;', [resetid, req.body.Username], function(err, results){
+router.post('/reset', function(req, res){
+  var resetid = req.body.ResetID;
+  connection.query('Select * from Users where Reset_ID=? and Username=? LIMIT 1;', [resetid, req.body.Username], function(err, results){
     if(err){
       console.log(err);
       return res.send({Success:false, Error: "Error connecting to database:\n" + err});
@@ -137,11 +137,16 @@ router.post('/reset/:resetid', function(req, res){
           }
         });
       }
+      delete user.Password;
+      delete user.Salt;
       hashes.get_all(req.body.Password, function(hash_obj){
         user.Passwords = hash_obj;
         var creds = hash_obj.portal;
+        delete user.Passwords.portal;
+        console.log(user);
         deadbolt.update_user(user, function(err){
           if(err){
+            console.log(err);
             return res.send({Success: false, Error: err});
           }
           connection.query('Update Users set Reset_ID=NULL, Salt=?, Password=? where ID=?', [creds.Salt, creds.Password, user.ID], function(err, result){
@@ -183,7 +188,7 @@ router.post('/login', function(req,res){
     var now = ~~(new Date().getTime()/1000);
     //-----------------h-* m/h* s/m----------
     var later = now + (6 * 60 * 60);
-    var q = "Insert into Sessions (Session_ID, Expires, User_ID) Values(?, ?, ?) ON DUPLICATE KEY Update Expires=Values(Expires), Active=1;";
+    var q = "Insert into Sessions (Session_ID, Expires, User_ID) Values(?, ?, ?) ON DUPLICATE KEY Update Session_ID=VALUES(Session_ID), Expires=Values(Expires), Active=1;";
     connection.query(q, [sessionid, later, results[0].ID], function(err, results){
       if(err){
         console.log(err);
@@ -237,9 +242,13 @@ router.post('/changePassword', function(req, res){
       }
     });
   }
+  delete user.Password;
+  delete user.Salt;
   hashes.get_all(user.Password, function(hash_obj){
     user.Passwords = hash_obj;
     var creds = hash_obj.portal;
+    delete user.Passwords.portal;
+    console.log(user);
     deadbolt.update_user(user, function(err){
       if(err){
         return res.send({Success: false, Error: err});
@@ -259,26 +268,51 @@ router.post('/addUser', function(req, res){
     return res.send({Success:false, Error: 'Insufficient permissions'});
   }
   var user = req.body.User;
-  if(global.config.UseAD){
-    if(!ad){
-      ad = require('../middleware/ad');
-    }
-    ad.addUser(user, function(err, data){
-      if(err){
-        console.log(err);
-      }
-      else{
-        console.log(data);
-      }
-    });
-  }
-  var q = 'Insert into users (Username, FirstName, LastName, Email, Reset_ID, Active) VALUES(?, ?, ?, ?, ?, 0);';
-  var resetid = uuid.v4();
-  connection.query(q,[user.Username, user.FirstName, user.LastName, user.Email, resetid], function(err){
+  var q = 'Insert into users (Username, FirstName, LastName, Email, isSVC, Active) VALUES(?, ?, ?, ?, ?, ?);';
+  connection.query(q,[user.Username, user.FirstName, user.LastName, user.Email || null, user.IsSVC, !user.IsSVC], function(err){
     if(err){
       return res.send({Success:false, Error: err});
     }
-    return res.send({Success: true, ResetID: resetid});
+    if(user.IsSVC){
+      return res.send({Success: true});
+    }
+    if(global.config.UseAD){
+      if(!ad){
+        ad = require('../middleware/ad');
+      }
+      ad.addUser(user, function(err, data){
+        if(err){
+          console.log(err);
+        }
+        else{
+          console.log(data);
+        }
+      });
+    }
+    var url;
+    if(req.protocol == 'http'){
+      url =req.protocol+'://'+req.hostname;
+      if(res.locals.port !== 80){
+        url += ":"+res.locals.port;
+      }
+    }
+    else if(req.protocol == 'https'){
+      url =req.protocol+'://'+req.hostname;
+      if(res.locals.port!==443){
+        url+=":"+res.locals.port;
+      }
+    }
+    else{
+      url =req.protocol+'://'+req.hostname+':'+res.locals.port;
+    }
+    send_reset_email({Init:true, To:user.Email, Site:url}, function(err){
+      if(err){
+        return res.send({Success: false, Error:err});
+      }
+      else{
+        return res.send({Success: true});
+      }
+    });
   });
 });
 

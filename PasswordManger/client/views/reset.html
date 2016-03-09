@@ -7,15 +7,16 @@
         <form class="simple-form" name="resetform" ng-submit="resetform.$valid && reset()" novalidate>
           <div class="input-group form-group" ng-class="{'has-error': (resetform.username.$invalid && resetform.username.$dirty)}">
             <span class="input-group-addon" id="username" style="text-align:left; min-width:100px;"><b>Username</b></span>
-            <input type="text" class="form-control" placeholder="Username" name="username" ng-model="auth.Username" required />
+            <input type="text" class="form-control" placeholder="Username" name="username" ng-model="creds.Username" required />
           </div>
           <div class="input-group form-group" ng-class="{'has-error': (resetform.password.$invalid && resetform.password.$dirty)}">
             <span class="input-group-addon" id="Password" style="text-align:left; min-width:100px;"><b>Password</b></span>
-            <input type="password" class="form-control" placeholder="Password" name="password" ng-pattern="/\S{8,}/i" ng-model="auth.Password" required />
+            <input type="password" class="form-control" placeholder="Password" name="password" ng-pattern="/\S{8,}/i" ng-model="creds.Password" required />
           </div>
+          <p class="help-block text-danger" ng-show="!validatePassword()">{{passwordError}}</p>
           <div class="input-group form-group" ng-class="{'has-error': (resetform.Password2.$invalid && resetform.Password2.$dirty)}">
             <span class="input-group-addon" id="confirmpassword" style="text-align:left; min-width:100px;"><b>Confirm</b></span>
-            <input type="password" class="form-control" placeholder="Password again" name="Password2" ng-model="auth.password2" compare-to="auth.Password"/>
+            <input type="password" class="form-control" placeholder="Password again" name="Password2" ng-model="auth.password2" compare-to="creds.Password"/>
           </div>
         </form>
         <hr>
