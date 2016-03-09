@@ -19,7 +19,7 @@ function send_reset_email(emailinfo, callback){
     var plaintext, html, inithtml, resethtml;
     var url = emailinfo.Site+'/#/reset/'+resetid;
     var initText = "An account has been created for you in the Deadbolt user management system. To activate this account, please go to "+ url;
-    var resetText = 'A user has requested a password rest for an account tied to this email. ' +
+    var resetText = 'A user has requested a password reset for an account tied to this email. ' +
       '<br />If this was not you, please ignore this email. Otherwise, to reset your password go to '+
       '<a href="'+url+'">'+url+'</a>'; //your link here
     if('Email' in global.config){
@@ -137,13 +137,9 @@ router.post('/reset', function(req, res){
           }
         });
       }
-      delete user.Password;
-      delete user.Salt;
       hashes.get_all(req.body.Password, function(hash_obj){
         user.Passwords = hash_obj;
         var creds = hash_obj.portal;
-        delete user.Passwords.portal;
-        console.log(user);
         deadbolt.update_user(user, function(err){
           if(err){
             console.log(err);
@@ -242,13 +238,9 @@ router.post('/changePassword', function(req, res){
       }
     });
   }
-  delete user.Password;
-  delete user.Salt;
   hashes.get_all(user.Password, function(hash_obj){
     user.Passwords = hash_obj;
     var creds = hash_obj.portal;
-    delete user.Passwords.portal;
-    console.log(user);
     deadbolt.update_user(user, function(err){
       if(err){
         return res.send({Success: false, Error: err});

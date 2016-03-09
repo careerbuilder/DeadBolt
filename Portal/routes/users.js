@@ -233,44 +233,53 @@ router.use(function(req, res, next){
 
 router.post('/passwordchange', function(req, res){
   var passwords = req.body.Passwords;
-  Object.keys(passwords).forEach(function(p){
+  async.each(Object.keys(passwords), function(p, cb){
     encryption.encrypt(passwords[p], function(err, enc){
       if(err){
-        return;
+        return cb(err);
       }
       else{
         passwords[p] = enc;
+        return cb();
       }
     });
-  });
-  connection.query('Select ID from users where Username = ?;', [req.body.Username], function(err, users){
+  }, function(err){
     if(err){
-      return res.send({Success: false, Error:err});
+      console.log(err);
+      return res.send({Success:false, Error:err});
     }
-    if(users.length<1){
-      return res.send({Success: false, Error: 'No user by that username'});
-    }
-    var user = users[0];
-    connection.query('Update `users` set `MySQL_Password`=?, `SQL_Server_Password`=? Where `ID`=?;', [passwords.mysql, passwords.mssql, user.ID], function(err, result){
+    connection.query('Select * from users where Username = ?;', [req.body.Username], function(err, users){
       if(err){
+        console.log(err);
         return res.send({Success: false, Error:err});
       }
-      var dbq = 'Select `databases`.* from `databases` join `groups_databases` on `groups_databases`.`Database_ID` = `databases`.`ID` join `users_groups` on `users_groups`.`Group_ID`=`groups_databases`.`Group_ID` join `users` on `users`.`ID` = `users_groups`.`User_ID` where `Users`.`Username`=?;';
-      connection.query(dbq, [req.body.Username], function(err, results){
+      if(users.length<1){
+        return res.send({Success: false, Error: 'No user by that username'});
+      }
+      var user = users[0];
+      connection.query('Update `users` set `MySQL_Password`=?, `SQL_Server_Password`=? Where `ID`=?;', [passwords.mysql, passwords.mssql, user.ID], function(err, result){
         if(err){
+          console.log(err);
           return res.send({Success: false, Error:err});
         }
-        if(results.length<1){
-          return res.send({Success: true});
-        }
-        async.each(results,function(db, inner_callback){
-          db_tools.update_users(db, [user], function(errs){
-            inner_callback();
+        var dbq = 'Select `databases`.* from `databases` join `groups_databases` on `groups_databases`.`Database_ID` = `databases`.`ID` join `users_groups` on `users_groups`.`Group_ID`=`groups_databases`.`Group_ID` join `users` on `users`.`ID` = `users_groups`.`User_ID` where `Users`.`Username`=?;';
+        connection.query(dbq, [req.body.Username], function(err, results){
+          if(err){
+            console.log(err);
+            return res.send({Success: false, Error:err});
+          }
+          if(results.length<1){
+            return res.send({Success: true});
+          }
+          async.each(results,function(db, inner_callback){
+            db_tools.update_users(db, [user], function(errs){
+              inner_callback();
+            });
+          }, function(err, result){
+            console.log("All Databases Updated for " + req.body.Username);
           });
-        }, function(err, result){
-          console.log("All Databases Updated for " + req.body.Username);
+          return res.send({Success: true});
         });
-        return res.send({Success: true});
       });
     });
   });
