@@ -12,7 +12,7 @@ module.exports= {
       }
       if(results.length > 0){
         result = results[0];
-        var now = ~~(new Date().getTime()/1000)
+        var now = ~~(new Date().getTime()/1000);
         var valid = now <= result.Expires;
         if(valid){
           var q = 'Select users.ID, users.Username, ug.Group_ID from users left join (Select User_ID, Group_ID from users_groups where GroupAdmin =1) ug on ug.User_ID=users.ID where users.ID=?;';
