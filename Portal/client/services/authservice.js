@@ -1,11 +1,19 @@
-'use strict';
-
 app.factory('authService', ['$q', '$http','$cookies', function($q, $http, $cookies){
 
   var session;
+  var user;
   var auth_cookie = $cookies.get('rdsapit');
   var admins = [];
   var fullAdmin = false;
+
+  var requirements = {
+    Forbidden:  [],
+    MinLength: 8,
+    MinLowerCase: 1,
+    MinUpperCase: 1,
+    MinNumbers:1,
+    MinSymbols:1
+  };
 
   function getAdmin(callback){
     $http.post('/api/auth').then(function(res){
@@ -90,8 +98,8 @@ app.factory('authService', ['$q', '$http','$cookies', function($q, $http, $cooki
     },
     logIn: function(creds){
       var deferred = $q.defer();
-      if(creds && creds.Email && creds.Password){
-        $http.post('/api/login', creds)
+      if(creds && creds.Username && creds.Password){
+        $http.post('/api/auth/login', creds)
         .then(function(res){
           var data = res.data;
           if(data.Success){
@@ -117,10 +125,26 @@ app.factory('authService', ['$q', '$http','$cookies', function($q, $http, $cooki
       }
       return deferred.promise;
     },
-    signUp: function(creds){
+    forgotPassword:function(email){
       var deferred = $q.defer();
-      if(creds && creds.Email && creds.Password){
-        $http.post('/api/signup', creds)
+      $http.post('/api/auth/forgot', {Email: email})
+      .then(function(res){
+        var data = res.data;
+        if(data.Success){
+          deferred.resolve(true);
+        }
+        else{
+          deferred.reject(data.Error);
+        }
+      }, function(){
+        deferred.reject('Could not reach Authentication Service');
+      });
+      return deferred.promise;
+    },
+    changePassword: function(creds){
+      var deferred = $q.defer();
+      if(creds && creds.Password){
+        $http.post('/api/auth/changePassword/', creds)
         .then(function(res){
           var data = res.data;
           if(data.Success){
@@ -138,13 +162,52 @@ app.factory('authService', ['$q', '$http','$cookies', function($q, $http, $cooki
       }
       return deferred.promise;
     },
-
     logOut: function(){
       $cookies.remove('rdsapit');
       auth_cookie = null;
       session = null;
       admins = [];
       fullAdmin = false;
+    },
+    validatePassword: function(creds){
+      if(!creds || !creds.Password || creds.Password.length<1){
+        return {Valid:true};
+      }
+      for(var i=0; i<requirements.Forbidden.length; i++){
+        var f = requirements.Forbidden[i];
+        if(creds.Password.search(f)>-1){
+          return {Valid: false, Error: 'Forbidden password pattern'};
+        }
+      }
+      var upper=0, lower=0, number=0, symbol=0;
+      for(var j=0; j<creds.Password.length; j++){
+        var char = creds.Password[j];
+        if(char.match(/[a-z]/)){
+          lower++;
+        }
+        else if(char.match(/[A-Z]/)){
+          upper++;
+        }
+        else if(char.match(/[0-9]/)){
+          number++;
+        }
+        else{
+          symbol++;
+        }
+      }
+      if(lower < requirements.MinLowerCase){
+        return {Valid: false, Error: 'Requires at least ' + requirements.MinLowerCase +' lowercase characters'};
+      }
+      if(upper < requirements.MinUpperCase){
+        return {Valid: false, Error: 'Requires at least ' + requirements.MinUpperCase +' uppercase characters'};
+      }
+      if(number < requirements.MinNumbers){
+        return {Valid: false, Error: 'Requires at least ' + requirements.MinNumbers +' numbers'};
+      }
+      if(symbol < requirements.MinSymbols){
+        return {Valid: false, Error: 'Requires at least ' + requirements.MinSymbols +' symbols'};
+      }
+      return {Valid: true};
     }
-  }
+  };
 }]);

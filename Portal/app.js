@@ -20,13 +20,29 @@ app.use(express.static(path.join(__dirname, 'client')));
 /*
 *---------------------API----------------
 */
-
-var api = require('./routes/api.js');
-app.use('/api/', api);
-
-app.get('/', function(req,res){
-  return res.send('Hello World!');
+app.use(function(req, res, next){
+  var url;
+  if(req.protocol == 'http'){
+    url =req.protocol+'://'+req.hostname;
+    if(port !== 80){
+      url += ":"+port;
+    }
+  }
+  else if(req.protocol == 'https'){
+    url =req.protocol+'://'+req.hostname;
+    if(port!==443){
+      url+=":"+port;
+    }
+  }
+  else{
+    url =req.protocol+'://'+req.hostname+':'+port;
+  }
+  res.locals.url = url;
+  res.locals.port = port;
+  return next();
 });
+
+app.use('/api/', require('./routes/api.js'));
 
 app.use(function(req, res, next){
   res.status(404);

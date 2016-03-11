@@ -1,27 +1,15 @@
-'use strict';
 var app = angular.module('DeadBolt', ['ngRoute', 'ngCookies', 'toastr']);
 
 app.config(['$routeProvider', '$httpProvider', function($routeProvider, $httpProvider) {
 	$routeProvider.when('/', {
-		controller: 'PageController',
+		controller: 'AuthCtrl',
 		templateUrl: 'views/welcome.html'
 	})
-	.when('/login', {
-		controller: 'AuthCtrl',
-		templateUrl: 'views/auth.html',
+	.when('/reset/:resetid', {
+		controller: 'ResetCtrl',
+		templateUrl: 'views/reset.html',
 		resolve:{
-			isLoggingin: function(){
-				return true;
-			}
-		}
-	})
-	.when('/signup', {
-		controller: 'AuthCtrl',
-		templateUrl: 'views/auth.html',
-		resolve:{
-			isLoggingin: function(){
-				return false;
-			}
+			ResetID: ["$route", function($route){return $route.current.params.resetid;}]
 		}
 	})
 	.when('/history', {
@@ -59,7 +47,9 @@ app.config(['$routeProvider', '$httpProvider', function($routeProvider, $httpPro
 			auth: ["authService", function(authService) {return authService.hasAccess();}]
 		}
 	})
-	.otherwise({redirectTo: '/'});
+	.otherwise({
+		templateUrl: 'views/404.html'
+	});
   $httpProvider.interceptors.push('httpRequestInterceptor');
 }]);
 
@@ -67,31 +57,48 @@ app.controller('PageController', function($http, $scope, $location, authService,
 
 	$scope.setTab = function(num){
 		tabService.setTab(num);
-	}
+	};
 
 	$scope.getTab = function(){
 		return tabService.getTab();
-	}
+	};
 
 	$scope.logOut = function(){
 		authService.logOut();
 		$location.path('/');
-	}
+	};
 
 	$scope.isLoggedIn = function(){
 		return !!authService.getSession();
-	}
+	};
 
 	$scope.isAdmin = function(){
 		return !!authService.isAdmin();
-	}
+	};
 
+});
+
+app.directive("compareTo", function() {
+  return {
+      require: "ngModel",
+      scope: {
+          otherModelValue: "=compareTo"
+      },
+      link: function(scope, element, attributes, ctrl) {
+          ctrl.$validators.compareTo = function(modelValue) {
+              return modelValue === scope.otherModelValue;
+          };
+          scope.$watch("otherModelValue", function() {
+                ctrl.$validate();
+            });
+      }
+  };
 });
 
 app.factory('httpRequestInterceptor', function ($cookies) {
   return {
     request: function (config) {
-      config.headers['Authorization'] = $cookies.get('rdsapit');
+      config.headers.Authorization = $cookies.get('rdsapit');
       return config;
     }
   };

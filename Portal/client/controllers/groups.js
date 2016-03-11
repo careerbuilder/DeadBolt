@@ -1,24 +1,29 @@
-'use strict';
-
 app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $location, $filter, toastr, tabService){
   tabService.setTab(2);
   $scope.searchResults = [];
   $scope.group = {};
   $scope.databases = [];
-  $scope.filtered_dbs = []
+  $scope.filtered_dbs = [];
   $scope.allCheck=false;
   $scope.show_db_text = "Edit Databases";
   $scope.db_edit = false;
 
-  $http.post('/api/groups/search/', {Info:''}).success(function(data){
+  $http.post('/api/groups/search/', {Info:''}).then(function(res){
+    var data = res.data;
     if(data.Success){
       $scope.isEditing = false;
       $scope.isSearching = true;
       $scope.searchResults = data.Results;
     }
+    else{
+      console.log(data.Error);
+    }
+  }, function(err){
+    console.log(err);
   });
 
-  $http.get('/api/databases').success(function(data){
+  $http.get('/api/databases').then(function(res){
+    var data = res.data;
     if(data.Success){
       for(var i=0; i<data.Results.length; i++){
         data.Results[i].Checked = false;
@@ -26,13 +31,18 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
       $scope.databases = data.Results;
       $scope.filtered_dbs = $scope.databases;
     }
+    else{
+      console.log(data.Error);
+    }
+  }, function(err){
+    console.log(err);
   });
 
   $scope.selectAll=function(){
     $scope.filtered_dbs.forEach(function(db,i){
       db.Checked = $scope.allCheck;
     });
-  }
+  };
 
   $scope.evalAll=function(){
     for(var i=0; i< $scope.filtered_dbs.length; i++){
@@ -43,8 +53,7 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
       }
     }
     $scope.allCheck=true;
-    return
-  }
+  };
 
   $scope.toggle_show_databases = function(){
     $scope.db_edit = !$scope.db_edit;
@@ -54,7 +63,7 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
     else{
       $scope.show_db_text = "Edit Databases";
     }
-  }
+  };
 
   $scope.search=function(){
     $http.post('/api/groups/search/', $scope.searchCreds).success(function(data){
@@ -64,7 +73,7 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
         $scope.searchResults = data.Results;
       }
     });
-  }
+  };
 
   $scope.refreshSearch=function(){
     $http.post('/api/groups/search/', {Info:''}).success(function(data){
@@ -74,16 +83,16 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
         $scope.searchResults = data.Results;
       }
     });
-  }
+  };
 
   $scope.view_edit=function(value){
     return ($scope.db_edit | value.Checked);
-  }
+  };
 
   $scope.filter_dbs=function(){
     $scope.filtered_dbs = $filter('filter')($scope.databases, $scope.dbfilter);
     $scope.evalAll();
-  }
+  };
 
   $scope.edit=function(index){
     $scope.db_edit = false;
@@ -117,7 +126,7 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
     $scope.group = groupinfo;
     $scope.isSearching=false;
     $scope.isEditing = true;
-  }
+  };
 
   $scope.nochange=function(){
     if($scope.groupRef && $scope.dbRef){
@@ -126,7 +135,7 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
     else{
       return false;
     }
-  }
+  };
 
   $scope.addGroup=function(){
     $scope.group = {};
@@ -139,7 +148,7 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
     });
     $scope.isEditing = true;
     $scope.isSearching = false;
-  }
+  };
 
   $scope.saveGroup=function(){
     var groupdata = JSON.parse(JSON.stringify($scope.group));
@@ -158,7 +167,7 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
         toastr.success("Group updated successfuly!");
       }
     });
-  }
+  };
 
   $scope.removeGroup=function(){
     var gid = $scope.group.ID;
@@ -173,6 +182,6 @@ app.controller('GroupCtrl', function($http, $scope, $cookies, $cookieStore, $loc
       $scope.dbRef = null;
       toastr.success("Group removed");
     });
-  }
+  };
 
 });
