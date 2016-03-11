@@ -4,7 +4,6 @@ var async = require('async');
 var connection = require('../middleware/mysql');
 var encryption = require('../middleware/encryption');
 var db_tools = require('../tools/db_tools');
-var auth = require('../middleware/auth');
 
 
 function add_group(body, callback){
@@ -76,7 +75,7 @@ function update_group(body, callback){
         affected_dbnames.forEach(function(name, i){
           aff_dbs_query +=" OR `databases`.Name =?";
         });
-        aff_dbs_query +=");"
+        aff_dbs_query +=");";
         connection.query(aff_dbs_query, affected_dbnames, function(err, results){
           if(err){
             console.log(err);
@@ -115,7 +114,7 @@ router.get('/', function(req, res){
 
 router.get('/:username', function(req, res){
   var username = req.params.username;
-  var query = 'Select groups.ID as Group_ID, groups.Name, users_groups.Permissions, users_groups.GroupAdmin from groups Join users_groups on users_groups.Group_ID=groups.ID where users_groups.User_ID=(Select ID from users where Username=?);'
+  var query = 'Select groups.ID as Group_ID, groups.Name, users_groups.Permissions, users_groups.GroupAdmin from groups Join users_groups on users_groups.Group_ID=groups.ID where users_groups.User_ID=(Select ID from users where Username=?);';
   connection.query(query, [username], function(err, results){
     if(err){
       console.log(err);
@@ -126,7 +125,17 @@ router.get('/:username', function(req, res){
 });
 
 router.use(function(req,res,next){
-  return auth.isAdmin(req, res, next);
+  if(!res.locals.user || !res.locals.user.Admins || res.locals.user.Admins.length<1){
+    return res.send({Success: false, Error: 'Unauthorized to access this route!'});
+  }
+  else{
+    if(res.locals.user.Admins.indexOf(-1)<0){
+      return res.send({Success: false, Error: 'Not a full Admin!'});
+    }
+    else{
+      return next();
+    }
+  }
 });
 
 router.post('/search', function(req, res){
@@ -164,7 +173,7 @@ router.post('/', function(req, res){
       update_group(new_body, callback);
     },
     function(info, callback){
-      var activity =""
+      var activity ="";
       if(exists){
         activity = '"Updated group: ?"';
       }
@@ -178,7 +187,7 @@ router.post('/', function(req, res){
     if(err){
       return res.send({Success: false, Error: err});
     }
-    return res.send({Success: true, ID: results.ID})
+    return res.send({Success: true, ID: results.ID});
   });
 });
 

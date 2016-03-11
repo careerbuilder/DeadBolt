@@ -10,7 +10,7 @@ router.get('/', function(req, res){
       return res.send({Success: false, Error: err});
     }
     return res.send({Success:true,  Results:results});
-  })
+  });
 });
 
 router.delete('/:id', function(req, res){
@@ -26,13 +26,13 @@ router.delete('/:id', function(req, res){
 
 router.post('/retry/:id', function(req, res){
   var id = req.params.id;
-  var query = "Select users.*, `databases`.*, `errors`.Retryable from Errors Join Users ON Users.Username = errors.Username Join `Databases` ON `Databases`.Name = Errors.`Database` Where Errors.ID=?;"
+  var query = "Select users.*, `databases`.*, `errors`.Retryable from Errors Join Users ON Users.Username = errors.Username Join `Databases` ON `Databases`.Name = Errors.`Database` Where Errors.ID=?;";
   connection.query(query, [id], function(err, results){
     if(err){
       console.log(err);
       return res.send({Success:false, Error:err});
     }
-    if(results.length <1 || results[0].Retryable == 0){
+    if(results.length <1 || results[0].Retryable === 0){
       return res.send({Success:false, Error:'No retryable Error with that ID'});
     }
     var data = results;
@@ -48,7 +48,7 @@ router.post('/retry/:id', function(req, res){
 });
 
 router.post('/retry/', function(req, res){
-  var query = "Select users.*, `databases`.*, `errors`.Retryable from Errors Join Users ON Users.Username = errors.Username Join `Databases` ON `Databases`.Name = Errors.`Database` Where Errors.Acknowledged=0 AND Errors.Retryable=1;"
+  var query = "Select users.*, `databases`.*, `errors`.Retryable from Errors Join Users ON Users.Username = errors.Username Join `Databases` ON `Databases`.Name = Errors.`Database` Where Errors.Acknowledged=0 AND Errors.Retryable=1;";
   connection.query(query, function(err, results){
     if(err){
       console.log(err);

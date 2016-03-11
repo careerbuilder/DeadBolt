@@ -2,8 +2,6 @@ var express = require('express');
 var router = express.Router();
 var request = require('request');
 var async = require('async');
-var adapi = require('../middleware/adapi');
-var auth = require('../middleware/auth');
 var connection = require('../middleware/mysql');
 var encryption = require('../middleware/encryption');
 var db_tools = require('../tools/db_tools');
@@ -29,11 +27,8 @@ function add_user(body, callback){
     Email: body.Email,
     IsSVC: false
   };
-  //@TODO: call out to password portal
-  var query = 'Update `users` set `Active`=1 where `Username` = ?';
-  connection.query(query, [body.Username], function(err, result){
+  email.send_reset_email({Init:true, To:body.Email, Site:res.locals.url}, function(err){
     if(err){
-      console.log(err);
       return callback(err);
     }
     body.Active=1;
@@ -228,61 +223,12 @@ router.post('/', function(req, res){
 });
 
 router.use(function(req, res, next){
-  return auth.isAdmin(req, res, next);
-});
-
-router.post('/passwordchange', function(req, res){
-  var passwords = req.body.Passwords;
-  async.each(Object.keys(passwords), function(p, cb){
-    encryption.encrypt(passwords[p], function(err, enc){
-      if(err){
-        return cb(err);
-      }
-      else{
-        passwords[p] = enc;
-        return cb();
-      }
-    });
-  }, function(err){
-    if(err){
-      console.log(err);
-      return res.send({Success:false, Error:err});
-    }
-    connection.query('Select * from users where Username = ?;', [req.body.Username], function(err, users){
-      if(err){
-        console.log(err);
-        return res.send({Success: false, Error:err});
-      }
-      if(users.length<1){
-        return res.send({Success: false, Error: 'No user by that username'});
-      }
-      var user = users[0];
-      connection.query('Update `users` set `MySQL_Password`=?, `SQL_Server_Password`=? Where `ID`=?;', [passwords.mysql, passwords.mssql, user.ID], function(err, result){
-        if(err){
-          console.log(err);
-          return res.send({Success: false, Error:err});
-        }
-        var dbq = 'Select `databases`.* from `databases` join `groups_databases` on `groups_databases`.`Database_ID` = `databases`.`ID` join `users_groups` on `users_groups`.`Group_ID`=`groups_databases`.`Group_ID` join `users` on `users`.`ID` = `users_groups`.`User_ID` where `Users`.`Username`=?;';
-        connection.query(dbq, [req.body.Username], function(err, results){
-          if(err){
-            console.log(err);
-            return res.send({Success: false, Error:err});
-          }
-          if(results.length<1){
-            return res.send({Success: true});
-          }
-          async.each(results,function(db, inner_callback){
-            db_tools.update_users(db, [user], function(errs){
-              inner_callback();
-            });
-          }, function(err, result){
-            console.log("All Databases Updated for " + req.body.Username);
-          });
-          return res.send({Success: true});
-        });
-      });
-    });
-  });
+  if(res.locals.user.Admins && res.locals.user.Admins.length>0 && res.locals.user.Admins.indexOf(-1)>=0){
+    return next();
+  }
+  else{
+    return res.send({Success: false, Error: 'Insufficient Privileges'});
+  }
 });
 
 router.delete('/:id', function(req,res){

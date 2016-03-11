@@ -1,111 +1,66 @@
 var express = require('express');
 var router = express.Router();
 var connection = require('../middleware/mysql');
-var uuid = require('node-uuid');
-var crypto = require('crypto');
-var auth = require('../middleware/auth.js');
 
-router.get('/', function(req, res){
-  return res.send("Welcome to the API");
-});
 
-/*
-router.post('/signup', function(req,res){
-  var body = req.body;
-  if(!body.Email){
-    return res.send({Success:false, Error:"No Email!"});
-  }
-  if(!body.Password){
-    return res.send({Success:false, Error:"No Password!"});
-  }
-  connection.query("Select Portal_Password, Active from users where Email=?", [body.Email], function(err, results){
-    if(err){
-      return res.send({Success: false, Error: err});
-    }
-    if(results.length < 1){
-      return res.send({Success: false, Error: "User not found"});
-    }
-    if(results[0].Active && results[0].Active !== 0){
-      return res.send({Success: false, Error: "Sorry, This user has already registered."});
-    }
-    var salt = uuid.v4();
-    var shasum = crypto.createHash('sha512');
-    shasum.update(salt + body.Password);
-    var passwordhash = shasum.digest('hex');
-    connection.query("Update Users set Portal_Salt=?, Portal_Password = ?, Active=1 where Email=?;", [salt, passwordhash, body.Email], function(err, results){
-      if(err){
-        console.log(err);
-        return res.send({Success:false, Error: err});
-      }
-      return res.send({Success: true, Message: 'Successfully registered'});
-    });
-  });
-});
-*/
-
-router.post('/login', function(req,res){
-  var body = req.body;
-  if(!body.Email){
-    return res.send({Success: false, Error: "No Email!"});
-  }
-  if(!body.Password){
-    return res.send({Success: false, Error: "No Password!"});
-  }
-  //call out to password manager for auth
-  connection.query("Select ID, Email from Users where (Email= ? and Active=1) and ID in (select User_ID from users_groups where GroupAdmin=1) LIMIT 1;", [body.Email], function(err, results){
-    if(err){
-      console.log(err);
-      return res.send({Success:false, Error: "Error connecting to database:\n" + err});
-    }
-    else if(results.length < 1){
-      return res.send({Success:false, Error: "Not a valid User"});
-    }
-    var sessionid = uuid.v4();
-    var now = ~~(new Date().getTime()/1000);
-    //-----------------h-* m/h* s/m----------
-    var later = now + (6 * 60 * 60);
-    connection.query("Insert into Sessions (Session_ID, Expires, User_ID) Values(?, ?, ?)", [sessionid, later, results[0].ID], function(err, results){
-      if(err){
-        console.log(err);
-        return res.send({Succes:false, Error: "Error generating session ID:\n" + err});
-      }
-      res.cookie('rdsapit', sessionid, { maxAge: (6*60*60*1000)});
-      return res.send({Success:true, Message: 'Logged in successfuly as ' + body.Email, Session: sessionid});
-    });
-  });
-});
+router.use('/auth', require('./auth'));
 
 //This acts as a gateway, prohibiting any traffic not containing a valid Session ID
 router.use(function(req, res, next){
-  return auth.auth(req, res, next);
-});
-
-router.post('/auth', function(req, res){
-  if(res.locals.user.Admins.indexOf(-1)>-1){
-    return res.send({Success: true, FullAdmin: true, Admins: res.locals.user.Admins});
+  if(res.locals.user){
+    return next();
   }
-  else{
-    return res.send({Success: true, FullAdmin: false, Admins: res.locals.user.Admins});
+  var auth = req.headers.authorization;
+  if(!auth || auth.length<1){
+    return res.send({Success:false, valid:false, Error: "Unauthorized to perform this request"});
   }
-});
-
-router.get('/history/:timelength', function(req,res){
-  var past = req.params.timelength;
-  connection.query('Select Time, Activity from History WHERE Time BETWEEN DATE_SUB(NOW(), INTERVAL ? DAY) AND NOW() ORDER BY ID DESC LIMIT 15;', [past], function(err, results){
+  connection.query('Select User_ID, Expires from Sessions where Session_ID= ? LIMIT 1;', [auth], function(err, results){
     if(err){
-      console.log(err);
-      return res.send({Success:false, Error:err});
+      return res.send({Success:false, valid: false, Error: err});
     }
-    return res.send({Success: true, History:results});
+    if(results.length > 0){
+      result = results[0];
+      var now = ~~(new Date().getTime()/1000);
+      var valid = now <= result.Expires;
+      if(valid){
+        var q = 'Select users.ID, users.Username, ug.Group_ID from users left join (Select User_ID, Group_ID from users_groups where GroupAdmin =1) ug on ug.User_ID=users.ID where users.ID=?;';
+        connection.query(q, [results[0].User_ID], function(err, results){
+          if(err){
+            return res.send({Success:false, valid: false, Error: err});
+          }
+          if(result.length<1){
+            return res.send({Success:false, valid: false, Error: 'Invalid Session'});
+          }
+          var user = {
+            Username:results[0].Username,
+            ID: results[0].ID,
+            Admins: []
+          };
+          results.forEach(function(g){
+            if(g.Group_ID){
+              user.Admins.push(g.Group_ID);
+            }
+          });
+          res.locals.user = user;
+          return next();
+        });
+      }
+    }
+    else{
+      return res.send({Success:false, valid:false});
+    }
   });
 });
-router.use('/errors/', require('./errors.js'));
-router.use('/users/', require('./users.js'));
-router.use('/groups/', require('./groups.js'));
 
+router.use('/history', require('./history'));
+router.use('/users', require('./users'));
+router.use('/errors', require('./errors'));
+router.use('/groups', require('./groups'));
+
+//Only allow Full Admins to access other pages
 router.use(function(req, res, next){
   if(!res.locals.user || !res.locals.user.Admins || res.locals.user.Admins.length<1){
-    return res.send({Success: false, Error: 'No Auth!'});
+    return res.send({Success: false, Error: 'Unauthorized to access this route!'});
   }
   else{
     if(res.locals.user.Admins.indexOf(-1)<0){
@@ -116,7 +71,6 @@ router.use(function(req, res, next){
     }
   }
 });
-
-router.use('/databases/', require('./databases.js'));
+router.use('/databases/', require('./databases'));
 
 module.exports = router;
