@@ -52,6 +52,9 @@ app.factory('authService', ['$q', '$http','$cookies', function($q, $http, $cooki
       return session;
     },
     isAdmin: function(){
+      return admins.length>0;
+    },
+    isFullAdmin: function(){
       return fullAdmin;
     },
     getAdmins: function(){
@@ -87,7 +90,12 @@ app.factory('authService', ['$q', '$http','$cookies', function($q, $http, $cooki
             deferred.reject(err);
           }
           else{
-            deferred.resolve(admins);
+            if(admins.length>0){
+              deferred.resolve(admins);
+            }
+            else{
+              deferred.reject({authenticated: false});
+            }
           }
         });
       }

@@ -102,7 +102,12 @@ function update_group(body, callback){
 }
 
 router.get('/', function(req, res){
-  connection.query('Select ID, Name from groups;', function(err, results){
+  var gq = 'Select ID, Name from groups';
+  if(res.locals.user.Admins.indexOf(-1)<0){
+    gq += ' where ID in (?)';
+  }
+  gq+=';';
+  connection.query(gq, [res.locals.user.Admins], function(err, results){
     if(err){
       console.log(err);
       return res.send({Success:false, Error:err});

@@ -112,10 +112,10 @@ function update_user(body, caller, callback){
         var delIDs = dels.map(x => x.ID);
         var delq = 'Set @dummy=1';
         if(delIDs.length > 0){
-          delq = 'Delete from users_groups where Group_ID in (' + connection.escape(delIDs)+');';
+          delq = 'Delete from users_groups where Group_ID in (' + connection.escape(delIDs)+') and User_ID=?;';
         }
         // delete groups no longer allowed
-        connection.query(delq, function(err, result){
+        connection.query(delq, [User_ID], function(err, result){
           if(err){
             return callback(err);
           }

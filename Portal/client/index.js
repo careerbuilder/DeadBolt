@@ -76,6 +76,10 @@ app.controller('PageController', function($http, $scope, $location, authService,
 		return !!authService.isAdmin();
 	};
 
+	$scope.isFullAdmin=function(){
+		return !!authService.isFullAdmin();
+	};
+
 });
 
 app.directive("compareTo", function() {
@@ -109,7 +113,7 @@ app.run(["$rootScope", "$location", "toastr", "tabService", function($rootScope,
     if (eventObj.authenticated === false) {
       toastr.error('Please Log in First');
 			tabService.setTab(-1);
-      $location.path("/login");
+      $location.path("/");
     }
 		else if (eventObj.AdminAuth === false) {
 			toastr.error('Unauthorized to view this page');

@@ -117,7 +117,7 @@
             </div>
             <div class="col-xs-1">&nbsp;</div>
             <div class="col-xs-3">
-              <button class="btn btn-danger" ng-disabled="!user.Active" ng-click="removeUser()">Delete User</button>
+              <button class="btn btn-danger" ng-disabled="!user.Active || !isFullAdmin()" ng-click="removeUser()">Delete User</button>
             </div>
           </div>
         </form>

@@ -10,12 +10,12 @@ app.controller('AuthCtrl', function($http, $scope, $location, toastr, authServic
 
   $scope.logIn =  function(){
     authService.logIn($scope.auth).then(function(){
-      $scope.loginResult =  {Success: true, Message:"Login Succeeded!"};
       toastr.success('Welcome!');
+      $scope.auth={};
       $location.path('/');
     },
     function(reason){
-      $scope.loginResult =  {Success: false, Message:reason};
+      toastr.error(reason);
     });
   };
 
@@ -23,20 +23,21 @@ app.controller('AuthCtrl', function($http, $scope, $location, toastr, authServic
     authService.forgotPassword($scope.forgot.Email)
     .then(function(){
       toastr.success('Reset password email sent!');
+      $scope.forgot={};
       $location.path('/');
     }, function(err){
-      $scope.loginResult =  {Success: false, Message:err};
+      toastr.error(err);
     });
   };
 
   $scope.changePassword =  function(){
     authService.changePassword($scope.auth).then(function(){
-      $scope.loginResult =  {Success: true, Message:"Password Change Succeeded!"};
       toastr.success('Password successfully changed');
+      $scope.auth={};
       $location.path('/');
     },
     function(reason){
-      $scope.loginResult =  {Success: false, Message:reason};
+      toastr.error(reason);
     });
   };
 

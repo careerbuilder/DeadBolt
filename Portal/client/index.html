@@ -31,11 +31,11 @@
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav">
-            <li ng-class="{'active': getTab()==0}" ng-if="isLoggedIn()"><a href="#/history" ng-click="setTab(0)">History</a></li>
-            <li ng-class="{'active': getTab()==1}" ng-if="isLoggedIn()"><a href="#/users" ng-click="setTab(1)">Users</a></li>
-            <li ng-class="{'active': getTab()==2}" ng-if="isAdmin()"><a href="#/groups" ng-click="setTab(2)">Groups</a></li>
-            <li ng-class="{'active': getTab()==3}" ng-if="isAdmin()"><a href="#/databases" ng-click="setTab(3)">Databases</a></li>
-            <li ng-class="{'active': getTab()==4}" ng-if="isLoggedIn()"><a href="#/errors" ng-click="setTab(4)">Results</a></li>
+            <li ng-class="{'active': getTab()==0}" ng-if="isAdmin()"><a href="#/history" ng-click="setTab(0)">History</a></li>
+            <li ng-class="{'active': getTab()==1}" ng-if="isAdmin()"><a href="#/users" ng-click="setTab(1)">Users</a></li>
+            <li ng-class="{'active': getTab()==2}" ng-if="isFullAdmin()"><a href="#/groups" ng-click="setTab(2)">Groups</a></li>
+            <li ng-class="{'active': getTab()==3}" ng-if="isFullAdmin()"><a href="#/databases" ng-click="setTab(3)">Databases</a></li>
+            <li ng-class="{'active': getTab()==4}" ng-if="isAdmin()"><a href="#/errors" ng-click="setTab(4)">Results</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right" ng-if="isLoggedIn()">
             <li><a href="#/" ng-click="logOut()">Log Out</a></li>

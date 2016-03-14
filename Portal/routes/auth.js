@@ -39,7 +39,7 @@ function propagate_password(user, callback){
       if(err){
         return callback(err);
       }
-      var pq = 'Update users set MySQL_Password=?, SQL_Server_Password=?, Portal_Salt=?, Portal_Password=? where ID=?;';
+      var pq = 'Update users set MySQL_Password=?, SQL_Server_Password=?, Portal_Salt=?, Portal_Password=?, Active=1, Reset_ID=null where ID=?;';
       connection.query(pq, [h.mysql, h.mssql, creds.Salt, creds.Password, user.ID], function(err, result){
         if(err){
           return callabck(err);

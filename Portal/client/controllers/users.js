@@ -1,5 +1,3 @@
-'use strict';
-
 app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $location, toastr, authService, tabService){
   tabService.setTab(1);
 
@@ -20,7 +18,11 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
   });
 
   $scope.isAdmin=function(groupid){
-    return authService.isAdmin() || (authService.getAdmins().indexOf(groupid)>-1);
+    return authService.isFullAdmin() || (authService.getAdmins().indexOf(groupid)>-1);
+  };
+
+  $scope.isFullAdmin=function(groupid){
+    return authService.isFullAdmin();
   };
 
   $scope.search=function(pagenum){
@@ -40,7 +42,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
       }
     });
   }
-
+;
   $scope.page_change=function(newpage){
     $scope.currpage = newpage;
     var pages = [];
@@ -67,7 +69,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
       }
     }
     $scope.pages = pages;
-  }
+  };
 
   $scope.refreshSearch = function(){
     $http.post('/api/users/search/0', $scope.searchCreds).success(function(data){
@@ -83,14 +85,14 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
         $scope.numpages = numpages;
       }
     });
-  }
+  };
 
   $scope.groupChanged=function(group){
     if(!group.Checked){
       group.Permissions='';
       group.GroupAdmin =0;
     }
-  }
+  };
 
   $scope.page_array=function(){
     var quick_pages = [];
@@ -101,7 +103,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
       quick_pages.push(i);
     }
     return quick_pages;
-  }
+  };
 
   $scope.applyGroups = function(userinfo, callback){
     if(userinfo.Active){
@@ -195,7 +197,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
       $scope.user = {};
       $scope.refreshSearch();
     });
-  }
+  };
 
   $scope.search(0);
 
