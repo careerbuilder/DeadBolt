@@ -28,6 +28,14 @@ function add_user(body, callback){
     Email: body.Email,
     IsSVC: false
   };
+  if('AD' in global.config){
+    var ad = require('../middleware/adapi');
+    ad.add_user_to_AD(user, function(err){
+      if(err){
+        console.log(err);
+      }
+    });
+  }
   email.send_reset_email({Init:true, To:body.Email, Site:body.URL}, function(err){
     if(err){
       return callback(err);

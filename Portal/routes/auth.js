@@ -11,7 +11,7 @@ var db_tools = require('../tools/db_tools');
 function propagate_password(user, callback){
   if('AD' in global.config){
     if(!ad){
-      ad = require('../middleware/ad');
+      ad = require('../middleware/adapi');
     }
     ad.changePassword(user, function(err, data){
       if(err){
