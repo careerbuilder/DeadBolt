@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var request = require('request');
 var async = require('async');
+var email = require('../middleware/email');
 var connection = require('../middleware/mysql');
 var encryption = require('../middleware/encryption');
 var db_tools = require('../tools/db_tools');
@@ -27,7 +28,7 @@ function add_user(body, callback){
     Email: body.Email,
     IsSVC: false
   };
-  email.send_reset_email({Init:true, To:body.Email, Site:res.locals.url}, function(err){
+  email.send_reset_email({Init:true, To:body.Email, Site:body.URL}, function(err){
     if(err){
       return callback(err);
     }
@@ -193,6 +194,7 @@ router.post('/', function(req, res){
       if(body.Active && body.Active == 1){
         return callback(null, body);
       }
+      body.URL = res.locals.url;
       add_user(body, callback);
     },
     function(arg1, callback){

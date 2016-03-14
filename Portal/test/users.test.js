@@ -5,8 +5,8 @@ describe('users', function(){
   var blanket = require('blanket');
   var request = require('supertest');
   var bodyParser = require('body-parser');
-  var mysql = require('mysql');
   global.config = {ADAPI:"", DB:{}, kmskey: ""};
+  var mysql = require('mysql');
   var users = rewire('../routes/users.js');
 
   var mock_db = {
@@ -18,7 +18,7 @@ describe('users', function(){
       }
       var callback = args[args.length-1]; //last arg is callback
       if(args.length > 2){
-        var sql_args = args[1];
+        sql_args = args[1];
       }
       //get /:groupid
       if(args[0].search(/^select\s+users.username/i)>-1){
@@ -122,7 +122,7 @@ describe('users', function(){
     escape: function(val){
       return mysql.escape(val);
     }
-  }
+  };
 
   var error_db = {
     query: function(){
@@ -132,7 +132,7 @@ describe('users', function(){
     escape: function(val){
       return mysql.escape(val);
     }
-  }
+  };
 
   var mock_db_tools = {
     update_all_users: function(db, callback){
@@ -141,7 +141,7 @@ describe('users', function(){
     update_users: function(db, users, callback){
       return callback();
     }
-  }
+  };
 
   var mock_transport = {
     sendMail: function(details, callback){
@@ -150,7 +150,7 @@ describe('users', function(){
       }
       return callback(null, details);
     }
-  }
+  };
 
   var mock_AD = {
     add_user_to_AD: function(user, callback){
@@ -165,7 +165,7 @@ describe('users', function(){
       }
       return callback();
     }
-  }
+  };
 
   var mockAuth = {
     auth: function(req, res, next){
@@ -439,7 +439,7 @@ describe('users', function(){
             }
             var callback = args[args.length-1]; //last arg is callback
             if(args.length > 2){
-              var sql_args = args[1];
+              sql_args = args[1];
             }
             if(args[0].search(/^select\s+\*\s+from\s+users/i)>-1){
               if(sql_args && sql_args[0]){
@@ -496,7 +496,7 @@ describe('users', function(){
             }
             var callback = args[args.length-1]; //last arg is callback
             if(args.length > 2){
-              var sql_args = args[1];
+              sql_args = args[1];
             }
             if(args[0].search(/^select\s+\*\s+from\s+users/i)>-1){
               if(sql_args && sql_args[0]){
@@ -556,7 +556,7 @@ describe('users', function(){
             }
             var callback = args[args.length-1]; //last arg is callback
             if(args.length > 2){
-              var sql_args = args[1];
+              sql_args = args[1];
             }
             if(args[0].search(/^select\s+\*\s+from\s+users/i)>-1){
               if(sql_args && sql_args[0]){

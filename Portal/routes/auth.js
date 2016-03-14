@@ -80,7 +80,7 @@ router.post('/login', function(req,res){
   if(!body.Password){
     return res.send({Success: false, Error: "No Password!"});
   }
-  var aq = 'Select ID, Portal_Salt, Portal_Password from users where Username=? and Active=1;';
+  var aq = 'Select users.ID, Portal_Salt, Portal_Password, Username, Email, Group_ID, GroupAdmin from users Join users_groups on users_groups.User_ID=users.ID where Username=? and Active=1;';
   connection.query(aq,[req.body.Username],function(err, results){
     if(err){
       console.log(err);
@@ -89,34 +89,33 @@ router.post('/login', function(req,res){
     if(results.length<1){
       return res.send({Success: false, Error: 'No such user'});
     }
-    var userID = results[0].ID;
+    var user = results[0];
     var shasum = crypto.createHash('sha512');
-    shasum.update(results[0].Portal_Salt + body.Password);
+    shasum.update(user.Portal_Salt + body.Password);
     var passcheck = shasum.digest('hex');
-    if(passcheck != results[0].Portal_Password){
+    if(passcheck != user.Portal_Password){
       return res.send({Success: false, Error: 'Incorrect Password'});
     }
-    connection.query("Select ID, Email, Username from Users where (ID= ? and Active=1) and ID in (select User_ID from users_groups where GroupAdmin=1) LIMIT 1;", [userID], function(err, results){
+    delete user.Portal_Salt;
+    delete user.Portal_Password;
+    user.Admins = [];
+    results.forEach(function(r){
+      if(r.GroupAdmin && r.GroupAdmin>0){
+        user.Admins.push(r.Group_ID);
+      }
+    });
+    var sessionid = uuid.v4();
+    var now = ~~(new Date().getTime()/1000);
+    //-----------------h-* m/h* s/m----------
+    var later = now + (6 * 60 * 60);
+    var sq = "Insert into Sessions (Session_ID, Expires, User_ID) Values(?, ?, ?) ON DUPLICATE KEY UPDATE Session_ID=VALUES(Session_ID), Expires=VALUES(Expires);";
+    connection.query(sq, [sessionid, later, user.ID], function(err, results){
       if(err){
         console.log(err);
-        return res.send({Success:false, Error: "Error connecting to database:\n" + err});
+        return res.send({Succes:false, Error: "Error generating session ID:\n" + err});
       }
-      else if(results.length < 1){
-        return res.send({Success:false, Error: "Not a valid User"});
-      }
-      var sessionid = uuid.v4();
-      var now = ~~(new Date().getTime()/1000);
-      //-----------------h-* m/h* s/m----------
-      var later = now + (6 * 60 * 60);
-      var sq = "Insert into Sessions (Session_ID, Expires, User_ID) Values(?, ?, ?) ON DUPLICATE KEY UPDATE Session_ID=VALUES(Session_ID), Expires=VALUES(Expires);";
-      connection.query(sq, [sessionid, later, userID], function(err, results){
-        if(err){
-          console.log(err);
-          return res.send({Succes:false, Error: "Error generating session ID:\n" + err});
-        }
-        res.cookie('rdsapit', sessionid, { maxAge: (6*60*60*1000)});
-        return res.send({Success:true, Message: 'Logged in successfuly as ' + body.Email, Session: sessionid});
-      });
+      res.cookie('rdsapit', sessionid, { maxAge: (6*60*60*1000)});
+      return res.send({Success:true, User: user, Session: sessionid});
     });
   });
 });
@@ -148,6 +147,9 @@ router.post('/forgot', function(req, res){
 });
 
 router.post('/reset', function(req, res){
+  if(!req.body || !req.body.ResetID || !req.body.Username || !req.body.Password){
+    return res.send({Success: false, Error: 'Missing Reset Credentials'});
+  }
   var resetid = req.body.ResetID;
   connection.query('Select * from Users where Reset_ID=? and Username=? LIMIT 1;', [resetid, req.body.Username], function(err, results){
     if(err){
