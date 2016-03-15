@@ -233,7 +233,7 @@ if __name__ == '__main__':
     db_info = secrets['db']
     api_info = secrets['api']
     newusers = get_new_userlist()
-    login = requests.post(api_info['host'] + '/login/', data={'Email': api_info['email'], 'Password': api_info['password']}, verify=False)
+    login = requests.post(api_info['host'] + '/auth/login/', data={'Username': api_info['username'], 'Password': api_info['password']}, verify=False)
     response = login.json()
     if 'Success' in response and response['Success']:
         api_info['Session'] = response['Session']
