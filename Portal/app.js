@@ -24,15 +24,15 @@ app.use(function(req, res, next){
   var url;
   if(req.protocol == 'http'){
     url =req.protocol+'://'+req.hostname;
-    if(port !== 80){
-      url += ":"+port;
-    }
+    //if(port !== 80){
+    //  url += ":"+port;
+    //}
   }
   else if(req.protocol == 'https'){
     url =req.protocol+'://'+req.hostname;
-    if(port!==443){
-      url+=":"+port;
-    }
+    //if(port!==443){
+    //  url+=":"+port;
+    //}
   }
   else{
     url =req.protocol+'://'+req.hostname+':'+port;
