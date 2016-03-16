@@ -26,7 +26,7 @@ function add_user(body, callback){
     FirstName: body.FirstName,
     LastName: body.LastName,
     Email: body.Email,
-    IsSVC: false
+    IsSVC: body.IsSVC || false
   };
   if('AD' in global.config){
     var ad = require('../middleware/adapi');
@@ -36,12 +36,27 @@ function add_user(body, callback){
       }
     });
   }
-  email.send_reset_email({Init:true, To:body.Email, Site:body.URL}, function(err){
+  var aq = 'Insert Into users (Username, FirstName, LastName, Email, IsSVC) VALUES(?, ?, ?, ?, ?);';
+  connection.query(aq, [user.Username, user.FirstName, user.LastName, user.Email, user.IsSVC], function(err){
     if(err){
       return callback(err);
     }
-    body.Active=1;
-    return callback(null, body);
+    connection.query('Select ID from users where Email=? and Username=?;', [user.Email, user.Username], function(err, results){
+      if(err){
+        return callback(err);
+      }
+      if(results.length<1){
+        return callback('No such user');
+      }
+      body.ID = results[0].ID;
+      email.send_reset_email({Init:true, To:user.Email, Site:body.URL}, function(err){
+        if(err){
+          return callback(err);
+        }
+        body.Active=1;
+        return callback(null, body);
+      });
+    });
   });
 }
 
@@ -170,7 +185,7 @@ router.post('/search/:page', function(req, res){
   var start=  page * 50;
   var args = [];
   var count_query = 'Select Count(*) as Total from users';
-  var query = 'Select ID, Username, Email, FirstName, LastName, LENGTH(MySQL_Password) as hasmysql, LENGTH(SQL_Server_Password) as hasmssql, Active from users';
+  var query = 'Select ID, Username, Email, FirstName, LastName, LENGTH(MySQL_Password) as hasmysql, LENGTH(SQL_Server_Password) as hasmssql, Active, IsSVC from users';
   if(body.Info && body.Info.trim().length > 0){
     var info = "%"+body.Info+"%";
     args = [info, info, info, info];

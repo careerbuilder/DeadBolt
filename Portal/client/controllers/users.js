@@ -160,6 +160,18 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
     });
   };
 
+  $scope.addUser=function(){
+    $scope.user = {};
+    $scope.groupsRef=null;
+    $scope.groups.forEach(function(g, i){
+      g.Checked=false;
+      g.Permissions = "";
+      g.GroupAdmin = 0;
+    });
+    $scope.isEditing = true;
+    $scope.isSearching = false;
+  };
+
   $scope.nochange=function(){
     if($scope.userRef){
       return ($scope.userRef===JSON.stringify($scope.user) && ($scope.groupsRef === JSON.stringify($scope.groups)));

@@ -1,8 +1,7 @@
-app.controller('ResetCtrl', function($http, $scope, $location, toastr, ResetID){
+app.controller('ResetCtrl', function($http, $scope, $location, toastr, authService, ResetID){
   $scope.creds = {
     ResetID: ResetID
   };
-
   $scope.passwordError = null;
 
   $scope.validatePassword=function(){

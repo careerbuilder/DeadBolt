@@ -8,7 +8,7 @@
         <div class="col-sm-6">
           <form ng-submit="search(0)">
             <div class="input-group">
-            <input type="text" class="form-control" placeholder="Search for user" ng-model="searchCreds.Info">
+              <input type="text" class="form-control" placeholder="Search for user" ng-model="searchCreds.Info">
               <span class="input-group-btn">
                 <button class="btn btn-default" type="button" ng-click="search(0)">Search</button>
               </span>
@@ -19,6 +19,9 @@
     </div>
     <div class="panel-body" ng-show="isSearching || isEditing">
       <div id="searchResults" ng-show="isSearching">
+        <button class="btn btn-success" ng-click="addUser()">Add new User</button>
+        <br />
+        <br />
         <div class="table-responsive">
           <table class="table table-hover table-condensed">
             <tr>
@@ -65,19 +68,23 @@
               <h3>User Info</h3>
               <div class="input-group" ng-class="{'has-error': (userform.username.$invalid && userform.username.$dirty)}">
                 <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>Username</strong></span>
-                <input type="text" class="form-control" name="username" placeholder="Username" ng-model="user.Username" disabled>
+                <input type="text" class="form-control" name="username" placeholder="Username" ng-model="user.Username" ng-disabled="user.ID">
               </div>
               <div class="input-group" ng-class="{'has-error': (userform.firstname.$invalid && userform.firstname.$dirty)}">
                 <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>First Name</strong></span>
-                <input type="text" class="form-control" name="firstname" placeholder="First name" ng-model="user.FirstName" disabled>
+                <input type="text" class="form-control" name="firstname" placeholder="First name" ng-model="user.FirstName" ng-disabled="user.ID">
               </div>
               <div class="input-group" ng-class="{'has-error': (userform.lastname.$invalid && userform.lastname.$dirty)}">
                 <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>Last Name</strong></span>
-                <input type="text" class="form-control" name="lastname" placeholder="Last name" ng-model="user.LastName" disabled>
+                <input type="text" class="form-control" name="lastname" placeholder="Last name" ng-model="user.LastName" ng-disabled="user.ID">
               </div>
               <div class="input-group" ng-class="{'has-error': (userform.email.$invalid && userform.email.$dirty)}">
                 <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>Email</strong></span>
-                <input type="email" class="form-control" name="email" placeholder="Email" ng-model="user.Email" disabled>
+                <input type="email" class="form-control" name="email" placeholder="Email" ng-model="user.Email" ng-disabled="user.ID">
+              </div>
+              <div class="input-group" ng-class="{'has-error': (userform.svc.$invalid && userform.svc.$dirty)}">
+                <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>Is SVC</strong></span>
+                <input type="checkbox" class="form-control" name="svc" ng-model="user.IsSVC" ng-checked="user.IsSVC || user.IsSVC>0" ng-disabled="user.ID">
               </div>
               <hr>
               <p class="text-danger" ng-show="user.hasmysql + user.hasmssql < 1"><strong>User has not set a password</strong></p>

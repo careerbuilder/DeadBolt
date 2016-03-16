@@ -7,7 +7,7 @@ var transporter = nodemailer.createTransport(sesTransport());
 module.exports={
   send_reset_email: function(emailinfo, callback){
     var resetid = uuid.v4();
-    connection.query('Update Users Set Reset_ID=? where Email=?;',[resetid, emailinfo.To], function(err, result){
+    connection.query('Update Users Set Reset_ID=? where Email=?;', [resetid, emailinfo.To], function(err, result){
       if(err){
         return callback(err);
       }
@@ -63,4 +63,4 @@ module.exports={
       });
     });
   }
-}
+};
