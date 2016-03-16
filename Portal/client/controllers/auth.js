@@ -53,4 +53,8 @@ app.controller('AuthCtrl', function($http, $scope, $location, toastr, authServic
     }
   };
 
+  $scope.toggleLogin=function(){
+    $scope.loggingIn = !$scope.loggingIn;
+  };
+
 });

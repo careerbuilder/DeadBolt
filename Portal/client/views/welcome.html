@@ -20,7 +20,7 @@
                 <span class="input-group-addon" id="Password" style="text-align:left; min-width:100px;"><b>Password</b></span>
                 <input type="password" class="form-control" placeholder="Password" name="password" ng-pattern="/\S{8,}/i" ng-model="auth.Password" required />
               </div>
-              <a href="javascript:void(0)" ng-click="loggingIn=false" class="pull-right"><em><u>Forgot your password?</u></em></a>
+              <a href="javascript:void(0)" ng-click="toggleLogin()" class="pull-right"><em><u>Forgot your password?</u></em></a>
               <br />
               <hr>
               <button class="btn btn-lg btn-primary btn-block" type="submit">Log in</button>
@@ -34,7 +34,7 @@
                 <span class="input-group-addon" id="email" style="text-align:left; min-width:100px;"><b>Email</b></span>
                 <input type="email" class="form-control" placeholder="Email" name="email" ng-model="forgot.Email" required />
               </div>
-              <a href="javascript:void(0)" ng-click="loggingIn=true" class="pull-right"><em><u>Log in instead?</u></em></a>
+              <a href="javascript:void(0)" ng-click="toggleLogin()" class="pull-right"><em><u>Log in instead?</u></em></a>
               <br />
               <hr>
               <button class="btn btn-lg btn-primary btn-block" type="submit">Send Reset Email</button>
