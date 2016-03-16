@@ -162,7 +162,7 @@ module.exports = {
                 else{
                   permissions_query = "Grant USAGE ON *.* TO ? IDENTIFIED BY PASSWORD ?, ?@'localhost' IDENTIFIED BY PASSWORD ?";
                 }
-                if(dbinfo.ForceSSL){
+                if(dbinfo.ForceSSL && !user.IsSVC){
                   permissions_query += " REQUIRE SSL";
                 }
                 if(user.Permissions === "SU"){
