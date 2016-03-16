@@ -7,11 +7,11 @@ app.factory('authService', ['$q', '$http','$cookies', function($q, $http, $cooki
   var fullAdmin = false;
 
   var requirements = {
-    Forbidden:  [],
+    Forbidden:  [/p[a@][$s]{2}/i, '123', /t[e3][s$]t/i, /^admin/i, /^guest$/i, /\s+/, /[,\\]/],
     MinLength: 8,
     MinLowerCase: 1,
     MinUpperCase: 1,
-    MinNumbers:1,
+    MinNumbers:2,
     MinSymbols:1
   };
 
@@ -180,6 +180,9 @@ app.factory('authService', ['$q', '$http','$cookies', function($q, $http, $cooki
     validatePassword: function(creds){
       if(!creds || !creds.Password || creds.Password.length<1){
         return {Valid:true};
+      }
+      if(creds.Password.length<requirements.MinLength){
+        return {Valid:false, Error:'Password must be at least ' + requirements.MinLength + ' characters'};
       }
       for(var i=0; i<requirements.Forbidden.length; i++){
         var f = requirements.Forbidden[i];

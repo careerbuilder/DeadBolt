@@ -52,7 +52,7 @@
             <form class="simple-form" name="changeform" ng-submit="changeform.$valid && isLoggedIn() && changePassword()">
               <div class="input-group form-group" ng-class="{'has-error': (changeform.password.$invalid && changeform.password.$dirty)}">
                 <span class="input-group-addon" id="Password" style="text-align:left; min-width:100px;"><b>Password</b></span>
-                <input type="password" class="form-control" placeholder="Password" name="password" ng-pattern="/\S{8,}/i" ng-model="auth.Password" required />
+                <input type="password" class="form-control" placeholder="Password" name="password" ng-model="auth.Password" required />
               </div>
               <p class="help-block text-danger" ng-show="!validatePassword()">{{passwordError}}</p>
               <div class="input-group form-group" ng-class="{'has-error': (changeform.Password2.$invalid && changeform.Password2.$dirty)}">
