@@ -125,7 +125,7 @@ def filter_info(info):
 
 
 def get_existing_users():
-    query = 'Select `Username`, `LastName`, `FirstName`, `Email`, `ID`, `Active` from `users`;'
+    query = 'Select `Username`, `LastName`, `FirstName`, `Email`, `ID`, `Active` from `users` Where `IsSVC`=0;'
     cursor = cnx.cursor()
     cursor.execute(query)
     old_users = {}
