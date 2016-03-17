@@ -267,5 +267,16 @@ module.exports = {
       console.log('---------------------------\nEND OPERATIONS FOR ' + dbinfo.Name +'\n---------------------------');
       callback(errors);
     });
+  },
+  test_connection: function(db, callback){
+    mssql_connection.connect(db, function(err, test_conn){
+      if(err){
+        return callback(err, false);
+      }
+      else{
+        test_conn.close();
+        return callback(null, true);
+      }
+    });
   }
 };

@@ -88,16 +88,35 @@
               <button class="btn" ng-show="database.ID && !editing_pass" ng-click="change_pass()">Change SA Password</button>
               <button class="btn btn-danger" ng-show="editing_pass" ng-click="cancel_change_pass()">Cancel</button>
             </div>
-            <div class="col-sm-1">&nbsp;</div>
           </div>
           <br />
           <div class="row">
             <div class="col-xs-3">
-              <button class="btn btn-success" ng-click="saveDB()" ng-disabled="databaseform.$invalid || nochange()">Save Changes</button>
+              <button class="btn btn-success" ng-click="saveDB(false)" ng-disabled="databaseform.$invalid || nochange()" ng-if="database.ID && !editing_pass">Save Changes</button>
+              <div class="btn-group" ng-if="!database.ID || editing_pass">
+                <button class="btn btn-success" ng-click="saveDB(false)" ng-disabled="databaseform.$invalid">Add Database</button>
+                <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" ng-disabled="databaseform.$invalid">
+                  <span class="caret"></span>
+                  <span class="sr-only">Toggle Dropdown</span>
+                </button>
+                <ul class="dropdown-menu">
+                  <li ng-click="test_db()"><a href="javascript:void(0)">Test Connection</a></li>
+                  <li ng-click="saveDB(true)"><a href="javascript:void(0)">Force Add</a></li>
+                </ul>
+              </div>
             </div>
-            <div class="col-xs-1">&nbsp;</div>
-            <div class="col-xs-5">
-              <button class="btn btn-danger" ng-click="removeDB()" ng-disabled="!database.ID">Delete Database</button>
+            <div class="col-xs-3 pull-right">
+              <button class="btn btn-danger pull-right" ng-click="removeDB(false)" ng-disabled="!database.ID" ng-if="!database.ID">Delete Database</button>
+              <div class="btn-group pull-right" ng-if="database.ID">
+                <button class="btn btn-danger" ng-click="removeDB(false)" ng-disabled="!database.ID">Delete Database</button>
+                <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <span class="caret"></span>
+                  <span class="sr-only">Toggle Dropdown</span>
+                </button>
+                <ul class="dropdown-menu">
+                  <li ng-click="removeDB(true)"><a href="javascript:void(0)">Force Delete</a></li>
+                </ul>
+              </div>
             </div>
           </div>
         </form>

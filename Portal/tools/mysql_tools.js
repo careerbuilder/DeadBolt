@@ -3,6 +3,17 @@ var async = require('async');
 var encryption = require('../middleware/encryption');
 
 module.exports = {
+  test_connection: function(db, callback){
+    var test_conn = mysql.createConnection(db);
+    test_conn.connect(function(err) {
+      if (err) {
+        return callback(err, false);
+      }
+      test_conn.end(function(err) {
+        return callback(null, true);
+      });
+    });
+  },
   update_users: function(db, affected_users, gospel_users, top_callback){
     var dbinfo = db;
     var errors = [];

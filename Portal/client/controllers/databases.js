@@ -1,5 +1,3 @@
-'use strict';
-
 app.controller('DBCtrl', function($http, $scope, $cookies, $cookieStore, $location, toastr, tabService){
   $scope.searchResults = [];
   $scope.database = {};
@@ -65,25 +63,50 @@ app.controller('DBCtrl', function($http, $scope, $cookies, $cookieStore, $locati
     $scope.isSearching = false;
   };
 
-  $scope.saveDB=function(){
+  $scope.test_db=function(){
     var dbdata = JSON.parse(JSON.stringify($scope.database));
-    $http.post('/api/databases', dbdata).success(function(data){
+    $http.post('/api/databases/test', dbdata).then(function(res){
+      var data = res.data;
       if(data.Success){
-        $scope.database.ID = data.ID;
-        $scope.refreshSearch();
-        toastr.success("Database updated successfuly!");
+        toastr.success("Connection established!");
+      }
+      else{
+        toastr.error('Invalid connection credentials');
       }
     });
   };
 
-  $scope.removeDB=function(){
+  $scope.saveDB=function(force){
+    var dbdata = JSON.parse(JSON.stringify($scope.database));
+    dbdata.Force = force || false;
+    $http.post('/api/databases', dbdata).then(function(res){
+      var data = res.data;
+      if(data.Success){
+        $scope.editing_pass=false;
+        $scope.refreshSearch();
+        toastr.success("Database updated successfuly!");
+      }
+      else{
+        toastr.error(data.Error);
+      }
+    });
+  };
+
+  $scope.removeDB=function(force){
     var dbid = $scope.database.ID;
-    $http.delete('/api/databases/' + dbid).success(function(data){
+    var endpoint = '/api/databases/' + dbid;
+    if(force){
+      endpoint+='?force=1';
+    }
+    $http.delete(endpoint).then(function(res){
+      var data = res.data;
       $scope.isEditing=false;
       $scope.refreshSearch();
       $scope.isSearching = true;
       $scope.database = {};
       toastr.success("Database removed");
+    }, function(err){
+      toastr.error(err);
     });
   };
 

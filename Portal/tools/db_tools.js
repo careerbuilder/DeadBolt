@@ -196,5 +196,31 @@ module.exports = {
         callback(errs);
       });
     });
+  },
+  test_connection: function(db, callback){
+    if(db.Type == 'mysql' || db.Type == 'aurora'){
+      mysql_tools.test_connection({
+        host     : db.Host,
+        port     : db.Port,
+        user     : db.SAUser,
+        password : db.SAPass,
+        database : 'mysql'
+      }, function(err, valid){
+        return callback(err, valid);
+      });
+    }
+    else if(db.Type=='mssql'){
+      return mssql_tools.test_connection({
+        user    : db.SAUser,
+        password: db.SAPass,
+        server  : db.Host,
+        port    : db.Port
+      }, function(err, valid){
+        return callback(err, valid);
+      });
+    }
+    else{
+      return callback('Unsupported DB Flavor', false);
+    }
   }
 };
