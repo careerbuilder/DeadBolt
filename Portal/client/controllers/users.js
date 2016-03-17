@@ -196,7 +196,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
         toastr.success("User updated successfuly!");
       }
       else{
-        toastr.error(data.Error, "User failed to updated");
+        toastr.error(data.Error, "User failed to update");
       }
     }, function(err){
       toastr.error(err);
