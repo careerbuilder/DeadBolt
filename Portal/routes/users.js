@@ -36,7 +36,7 @@ function add_user(body, callback){
       }
     });
   }
-  var aq = 'Insert Into users (Username, FirstName, LastName, Email, IsSVC) VALUES(?, ?, ?, ?, ?);';
+  var aq = 'Insert Into users (Username, FirstName, LastName, Email, IsSVC) VALUES(?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE Username=Username;';
   connection.query(aq, [user.Username, user.FirstName, user.LastName, user.Email, user.IsSVC], function(err){
     if(err){
       return callback(err);
