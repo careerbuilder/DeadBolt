@@ -189,8 +189,12 @@ router.post('/search/:page', function(req, res){
   if(body.Info && body.Info.trim().length > 0){
     var info = "%"+body.Info+"%";
     args = [info, info, info, info];
-    count_query += ' where (Username like ? OR Email like ? OR FirstName like ? OR LastName like ?)';
-    query += ' where (Username like ? OR Email like ? OR FirstName like ? OR LastName like ?)';
+    count_query += ' where (Username like ? OR Email like ? OR FirstName like ? OR LastName like ?) AND ID>=0';
+    query += ' where (Username like ? OR Email like ? OR FirstName like ? OR LastName like ?) ID>=0';
+  }
+  else{
+    count_query += ' where ID>=0';
+    query += ' where ID>=0';
   }
   connection.query(count_query +';', args, function(err, results){
     if(err){
