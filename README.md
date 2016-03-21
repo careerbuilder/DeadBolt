@@ -36,7 +36,7 @@ _config.json_
 * Install npm
 * Install bower globally with `npm install -g bower`
 * Run `npm install --production`
-* Run `Scripts/db-setup.sql` against your database
+* Run `db-setup.sql` against your database
 * The db-setup script will create a single user, `deadboltsvc`
 * Run `node app.js` to start the app. You can also install pm2 and daemonize the app  with `pm2 start app.js --name "deadbolt"` to leave it running.
 * Navigate to `https://YOURHOST/#/reset/deadboltsvcreset` and set a password for the username `deadboltsvc`
@@ -66,4 +66,4 @@ There is a workaround currently to allow pushing users and password changes to a
 - [ ] Postgresql
 - [ ] Oracle
 
-__Deadbolt was designed at Careerbuilder for the SiteDB team to maintain users across a variety of database platforms. As such, the ordering of supported databases relies on that team's usecases and the contribution of outside developers.__
+_Deadbolt was designed at Careerbuilder for the SiteDB team to maintain users across a variety of database platforms. As such, the ordering of supported databases relies on that team's usecases and the contribution of outside developers._
