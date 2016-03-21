@@ -6,8 +6,8 @@ DeadBolt was created to allow for user Identity and Access Management(IAM) in Am
 * Create an Amazon IAM Role with ses:send_email permissions
 * Create an EC2 isntance with that Role (alternatively, run aws config on an existing instance)
 * Create an accessible MySQL database
-* Copy `Portal/defaultconfig.json` to `Portal/config.json`
-* Edit `Portal/config.json` for your configuration
+* Copy `defaultconfig.json` to `config.json`
+* Edit `config.json` for your configuration
 The config file should be a json object, with the following layout:
 
 _config.json_
@@ -35,9 +35,10 @@ _config.json_
 
 * Install npm
 * Install bower globally with `npm install -g bower`
-* Run `npm install --production` in the Portal dir
+* Run `npm install --production`
 * Run `Scripts/db-setup.sql` against your database
 * The db-setup script will create a single user, `deadboltsvc`
+* Run `node app.js` to start the app. You can also install pm2 and daemonize the app  with `pm2 start app.js --name "deadbolt"` to leave it running.
 * Navigate to `https://YOURHOST/#/reset/deadboltsvcreset` and set a password for the username `deadboltsvc`
 * Open a browser and navigate to your host. Login as `deadboltsvc`, and start using deadbolt!
 
