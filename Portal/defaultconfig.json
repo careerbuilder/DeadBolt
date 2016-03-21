@@ -1,0 +1,13 @@
+{
+  "kmskey": "alias/deadbolt",
+  "DB" : {
+    "host"      : "localhost",
+    "user"      : "root",
+    "password"  : "admin",
+    "database"  : "deadbolt",
+    "port"      : 3306
+  },
+  "Email":{
+    "From": "Deadbolt@127.0.0.1"
+  }
+}
