@@ -202,7 +202,7 @@ router.post('/search/:page', function(req, res){
     var info = "%"+body.Info+"%";
     args = [info, info, info, info];
     count_query += ' where (Username like ? OR Email like ? OR FirstName like ? OR LastName like ?) AND ID>=0';
-    query += ' where (Username like ? OR Email like ? OR FirstName like ? OR LastName like ?) ID>=0';
+    query += ' where (Username like ? OR Email like ? OR FirstName like ? OR LastName like ?) AND ID>=0';
   }
   else{
     count_query += ' where ID>=0';
