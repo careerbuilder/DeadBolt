@@ -3,7 +3,7 @@
 -- Licensed under the Apache License, Version 2.0 (the "License");
 -- you may not use this file except in compliance with the License.
 -- You may obtain a copy of the License at
--- 
+--
 --     http://www.apache.org/licenses/LICENSE-2.0
 -- Unless required by applicable law or agreed to in writing, software
 -- distributed under the License is distributed on an "AS IS" BASIS,
@@ -80,7 +80,7 @@
               <h3>User Info</h3>
               <div class="input-group" ng-class="{'has-error': (userform.username.$invalid && userform.username.$dirty)}">
                 <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>Username</strong></span>
-                <input type="text" class="form-control" name="username" placeholder="Username" ng-model="user.Username" ng-disabled="user.ID">
+                <input type="text" class="form-control" name="username" placeholder="Username" ng-model="user.Username" ng-disabled="user.ID" ng-maxlength="16">
               </div>
               <div class="input-group" ng-class="{'has-error': (userform.firstname.$invalid && userform.firstname.$dirty)}">
                 <span class="input-group-addon" style="min-width:100px; text-align:left;"><strong>First Name</strong></span>
