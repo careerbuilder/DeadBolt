@@ -38,7 +38,8 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
   };
 
   $scope.search=function(pagenum){
-    $http.post('/api/users/search/'+pagenum, $scope.searchCreds).success(function(data){
+    $http.post('/api/users/search/'+pagenum, $scope.searchCreds).then(function(res){
+      var data = res.data;
       if(data.Success){
         $scope.isEditing = false;
         $scope.isSearching = true;
@@ -52,6 +53,11 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
         $scope.currpage = 1;
         $scope.page_change(pagenum+1);
       }
+      else{
+        toastr.error(data.Error);
+      }
+    }, function(err){
+      toastr.error(err);
     });
   }
 ;
