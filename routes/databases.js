@@ -3,7 +3,7 @@
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
-* 
+*
 *     http://www.apache.org/licenses/LICENSE-2.0
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,9 +13,11 @@
 var express = require('express');
 var router = express.Router();
 var async = require('async');
+var audit = require('../middleware/audit');
 var connection = require('../middleware/mysql');
 var encryption = require('../middleware/encryption');
 var db_tools = require('../tools/db_tools');
+
 
 function test_connection(db, callback){
   if(db.Force){
@@ -63,7 +65,7 @@ function add_database(body, callback){
             }
             var dbinfo = {Name: body.Name, Type: body.Type, Host: body.Host, Port: body.Port, SAUser: body.SAUser, SAPass: sacreds, ForceSSL:body.ForceSSL, ID:DB_ID};
             db_tools.update_all_users(dbinfo, function(err, results){});
-            connection.query('Insert into History (Activity) Value("Added Database: ?")', [body.Name], function(err, result){
+            audit.record("Added Database: ?", [body.Host], function(err){
               if(err){
                 console.log(err);
               }
@@ -116,7 +118,7 @@ function update_database(body, callback){
         }
         var dbinfo = {Name: body.Name, Type: body.Type, Host: body.Host, Port: body.Port, SAUser: body.SAUser, SAPass: sacreds, ForceSSL:body.ForceSSL, ID:DB_ID};
         db_tools.update_all_users(dbinfo, function(err, results){});
-        connection.query('Insert into History (Activity) Value("Edited Database: ?")', [body.Name], function(err, result){
+        audit.record("Edited Database: ?", [body.Host], function(err){
           if(err){
             console.log(err);
           }
@@ -260,7 +262,7 @@ router.delete('/:id', function(req,res){
       });
     },
     function(cb){
-      connection.query('insert into history (Activity) Value("Deleted db : ?")', [dbinfo.Name], function(err, result){
+      audit.record("Deleted db : ?", [dbinfo.Host], function(err, result){
         if(err){
           console.log(err);
         }

@@ -15,6 +15,7 @@ var router = express.Router();
 var request = require('request');
 var async = require('async');
 var email = require('../middleware/email');
+var audit = require('../middleware/audit');
 var connection = require('../middleware/mysql');
 var encryption = require('../middleware/encryption');
 var db_tools = require('../tools/db_tools');
@@ -242,12 +243,12 @@ router.post('/', function(req, res){
     function(userinfo, callback){
       var activity = "";
       if(exists){
-        activity = '"Updated user: ?"';
+        activity = 'Updated user: ?';
       }
       else{
-        activity = '"Added user: ?"';
+        activity = 'Added user: ?';
       }
-      connection.query('Insert into History (Activity) Value('+ activity +')', [userinfo.Username], function(err, result){
+      audit.record(activity, [userinfo.Username], function(err){
         if(err){
           console.log(err);
         }
@@ -284,7 +285,6 @@ router.delete('/:id', function(req,res){
     }
     var user = results[0];
     var username = user.Username;
-    //@TODO: add call to password manager
     var db_query = "Select DISTINCT * from `databases` where ID in (Select Database_ID from groups_databases where Group_ID in (Select Group_ID from users_groups where User_ID = ?))";
     connection.query(db_query, [user_id], function(err, results){
       if(err){
@@ -309,10 +309,9 @@ router.delete('/:id', function(req,res){
               console.log(err);
               return res.send({Success:false, Error: err});
             }
-            connection.query('Insert into History (Activity) Value("Deleted user: ?")', [username], function(err, result){
+            audit.record("Deleted user: ?", [username], function(err){
               if(err){
                 console.log(err);
-                return res.send({Success: true, Error: "History error: " + err.toString(), });
               }
               return res.send({Success: true});
             });

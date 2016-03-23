@@ -3,7 +3,7 @@
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
-* 
+*
 *     http://www.apache.org/licenses/LICENSE-2.0
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,6 +15,7 @@ var router = express.Router();
 var async = require('async');
 var connection = require('../middleware/mysql');
 var encryption = require('../middleware/encryption');
+var audit = require('../middleware/audit');
 var db_tools = require('../tools/db_tools');
 
 
@@ -192,13 +193,17 @@ router.post('/', function(req, res){
     function(info, callback){
       var activity ="";
       if(exists){
-        activity = '"Updated group: ?"';
+        activity = 'Updated group: ?';
       }
       else{
-        activity = '"Added Group: ?"';
+        activity = 'Added Group: ?';
       }
-      connection.query('Insert into History (Activity) Value(' + activity +')', [info.Name], function(err, result){});
-      callback(null, info);
+      audit.record(activity, [info.Name, info], function(err){
+        if(err){
+          console.log(err);
+        }
+        return callback(null, info);
+      });
     }
   ], function(err, results){
     if(err){
@@ -242,10 +247,9 @@ router.delete('/:id', function(req,res){
             databases.forEach(function(db, i){
               db_tools.update_users(db, users, function(errors){});
             });
-            connection.query('Insert into History (Activity) Value("Deleted group with ID: ?")', [group_id], function(err, result){
+            audit.record("Deleted group with ID: ?", [group_id], function(err){
               if(err){
                 console.log(err);
-                return res.send({Success: true, Error: "History error: " + err.toString(), });
               }
               return res.send({Success: true});
             });
