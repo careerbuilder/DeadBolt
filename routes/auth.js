@@ -3,7 +3,7 @@
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
-* 
+*
 *     http://www.apache.org/licenses/LICENSE-2.0
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,6 +14,7 @@ var router = require('express').Router();
 var uuid = require('node-uuid');
 var crypto = require('crypto');
 var async = require('async');
+var email = require('../middleware/email');
 var connection = require('../middleware/mysql');
 var email = require('../middleware/email');
 var hashes = require('../middleware/hashes');
@@ -51,8 +52,87 @@ function propagate_password(user, callback){
       if(err){
         return callback(err);
       }
-      var pq = 'Update users set MySQL_Password=?, SQL_Server_Password=?, Portal_Salt=?, Portal_Password=?, Active=1, Reset_ID=null where ID=?;';
-      connection.query(pq, [h.mysql, h.mssql, creds.Salt, creds.Password, user.ID], function(err, result){
+      var exp = Math.floor(new Date().getTime()/1000)+(60*60*24*90);
+      var pq = 'Update users set MySQL_Password=?, SQL_Server_Password=?, Portal_Salt=?, Portal_Password=?, Active=1, Reset_ID=null, Expires=? where ID=?;';
+      connection.query(pq, [h.mysql, h.mssql, creds.Salt, creds.Password, exp, user.ID], function(err){
+        if(err){
+          return callback(err);
+        }
+        connection.query('Select * from users where ID=?;', [user.ID], function(err, users){
+          if(err){
+            return callback(err);
+          }
+          user = users[0];
+          var dbq = 'Select `databases`.* from `databases` join `groups_databases` on `groups_databases`.`Database_ID` = `databases`.`ID` join `users_groups` on `users_groups`.`Group_ID`=`groups_databases`.`Group_ID` join `users` on `users`.`ID` = `users_groups`.`User_ID` where `Users`.`ID`=?;';
+          connection.query(dbq, [user.ID], function(err, results){
+            if(err){
+              return callback(err);
+            }
+            if(results.length<1){
+              return callback();
+            }
+            async.each(results,function(db, inner_callback){
+              db_tools.update_users(db, [user], function(errs){
+                inner_callback();
+              });
+            }, function(err, result){
+              console.log("All Databases Updated for " + user.Username);
+            });
+            return callback();
+          });
+        });
+      });
+    });
+  });
+}
+
+function warn_expire(emailaddr, daysleft, site, callback){
+  var emailinfo = {
+    To: emailaddr,
+    Days: daysleft,
+    Site: site
+  };
+  email.send_expires_email(emailinfo, function(err){
+    if(err){
+      return callback(err);
+    }
+    return callback();
+  });
+}
+
+function expire_pass(user, callback){
+  if('AD' in global.config){
+    if(!ad){
+      ad = require('../middleware/adapi');
+    }
+    ad.changePassword(user, function(err, data){
+      if(err){
+        console.log(err);
+      }
+      else{
+        console.log(data);
+      }
+    });
+  }
+  user.Password = hashes.randomPass(32);
+  hashes.get_all(user.Password, function(h){
+    delete h.portal;
+    async.each(Object.keys(h), function(p, cb){
+      encryption.encrypt(h[p], function(err, enc){
+        if(err){
+          return cb(err);
+        }
+        else{
+          h[p] = enc;
+          return cb();
+        }
+      });
+    }, function(err){
+      if(err){
+        return callback(err);
+      }
+      var pq = 'Update users set MySQL_Password=?, SQL_Server_Password=?, Active=1, Reset_ID=null, Expires=null where ID=?;';
+      connection.query(pq, [h.mysql, h.mssql, user.ID], function(err, result){
         if(err){
           return callabck(err);
         }
@@ -83,6 +163,40 @@ function propagate_password(user, callback){
     });
   });
 }
+
+router.get('/expired', function(req, res){
+  var now = Math.floor(new Date().getTime()/1000);
+  var warning = now + (60*60*24*5); //5 days before expire
+  connection.query('Select * from users where Active=1 and IsSVC!=1 and Length(MySQL_Password)>0 and Expires<=?', [warning], function(err, results){
+    if(err){
+      return res.send({Success: false, Error:err});
+    }
+    async.each(results, function(r, cb){
+      var daysleft = Math.floor((r.Expires-now)/(60*60*24));
+      warn_expire(r.Email, daysleft, res.locals.url, function(err){
+        if(err){
+          console.log(err);
+        }
+        if(daysleft<1){
+          expire_pass(r, function(err){
+            if(err){
+              console.log(err);
+            }
+            return cb();
+          });
+        }
+        else{
+          return cb();
+        }
+      });
+    }, function(err){
+      if(err){
+        console.log(err);
+      }
+      return res.send({Success: true});
+    });
+  });
+});
 
 router.post('/login', function(req,res){
   var body = req.body;

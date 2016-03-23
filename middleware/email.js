@@ -3,7 +3,7 @@
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
-* 
+*
 *     http://www.apache.org/licenses/LICENSE-2.0
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
@@ -73,6 +73,33 @@ module.exports={
         }
         return callback();
       });
+    });
+  },
+  send_expires_email: function(emailinfo, callback){
+    var url = emailinfo.Site+'/#/';
+    var status = (emailinfo.Days > 0) ? ("will expire in " + emailinfo.Days + ((emailinfo.Days>1)? ' days' : ' day')) : 'has expired';
+    var plaintext = "Your Deadbolt password " + status + "! To avoid being locked out of your databases, please go to "+ url +" and change your password.";
+    var html = '<p>'+plaintext+'</p>';
+    if('Email' in global.config){
+      if('ExpiresText' in global.config.Email){
+        plaintext = global.config.Email.ExpiresText;
+        html = '<p>'+plaintext+'</p>';
+      }
+      if('ExpiresHtml' in global.config.Email){
+        html = global.config.Email.ExpiresHtml;
+      }
+    }
+    transporter.sendMail({
+      from: global.config.Email.From || "Deadbolt@yoursite.com",
+      to: emailinfo.To,
+      subject: 'Password Expiration Notice',
+      text: plaintext,
+      html: html
+    }, function(err, info){
+      if(err){
+        return callback(err);
+      }
+      return callback();
     });
   }
 };

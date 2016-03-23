@@ -9,6 +9,7 @@
 -- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 -- See the License for the specific language governing permissions and limitations under the License.
 
+
 CREATE DATABASE IF NOT EXISTS `deadbolt` /*!40100 DEFAULT CHARACTER SET utf8 */;
 USE deadbolt;
 
@@ -82,6 +83,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `Active` tinyint(1) DEFAULT '0',
   `Reset_ID` varchar(128) DEFAULT NULL,
   `IsSVC` tinyint(1) NOT NULL DEFAULT '0',
+  `Expires` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`ID`),
   UNIQUE KEY `Username_UNIQUE` (`Username`),
   UNIQUE KEY `User_ID_UNIQUE` (`User_ID`),
