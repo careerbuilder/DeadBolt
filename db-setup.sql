@@ -73,7 +73,6 @@ CREATE TABLE IF NOT EXISTS `users` (
   `Email` varchar(200) DEFAULT NULL,
   `FirstName` varchar(128) DEFAULT NULL,
   `LastName` varchar(128) DEFAULT NULL,
-  `User_ID` int(11) DEFAULT NULL,
   `MySQL_Password` text,
   `SQL_Server_Password` text,
   `Mongo_Password` text,
@@ -86,8 +85,6 @@ CREATE TABLE IF NOT EXISTS `users` (
   `Expires` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`ID`),
   UNIQUE KEY `Username_UNIQUE` (`Username`),
-  UNIQUE KEY `User_ID_UNIQUE` (`User_ID`),
-  KEY `Added_User_idx` (`User_ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `users` (`ID`, `Username`, `Reset_ID`, `Active`, `IsSVC`) VALUES(-1, 'deadboltsvc', 'deadboltsvcreset', 1, 1);
