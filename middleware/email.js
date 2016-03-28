@@ -12,9 +12,15 @@
 */
 var uuid = require('node-uuid');
 var nodemailer  = require('nodemailer');
-var sesTransport= require('nodemailer-ses-transport');
 var connection = require('./mysql.js');
-var transporter = nodemailer.createTransport(sesTransport());
+var transporter;
+if(global.config.Email.SMTP){
+  transporter = nodemailer.createTransport(global.config.Email.SMTP);
+}
+else{
+  var sesTransport= require('nodemailer-ses-transport');
+  transporter = nodemailer.createTransport(sesTransport());
+}
 
 module.exports={
   send_reset_email: function(emailinfo, callback){
