@@ -3,7 +3,7 @@
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
-* 
+*
 *     http://www.apache.org/licenses/LICENSE-2.0
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,12 +15,21 @@ var app = express();
 var fs = require('fs');
 var ejs = require('ejs');
 var path = require('path');
+var crypto = require('crypto');
 var bodyParser = require('body-parser');
+var cookieParser = require('cookie-parser');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 global.config = require('./config.json');
 var port = 3000;
+
+if(!global.config.CookieSecret){
+  var sec = crypto.randomBytes(16).toString('hex');
+  global.config.CookieSecret = sec;
+  fs.writeFileSync('./config.json', JSON.stringify(global.config, null, '\t'));
+}
+app.use(cookieParser(global.config.CookieSecret));
 
 /*
 *----------------Handle Client-----------

@@ -3,7 +3,7 @@
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
-* 
+*
 *     http://www.apache.org/licenses/LICENSE-2.0
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,7 +20,7 @@ router.use(function(req, res, next){
   if(res.locals.user){
     return next();
   }
-  var auth = req.headers.authorization;
+  var auth = req.signedCookies.rdsapit;
   if(!auth || auth.length<1){
     res.locals.user = undefined;
     return next();

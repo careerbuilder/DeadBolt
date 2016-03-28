@@ -3,7 +3,7 @@
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
-* 
+*
 *     http://www.apache.org/licenses/LICENSE-2.0
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
@@ -12,7 +12,7 @@
 */
 var app = angular.module('DeadBolt', ['ngRoute', 'ngCookies', 'toastr']);
 
-app.config(['$routeProvider', '$httpProvider', function($routeProvider, $httpProvider) {
+app.config(['$routeProvider', '$httpProvider', function($routeProvider) {
 	$routeProvider.when('/', {
 		controller: 'AuthCtrl',
 		templateUrl: 'views/welcome.html'
@@ -62,7 +62,6 @@ app.config(['$routeProvider', '$httpProvider', function($routeProvider, $httpPro
 	.otherwise({
 		templateUrl: 'views/404.html'
 	});
-  $httpProvider.interceptors.push('httpRequestInterceptor');
 }]);
 
 app.controller('PageController', function($http, $scope, $location, authService, tabService, toastr){
@@ -108,15 +107,6 @@ app.directive("compareTo", function() {
                 ctrl.$validate();
             });
       }
-  };
-});
-
-app.factory('httpRequestInterceptor', function ($cookies) {
-  return {
-    request: function (config) {
-      config.headers.Authorization = $cookies.get('rdsapit');
-      return config;
-    }
   };
 });
 

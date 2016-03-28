@@ -240,7 +240,7 @@ router.post('/login', function(req,res){
         console.log(err);
         return res.send({Succes:false, Error: "Error generating session ID:\n" + err});
       }
-      res.cookie('rdsapit', sessionid, { maxAge: (6*60*60*1000)});
+      res.cookie('rdsapit', sessionid, {signed:true, secure:req.secure, maxAge: (6*60*60*1000)});
       return res.send({Success:true, User: user, Session: sessionid});
     });
   });
