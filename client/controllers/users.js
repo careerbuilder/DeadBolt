@@ -45,11 +45,7 @@ app.controller('UserCtrl', function($http, $scope, $cookies, $cookieStore, $loca
         $scope.isSearching = true;
         $scope.searchResults = data.Results;
         var records = data.Total;
-        var numpages = ~~(records/50);
-        if(records%50 >0){
-          numpages +=1;
-        }
-        $scope.numpages = numpages;
+        $scope.numpages = Math.ceil(records/50);
         $scope.currpage = 1;
         $scope.page_change(pagenum+1);
       }

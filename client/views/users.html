@@ -53,8 +53,7 @@
           </table>
         </div>
         <div class="row">
-          <div class="col-xs-2">&nbsp;</div>
-          <div class="col-xs-8 text-center">
+          <div class="col-xs-8 col-xs-offset-2 text-center">
             <nav>
               <ul class="pagination pagination-lg">
                 <li>
@@ -69,7 +68,6 @@
               </ul>
             </nav>
           </div>
-          <div class="col-xs-2">&nbsp;</div>
         </div>
       </div>
       <div id="EditPanel" ng-show="isEditing" class="container-fluid">
@@ -102,8 +100,7 @@
               <p class="text-danger" ng-show="user.hasmysql + user.hasmssql < 1"><strong>User has not set a password</strong></p>
               <!--<p class="text-muted"><em>more user info will go here...</em></p>-->
             </div>
-            <div class="col-sm-1">&nbsp;</div>
-            <div class="col-sm-7">
+            <div class="col-sm-7 col-sm-offset-1">
               <h3>Groups</h3>
               <div class="table-responsive" style="overflow-y: scroll;">
                 <table class="table table-striped table-condensed">
@@ -134,8 +131,7 @@
             <div class="col-xs-5">
               <button class="btn btn-success" ng-click="saveUser()" ng-disabled="userform.$invalid || nochange()">{{user.Active ? 'Save Changes' : 'Add User'}}</button>
             </div>
-            <div class="col-xs-1">&nbsp;</div>
-            <div class="col-xs-3">
+            <div class="col-xs-3 col-xs-offset-1">
               <button class="btn btn-danger" ng-disabled="!user.Active || !isFullAdmin()" ng-click="removeUser()">Delete User</button>
             </div>
           </div>

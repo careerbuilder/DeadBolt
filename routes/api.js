@@ -14,7 +14,6 @@ var express = require('express');
 var router = express.Router();
 var connection = require('../middleware/mysql');
 
-
 //Attach a permissions object to all requests
 router.use(function(req, res, next){
   if(res.locals.user){
