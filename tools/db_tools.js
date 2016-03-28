@@ -3,7 +3,7 @@
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
-* 
+*
 *     http://www.apache.org/licenses/LICENSE-2.0
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@ function update(db, init_users, callback){
   var users = init_users;
   var final_errors = [];
   //get gospel user list
-  var get_users = "Select Users.*, ELT(MIN(users_groups.Permissions+0), 'SU', 'DBA', 'RW', 'RO') as Permissions from users join users_groups on users_groups.User_ID = users.ID join groups_databases on groups_databases.Group_ID = users_groups.Group_ID where groups_databases.Database_ID = ? group by Users.Username;";
+  var get_users = "Select Users.*, ELT(MIN(users_groups.Permissions+0), 'SU', 'DBA', 'RW', 'RO') as Permissions from users join users_groups on users_groups.User_ID = users.ID join groups_databases on groups_databases.Group_ID = users_groups.Group_ID where groups_databases.Database_ID = ? and users.ID>0 group by Users.Username;";
   connection.query(get_users, [dbinfo.ID], function(err, results){
     if(err){
       console.log("Error on " + dbinfo.Name +": " + err);
