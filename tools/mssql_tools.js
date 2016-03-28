@@ -3,7 +3,7 @@
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
-* 
+*
 *     http://www.apache.org/licenses/LICENSE-2.0
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@ module.exports = {
     var dbinfo = db;
     var errors = [];
     var g_users = {};
+    var dbnames = [];
     gospel_users.forEach(function(gu, i){
       g_users[gu.Username] = gu;
     });
@@ -56,7 +57,7 @@ module.exports = {
         });
       },
       function(cb){
-        async.each(affected_users, function(userobj, each_cb){
+        async.eachSeries(affected_users, function(userobj, each_cb){
           var user = {Username: userobj.Username};
           if(user.Username in g_users){
             user = g_users[user.Username];
@@ -94,7 +95,7 @@ module.exports = {
                 }
               }
               if(!valid){
-                errors.push({User: user, Database: dbinfo, Error:{Title: "SQL Injection Attempt!", Details:'User has a field containing invlaid characters, possibly for malicious purposes'}, Retryable:false, Class:"Warning"});
+                errors.push({User: user, Database: dbinfo, Error:{Title: "SQL Injection Attempt!", Details:'User has a field containing invalid characters, possibly for malicious purposes'}, Retryable:false, Class:"Warning"});
                 return inner_cb('SQL Injection attempt!\n\t' + attempt);
               }
               else{
@@ -122,53 +123,55 @@ module.exports = {
             function(inner_cb){
               //drop all permissions
               console.log("Dropping all permissions for ", user.Username);
-              var revoke ="SET NOCOUNT ON \
-              DECLARE @SQL VARCHAR(MAX) \
-              SET @SQL = '' \
-              SELECT @SQL = @SQL + 'USE ' + name + '; \
-              IF Exists (SELECT * FROM sys.database_principals WHERE name=''" + user.Username + "'') \
-              BEGIN \
-                ALTER ROLE DB_DATAREADER Drop MEMBER [" + user.Username + "]; \
-                ALTER ROLE DB_DATAWRITER Drop MEMBER [" + user.Username + "]; \
-                ALTER ROLE DB_OWNER DROP MEMBER [" + user.Username + "]; \
-                REVOKE SHOWPLAN FROM [" + user.Username + "]; \
-                REVOKE VIEW DATABASE STATE FROM [" + user.Username + "]; \
-                REVOKE VIEW DEFINITION FROM [" + user.Username + "]; \
-              END; \
-              ' \
-              FROM MASTER.SYS.DATABASES WHERE database_id > 4 AND state_desc = 'ONLINE' AND name not like '%rdsadmin%' \
-              EXEC(@SQL)";
-              mssql_connection.query(conn, revoke, function(err, records){
+              var dbq = "SELECT name FROM MASTER.SYS.DATABASES WHERE database_id > 4 AND state_desc = 'ONLINE' AND name not like '%rdsadmin%'";
+              mssql_connection.query(conn, dbq, function(err, records){
                 if(err){
-                  errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to revoke permissions", Details:err}, Retryable:true, Class:"Error"});
+                  errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to retrieve databases", Details:err}, Retryable:true, Class:"Error"});
                   return inner_cb(err);
                 }
-                return inner_cb();
+                dbnames = records;
+                async.each(records, function(r, dbcb){
+                  var dropperm = "USE " +r.name + "; \
+                                  IF Exists (SELECT * FROM sys.database_principals WHERE name='" + user.Username + "') \
+                                  BEGIN \
+                                    ALTER ROLE DB_DATAREADER Drop MEMBER [" + user.Username + "]; \
+                                    ALTER ROLE DB_DATAWRITER Drop MEMBER [" + user.Username + "]; \
+                                    ALTER ROLE DB_OWNER DROP MEMBER [" + user.Username + "]; \
+                                    REVOKE SHOWPLAN FROM [" + user.Username + "]; \
+                                    REVOKE VIEW DATABASE STATE FROM [" + user.Username + "]; \
+                                    REVOKE VIEW DEFINITION FROM [" + user.Username + "]; \
+                                  END;";
+                  mssql_connection.query(conn, dropperm, function(err, records){
+                    if(err){
+                      errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to revoke permissions to " +r.name, Details:err}, Retryable:true, Class:"Error"});
+                    }
+                    return dbcb();
+                  });
+                }, function(err){
+                  return inner_cb();
+                });
               });
             },
             function(inner_cb){
               //drop server permissions
               console.log("Dropping server permissions for ", user.Username);
-              var revoke ="SET NOCOUNT ON \
-              DECLARE @SQL VARCHAR(MAX) \
-              SET @SQL = 'USE [master] \
-                IF Exists (SELECT * FROM sys.server_principals WHERE name=''" + user.Username + "'') \
-                BEGIN \
-                  ALTER SERVER ROLE [processadmin] DROP MEMBER [" + user.Username +"]; \
-                  ALTER SERVER ROLE [setupadmin] DROP MEMBER [" + user.Username +"]; \
-                  REVOKE GRANT OPTION FOR ALTER ANY CONNECTION, ALTER ANY CONNECTION, ALTER ANY CONNECTION FROM [" + user.Username + "] CASCADE; \
-                  REVOKE GRANT OPTION FOR ALTER ANY LINKED SERVER, ALTER ANY LINKED SERVER FROM [" + user.Username + "] CASCADE; \
-                  REVOKE GRANT OPTION FOR ALTER ANY LOGIN, ALTER ANY LOGIN FROM [" + user.Username + "] CASCADE; \
-                  REVOKE GRANT OPTION FOR ALTER ANY SERVER ROLE, ALTER ANY SERVER ROLE FROM [" + user.Username + "] CASCADE; \
-                  REVOKE GRANT OPTION FOR ALTER SERVER STATE, ALTER SERVER STATE FROM [" + user.Username + "] CASCADE; \
-                  REVOKE GRANT OPTION FOR ALTER TRACE, ALTER TRACE FROM [" + user.Username + "] CASCADE; \
-                  REVOKE GRANT OPTION FOR CONNECT SQL, CONNECT SQL FROM [" + user.Username + "] CASCADE; \
-                  REVOKE GRANT OPTION FOR CREATE ANY DATABASE, CREATE ANY DATABASE FROM [" + user.Username + "] CASCADE; \
-                  REVOKE GRANT OPTION FOR VIEW ANY DATABASE, VIEW ANY DATABASE FROM [" + user.Username + "] CASCADE; \
-                  REVOKE GRANT OPTION FOR VIEW ANY DEFINITION, VIEW ANY DEFINITION FROM [" + user.Username + "] CASCADE; \
-                  REVOKE GRANT OPTION FOR VIEW SERVER STATE, VIEW SERVER STATE FROM [" + user.Username + "] CASCADE; \
-                END' \
-              EXEC(@SQL)";
+              var revoke ="USE [master]; \
+                          IF Exists (SELECT * FROM sys.server_principals WHERE name='" + user.Username + "') \
+                          BEGIN \
+                            ALTER SERVER ROLE [processadmin] DROP MEMBER [" + user.Username +"]; \
+                            ALTER SERVER ROLE [setupadmin] DROP MEMBER [" + user.Username +"]; \
+                            REVOKE GRANT OPTION FOR ALTER ANY CONNECTION, ALTER ANY CONNECTION, ALTER ANY CONNECTION FROM [" + user.Username + "] CASCADE; \
+                            REVOKE GRANT OPTION FOR ALTER ANY LINKED SERVER, ALTER ANY LINKED SERVER FROM [" + user.Username + "] CASCADE; \
+                            REVOKE GRANT OPTION FOR ALTER ANY LOGIN, ALTER ANY LOGIN FROM [" + user.Username + "] CASCADE; \
+                            REVOKE GRANT OPTION FOR ALTER ANY SERVER ROLE, ALTER ANY SERVER ROLE FROM [" + user.Username + "] CASCADE; \
+                            REVOKE GRANT OPTION FOR ALTER SERVER STATE, ALTER SERVER STATE FROM [" + user.Username + "] CASCADE; \
+                            REVOKE GRANT OPTION FOR ALTER TRACE, ALTER TRACE FROM [" + user.Username + "] CASCADE; \
+                            REVOKE GRANT OPTION FOR CONNECT SQL, CONNECT SQL FROM [" + user.Username + "] CASCADE; \
+                            REVOKE GRANT OPTION FOR CREATE ANY DATABASE, CREATE ANY DATABASE FROM [" + user.Username + "] CASCADE; \
+                            REVOKE GRANT OPTION FOR VIEW ANY DATABASE, VIEW ANY DATABASE FROM [" + user.Username + "] CASCADE; \
+                            REVOKE GRANT OPTION FOR VIEW ANY DEFINITION, VIEW ANY DEFINITION FROM [" + user.Username + "] CASCADE; \
+                            REVOKE GRANT OPTION FOR VIEW SERVER STATE, VIEW SERVER STATE FROM [" + user.Username + "] CASCADE; \
+                          END";
               mssql_connection.query(conn, revoke, function(err, records){
                 if(err){
                   errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to revoke server permissions", Details:err}, Retryable:true, Class:"Error"});
@@ -189,40 +192,37 @@ module.exports = {
                   sql_roles += "ALTER ROLE DB_OWNER ADD MEMBER [" + user.Username + "];\n";
                 }
                 //update permissions
-                var grant = "SET NOCOUNT ON \
-                DECLARE @SQL VARCHAR(MAX) \
-                SET @SQL = '' \
-                SELECT @SQL = @SQL + 'USE ' + name + '; \
-                IF NOT Exists (SELECT * FROM sys.database_principals WHERE name=''" + user.Username + "'') \
-                CREATE USER [" + user.Username + "] FOR LOGIN [" + user.Username + "] WITH DEFAULT_SCHEMA=[dbo];" + sql_roles + " \
-                GRANT VIEW DATABASE STATE TO [" + user.Username + "]; \
-                GRANT VIEW DEFINITION TO [" + user.Username + "]; \
-                GRANT SHOWPLAN TO [" + user.Username + "];' \
-                FROM MASTER.SYS.DATABASES WHERE database_id > 4 AND state_desc = 'ONLINE' AND name not like '%rdsadmin%' \
-                EXEC(@SQL)";
-                mssql_connection.query(conn, grant, function(err, records){
-                  if(err){
-                    errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to grant permissions", Details:err}, Retryable:true, Class:"Error"});
-                    return inner_cb(err);
-                  }
+                async.each(dbnames, function(r, dbcb){
+                  var grant = "USE " + r.name + "; \
+                  IF NOT Exists (SELECT * FROM sys.database_principals WHERE name='" + user.Username + "') \
+                    CREATE USER [" + user.Username + "] FOR LOGIN [" + user.Username + "] WITH DEFAULT_SCHEMA=[dbo]; \
+                  " + sql_roles + " \
+                  GRANT VIEW DATABASE STATE TO [" + user.Username + "]; \
+                  GRANT VIEW DEFINITION TO [" + user.Username + "]; \
+                  GRANT SHOWPLAN TO [" + user.Username + "];";
+                  mssql_connection.query(conn, grant, function(err, records){
+                    if(err){
+                      errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to grant new permissions on " + r.name, Details:err}, Retryable:true, Class:"Error"});
+                    }
+                    return dbcb();
+                  });
+                }, function(err){
                   return inner_cb();
                 });
               }
               else{
                 console.log("Dropping ", user.Username);
-                var drop ="SET NOCOUNT ON \
-                DECLARE @SQL VARCHAR(MAX) \
-                SET @SQL = '' \
-                SELECT @SQL = @SQL + 'USE ' + name + '; \
-                IF Exists (SELECT * FROM sys.database_principals WHERE name=''" + user.Username + "'') \
-                DROP USER [" + user.Username + "];' \
-                FROM MASTER.SYS.DATABASES WHERE database_id > 4 AND state_desc = 'ONLINE' AND name not like '%rdsadmin%' \
-                EXEC(@SQL)";
-                mssql_connection.query(conn, drop, function(err, records){
-                  if(err){
-                    errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to drop user", Details:err}, Retryable:true, Class:"Error"});
-                    return inner_cb(err);
-                  }
+                async.each(dbnames, function(r, dbcb){
+                  var drop ="USE " + r.name + "; \
+                  IF Exists (SELECT * FROM sys.database_principals WHERE name='" + user.Username + "') \
+                    DROP USER [" + user.Username + "];";
+                  mssql_connection.query(conn, drop, function(err, records){
+                    if(err){
+                      errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to drop user from "+r.name, Details:err}, Retryable:true, Class:"Error"});
+                    }
+                    return dbcb();
+                  });
+                }, function(err){
                   return inner_cb();
                 });
               }
@@ -230,10 +230,8 @@ module.exports = {
             function(inner_cb){
               if(user.SQL_Server_Password && user.Permissions === "SU"){
                 console.log("Granting server permissions for", user.Username);
-                var grant = "SET NOCOUNT ON \
-                DECLARE @SQL VARCHAR(MAX) \
-                SET @SQL = 'USE [master] \
-                IF Exists (SELECT * FROM sys.server_principals WHERE name=''" + user.Username + "'') \
+                var grant = "USE [master]; \
+                IF Exists (SELECT * FROM sys.server_principals WHERE name='" + user.Username + "') \
                   BEGIN \
                     ALTER SERVER ROLE [processadmin] ADD MEMBER [" + user.Username +"]; \
                     ALTER SERVER ROLE [setupadmin] ADD MEMBER [" + user.Username +"]; \
@@ -248,8 +246,7 @@ module.exports = {
                     GRANT VIEW ANY DATABASE TO [" + user.Username + "]; \
                     GRANT VIEW ANY DEFINITION TO [" + user.Username + "]; \
                     GRANT VIEW SERVER STATE TO [" + user.Username + "]; \
-                  END' \
-                EXEC(@SQL)";
+                  END";
                 mssql_connection.query(conn, grant, function(err, records){
                   if(err){
                     errors.push({User: user, Database: dbinfo, Error:{Title: "Failed to grant Super permissions", Details:err}, Retryable:false, Class:"Warning"});
