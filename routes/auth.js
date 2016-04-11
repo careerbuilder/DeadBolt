@@ -198,6 +198,45 @@ router.get('/expired', function(req, res){
   });
 });
 
+router.post('/authenticate', function(req, res){
+  var body = req.body;
+  if(!body.Username){
+    return res.send({Success: false, Error: "No Username!"});
+  }
+  if(!body.Password){
+    return res.send({Success: false, Error: "No Password!"});
+  }
+  var aq = 'Select users.ID, Portal_Salt, Portal_Password, Username, Email, Group_ID, GroupAdmin from users Join users_groups on users_groups.User_ID=users.ID where Username=? and Active=1;';
+  connection.query(aq,[req.body.Username],function(err, results){
+    if(err){
+      console.log(err);
+      return res.send({Success:false, Error: err});
+    }
+    if(results.length<1){
+      return res.send({Success: false, Error: 'Incorrect Username or Password'});
+    }
+    var user = results[0];
+    var shasum = crypto.createHash('sha512');
+    shasum.update(user.Portal_Salt + body.Password);
+    var passcheck = shasum.digest('hex');
+    if(passcheck != user.Portal_Password){
+      return res.send({Success: false, Error: 'Incorrect Username or Password'});
+    }
+    delete user.Portal_Salt;
+    delete user.Portal_Password;
+    var admins = [];
+    results.forEach(function(r){
+      if(r.GroupAdmin && r.GroupAdmin>0){
+        admins.push(r.Group_ID);
+      }
+    });
+    if(admins.indexOf(-1)>=0){
+      user.Admin = true;
+    }
+    return res.send({Success: true, User:user});
+  });
+});
+
 router.post('/login', function(req,res){
   var body = req.body;
   if(!body.Username){

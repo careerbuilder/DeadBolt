@@ -22,7 +22,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 global.config = require('./config.json');
-var port = 3000;
+var port = global.config.Port || 3000;
 
 if(!global.config.CookieSecret){
   var sec = crypto.randomBytes(16).toString('hex');
