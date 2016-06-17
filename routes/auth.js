@@ -173,7 +173,8 @@ router.get('/expired', function(req, res){
     }
     async.each(results, function(r, cb){
       var daysleft = Math.floor((r.Expires-now)/(60*60*24));
-      warn_expire(r.Email, daysleft, res.locals.url, function(err){
+      var site = global.config.ResetHost || res.locals.url;
+      warn_expire(r.Email, daysleft, site, function(err){
         if(err){
           console.log(err);
         }
@@ -298,7 +299,8 @@ router.post('/forgot', function(req, res){
         return res.send({Success: false, Error: 'No user with that email'});
       }
       else{
-        email.send_reset_email({Init:false, To:req.body.Email, Site:res.locals.url}, function(err){
+        var site = global.config.ResetHost || res.locals.url;
+        email.send_reset_email({Init:false, To:req.body.Email, Site:site}, function(err){
           if(err){
             return res.send({Success: false, Error:err});
           }
