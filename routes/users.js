@@ -234,6 +234,9 @@ router.get('/id/:username', function(req, res){
       console.log(err);
       return res.send({Success: false, Error: err});
     }
+    if (user.length < 1){
+      return res.send({Success: false, Error: "Could not find user"});
+    }
     return res.send({Success: true,  Results: user[0]});
   });
 });
