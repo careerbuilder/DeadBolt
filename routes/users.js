@@ -226,6 +226,18 @@ router.post('/search/:page', function(req, res){
   });
 });
 
+router.get('/id/:username', function(req, res){
+  var username = req.params.username;
+  var query = 'Select ID, Username from users WHERE Username = ? LIMIT 1';
+  connection.query(query, [username], function(err, user){
+    if (err){
+      console.log(err);
+      return res.send({Success: false, Error: err});
+    }
+    return res.send({Success: true,  Results: user[0]});
+  });
+});
+
 router.post('/', function(req, res){
   var body = req.body;
   var exists = !!body.Active;
