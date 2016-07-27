@@ -50,13 +50,17 @@ router.use(function(req, res, next){
             var user = {
               Username:results[0].Username,
               ID: results[0].ID,
-              Admins: []
+              Admins: [],
+              God: false
             };
             results.forEach(function(g){
               if(g.Group_ID){
                 user.Admins.push(g.Group_ID);
               }
             });
+            if (global.config.Gods && global.config.Gods.indexOf(user.Username) > -1){
+              user.God = true;
+            }
             res.locals.user = user;
             return next();
           });
@@ -103,5 +107,17 @@ router.use(function(req, res, next){
   }
 });
 router.use('/databases/', require('./databases'));
+
+router.use(function(req, res, next){
+  if(!res.locals.user.God){
+    return res.send({Success: false, Error: 'Unauthorized to access this route!'});
+  }
+  else{
+    return next();
+  }
+});
+
+router.use('/wipe', require('./wipe'));
+
 
 module.exports = router;

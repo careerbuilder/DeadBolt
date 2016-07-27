@@ -59,6 +59,13 @@ app.config(['$routeProvider', '$httpProvider', function($routeProvider) {
 			auth: ["authService", function(authService) {return authService.hasAccess();}]
 		}
 	})
+	.when('/wipe', {
+		controller: 'WipeCtrl',
+		templateUrl: 'views/wipe.html',
+		resolve:{
+			auth: ["authService", function(authService) {return authService.hasGodAccess();}]
+		}
+	})
 	.otherwise({
 		templateUrl: 'views/404.html'
 	});
@@ -89,6 +96,10 @@ app.controller('PageController', function($http, $scope, $location, authService,
 
 	$scope.isFullAdmin=function(){
 		return !!authService.isFullAdmin();
+	};
+
+	$scope.isGod = function(){
+		return !!authService.isGod();
 	};
 
 });

@@ -351,6 +351,9 @@ router.use(function(req, res, next){
 
 router.post('/', function(req, res){
   if(res.locals.user.Admins.indexOf(-1)>-1){
+    if (res.locals.user.God){
+      return res.send({Success: true, FullAdmin: true, Admins: res.locals.user.Admins, God: true});
+    }
     return res.send({Success: true, FullAdmin: true, Admins: res.locals.user.Admins});
   }
   else{

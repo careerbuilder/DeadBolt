@@ -1,0 +1,51 @@
+<!--
+-- Copyright 2016 CareerBuilder, LLC
+-- Licensed under the Apache License, Version 2.0 (the "License");
+-- you may not use this file except in compliance with the License.
+-- You may obtain a copy of the License at
+--
+--     http://www.apache.org/licenses/LICENSE-2.0
+-- Unless required by applicable law or agreed to in writing, software
+-- distributed under the License is distributed on an "AS IS" BASIS,
+-- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-- See the License for the specific language governing permissions and limitations under the License.
+-->
+<div class="container">
+  <div class="row">
+    <div class="col-xs-6 col-xs-offset-3">
+      <div class="row">
+        <h1 class="text-center">Employee Lifecycle Button</h1>
+      </div>
+      <div class="row text-center">
+        <form>
+          <div class="form-group">
+            <input type="text" class="form-control" id="usernameInput" placeholder="Employee Username (usually first initial + last name)" ng-model="usernameInput">
+          </div>
+          <div class="form-group" ng-hide="showDoubleCheck">
+            <button type="button" class="btn btn-danger btn-block" ng-click="doubleCheck()">Remove User</button>
+          </div>
+          <div ng-show="showDoubleCheck" class="text-center">
+            <div class="form-group">
+              <h5>
+                Are you sure you want to permanently remove this user from all admin accounts? <br>
+                Please check to make sure the username provided is correct. <br>
+                (The username will most likely be in the form of first initial + last name, for example gburdell for the employee George P. Burdell.)
+              </h5>
+            </div>
+            <div class="form-group">
+              <button type="submit" class="btn btn-danger btn-block" ng-click="wipeEmployee(usernameInput)">I'm sure, remove user</button>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="row">
+        <h1 class="text-center">Output Log</h1>
+      </div>
+      <div class="row">
+        <div class="well">
+          {{logBody}}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

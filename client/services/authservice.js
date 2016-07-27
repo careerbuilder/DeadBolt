@@ -3,7 +3,7 @@
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
-* 
+*
 *     http://www.apache.org/licenses/LICENSE-2.0
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +17,7 @@ app.factory('authService', ['$q', '$http','$cookies', function($q, $http, $cooki
   var auth_cookie = $cookies.get('rdsapit');
   var admins = [];
   var fullAdmin = false;
+  var isGod = false;
 
   var requirements = {
     Forbidden:  [/p[a@][$s]{2}/i, '123', /t[e3][s$]t/i, /^admin/i, /^guest$/i, /\s+/, /[,\\]/],
@@ -37,6 +38,9 @@ app.factory('authService', ['$q', '$http','$cookies', function($q, $http, $cooki
         if(data.Admins){
           admins = data.Admins;
         }
+        if(data.God){
+          isGod = data.God;
+        }
         return callback(null, admins);
       }
       else{
@@ -44,6 +48,23 @@ app.factory('authService', ['$q', '$http','$cookies', function($q, $http, $cooki
       }
     }, function(err){
       return callback({authenticated: false});
+    });
+  }
+
+  function getGod(callback){
+    $http.post('/api/auth').then(function(res){
+      var data = res.data;
+      if(data.Success){
+        if(data.God){
+          isGod = true;
+          return callback(null, {God: true});
+        }
+      }
+      else{
+        return callback({God: false});
+      }
+    }, function(err){
+      return callback({God: false});
     });
   }
 
@@ -69,6 +90,9 @@ app.factory('authService', ['$q', '$http','$cookies', function($q, $http, $cooki
     isFullAdmin: function(){
       return fullAdmin;
     },
+    isGod: function(){
+      return isGod;
+    },
     getAdmins: function(){
       return admins;
     },
@@ -91,6 +115,28 @@ app.factory('authService', ['$q', '$http','$cookies', function($q, $http, $cooki
       }
       else{
         deferred.reject({AdminAuth: false});
+      }
+      return deferred.promise;
+    },
+    hasGodAccess: function(){
+      var deferred = $q.defer();
+      if(session){
+        getGod(function(err, god){
+          if(err){
+            deferred.reject(err);
+          }
+          else{
+            if(god){
+              deferred.resolve({GodAuth: true});
+            }
+            else{
+              deferred.reject({GodAuth: false});
+            }
+          }
+        });
+      }
+      else{
+        deferred.reject({GodAuth: false});
       }
       return deferred.promise;
     },
@@ -188,6 +234,7 @@ app.factory('authService', ['$q', '$http','$cookies', function($q, $http, $cooki
       session = null;
       admins = [];
       fullAdmin = false;
+      isGod = false;
     },
     validatePassword: function(creds){
       if(!creds || !creds.Password || creds.Password.length<1){

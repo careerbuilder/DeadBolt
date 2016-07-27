@@ -3,7 +3,7 @@
 -- Licensed under the Apache License, Version 2.0 (the "License");
 -- you may not use this file except in compliance with the License.
 -- You may obtain a copy of the License at
--- 
+--
 --     http://www.apache.org/licenses/LICENSE-2.0
 -- Unless required by applicable law or agreed to in writing, software
 -- distributed under the License is distributed on an "AS IS" BASIS,
@@ -48,6 +48,7 @@
             <li ng-class="{'active': getTab()==2}" ng-if="isFullAdmin()"><a href="#/groups" ng-click="setTab(2)">Groups</a></li>
             <li ng-class="{'active': getTab()==3}" ng-if="isFullAdmin()"><a href="#/databases" ng-click="setTab(3)">Databases</a></li>
             <li ng-class="{'active': getTab()==4}" ng-if="isAdmin()"><a href="#/errors" ng-click="setTab(4)">Results</a></li>
+            <li ng-class="{'active': getTab()==5}" ng-if="isGod()"><a href="#/wipe" ng-click="setTab(5)">Employee Lifecycle</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right" ng-if="isLoggedIn()">
             <li><a href="#/" ng-click="logOut()">Log Out</a></li>
@@ -99,6 +100,7 @@
     <script type="text/javascript" src="controllers/groups.js"></script>
     <script type="text/javascript" src="controllers/databases.js"></script>
     <script type="text/javascript" src="controllers/errors.js"></script>
+    <script type="text/javascript" src="controllers/wipe.js"></script>
 
   </body>
 </html>
