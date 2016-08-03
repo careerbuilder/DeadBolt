@@ -15,6 +15,7 @@ app.controller('WipeCtrl', function($http, $scope, $cookies){
   $scope.showDoubleCheck = false;
   $scope.usernameInput = undefined;
   $scope.logBody = "";
+  $scope.results = [];
 
   $scope.doubleCheck = function(){
     $scope.showDoubleCheck = true;
@@ -22,13 +23,19 @@ app.controller('WipeCtrl', function($http, $scope, $cookies){
   };
 
   $scope.wipeEmployee = function(username){
+    $scope.results = [];
+    $scope.loading = true;
     var payload = {username: username};
     if (username && username.length > 0){
       $http.post('/api/wipe/', payload).then(function(res){
-        $scope.logBody = res.data;
+        $scope.loading = false;
+        $scope.logBody = res.data.OutputLog;
+        $scope.results = JSON.parse(res.data.FinalResults);
+        console.log($scope.results);
+        console.log(typeof $scope.results);
       },
       function(err){
-
+        $scope.loading = false;
       });
     }else{
       $scope.logBody = 'Invalid Username';

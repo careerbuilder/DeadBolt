@@ -12,9 +12,34 @@
 */
 
 var router = require('express').Router();
+var fork = require('child_process').fork;
+var path = require('path');
 
 router.post('/', function(req, res){
-  return res.send({Success: true});
+  var username = req.body.username;
+  var parentDir = path.resolve(process.cwd());
+  var options = {
+    encoding: 'utf8',
+    timeout: 0,
+    maxBuffer: 200*1024,
+    killSignal: 'SIGTERM',
+    cwd: parentDir + '/Lifecycle_Easy_Button',
+    env: null,
+    silent: true
+  };
+  var wipeScript = fork('wipeScript.js', [username], options);
+  var output = '';
+  var lastMessage;
+  wipeScript.stdout.on('data', function(data) {
+    lastMessage = data.toString();
+    output += lastMessage;
+  });
+  wipeScript.on('close', function(code){
+    var finalResults = lastMessage;
+
+    return res.send({"FinalResults": finalResults, "OutputLog": output});
+  });
+
 });
 
 module.exports = router;

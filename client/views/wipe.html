@@ -16,9 +16,9 @@
       <div class="row">
         <h1 class="text-center">Employee Lifecycle Button</h1>
       </div>
-      <div class="row text-center">
+      <div class="row text-center" ng-hide="logBody.length">
         <form>
-          <div class="form-group">
+          <div class="form-group" ng-hide="showDoubleCheck">
             <input type="text" class="form-control" id="usernameInput" placeholder="Employee Username (usually first initial + last name)" ng-model="usernameInput">
           </div>
           <div class="form-group" ng-hide="showDoubleCheck">
@@ -26,6 +26,7 @@
           </div>
           <div ng-show="showDoubleCheck" class="text-center">
             <div class="form-group">
+              <h2>{{usernameInput}}</h2><br>
               <h5>
                 Are you sure you want to permanently remove this user from all admin accounts? <br>
                 Please check to make sure the username provided is correct. <br>
@@ -38,12 +39,32 @@
           </div>
         </form>
       </div>
-      <div class="row">
-        <h1 class="text-center">Output Log</h1>
+      <div ng-show="loading" class="text-center">
+        <img src="loading.gif" height="75px">
       </div>
-      <div class="row">
-        <div class="well">
-          {{logBody}}
+      <div ng-show="logBody.length">
+        <div class="panel panel-default">
+          <!-- Default panel contents -->
+          <div class="panel-heading">Results</div>
+
+          <!-- Table -->
+          <table class="table">
+            <tr ng-repeat="(key, value) in results track by $index">
+              <td>{{key}}</td>
+              <td>
+                <span class="glyphicon glyphicon-ok" style="color:green" ng-show="value"></span>
+                <span class="glyphicon glyphicon-remove" style="color:red" ng-hide="value"></span>
+              </td>
+            </tr>
+          </table>
+        </div>
+        <div class="row">
+          <h1 class="text-center">Output Log</h1>
+        </div>
+        <div class="row">
+          <div class="well">
+            {{logBody}}
+          </div>
         </div>
       </div>
     </div>
