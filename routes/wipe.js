@@ -24,7 +24,7 @@ router.post('/', function(req, res){
     killSignal: 'SIGTERM',
     cwd: '/home/ubuntu/Lifecycle_Easy_Button',
     env: null,
-    silent: true
+    silent: false
   };
   var wipeScript = fork('wipeScript.js', [username], options);
   var output = '';
