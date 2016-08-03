@@ -23,9 +23,11 @@ app.controller('WipeCtrl', function($http, $scope, $cookies){
   };
 
   $scope.wipeEmployee = function(username){
+    console.log('wipe called');
     $scope.results = [];
     $scope.loading = true;
     var payload = {username: username};
+    console.log(username);
     if (username && username.length > 0){
       $http.post('/api/wipe/', payload).then(function(res){
         $scope.loading = false;
@@ -38,6 +40,7 @@ app.controller('WipeCtrl', function($http, $scope, $cookies){
         $scope.loading = false;
       });
     }else{
+      console.log('Invalid Username');
       $scope.logBody = 'Invalid Username';
     }
 

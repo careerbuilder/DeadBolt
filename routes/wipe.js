@@ -15,6 +15,7 @@ var router = require('express').Router();
 var fork = require('child_process').fork;
 
 router.post('/', function(req, res){
+  console.log('wipe API hit');
   var username = req.body.username;
   var options = {
     encoding: 'utf8',
