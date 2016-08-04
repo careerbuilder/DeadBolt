@@ -35,7 +35,7 @@ router.post('/', function(req, res){
     console.log(lastMessage);
   });
   wipeScript.on('close', function(code){
-    var finalResults = JSON.stringify(lastMessage);
+    var finalResults = lastMessage;
     console.log('closing stream');
 
     return res.send({"FinalResults": finalResults, "OutputLog": output});
