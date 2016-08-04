@@ -24,7 +24,7 @@ router.post('/', function(req, res){
     killSignal: 'SIGTERM',
     cwd: '/home/ubuntu/Lifecycle_Easy_Button',
     env: null,
-    silent: false
+    silent: true
   };
   var wipeScript = fork('wipeScript.js', [username], options);
   var output = '';
@@ -32,9 +32,11 @@ router.post('/', function(req, res){
   wipeScript.stdout.on('data', function(data) {
     lastMessage = data.toString();
     output += lastMessage;
+    console.log(lastMessage);
   });
   wipeScript.on('close', function(code){
     var finalResults = lastMessage;
+    console.log('closing stream');
 
     return res.send({"FinalResults": finalResults, "OutputLog": output});
   });
