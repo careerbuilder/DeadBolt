@@ -33,7 +33,11 @@ app.controller('WipeCtrl', function($http, $scope, $cookies){
         console.log(res.data.FinalResults);
         $scope.loading = false;
         $scope.logBody = res.data.OutputLog;
-        $scope.results = JSON.parse(res.data.FinalResults);
+        try{
+          $scope.results = JSON.parse(res.data.FinalResults);
+        } catch(e){
+          $scope.results = [];
+        }
         console.log($scope.results);
         console.log(typeof $scope.results);
       },
