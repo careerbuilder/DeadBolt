@@ -30,6 +30,7 @@ app.controller('WipeCtrl', function($http, $scope, $cookies){
     console.log(username);
     if (username && username.length > 0){
       $http.post('/api/wipe/', payload).then(function(res){
+        console.log(res.data.FinalResults);
         $scope.loading = false;
         $scope.logBody = res.data.OutputLog;
         $scope.results = JSON.parse(res.data.FinalResults);
