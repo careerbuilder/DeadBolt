@@ -228,7 +228,7 @@ router.post('/search/:page', function(req, res){
 
 router.get('/id/:username', function(req, res){
   var username = req.params.username;
-  var query = 'Select ID, Username from users WHERE Username = ? LIMIT 1';
+  var query = 'Select ID, Username, Active from users WHERE Username = ? LIMIT 1';
   connection.query(query, [username], function(err, user){
     if (err){
       console.log(err);
