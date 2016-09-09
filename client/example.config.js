@@ -13,7 +13,7 @@
 angular.module('DeadBolt')
   .run(function ($rootScope) {
       $rootScope.GLOBALCONFIG = {
-        contactEmail: "example@example.com"
+        contactEmail: "mailto:example@example.com"
       };
    });
 
