@@ -11,6 +11,6 @@
 * See the License for the specific language governing permissions and limitations under the License.
 */
 angular.module('DeadBolt').constant('GLOBALCONFIG', {
-  contactEmail: 'example@example.com'
+  contactEmail: 'mailto:example@example.com'
 });
 
