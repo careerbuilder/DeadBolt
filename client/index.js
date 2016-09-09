@@ -71,7 +71,7 @@ app.config(['$routeProvider', '$httpProvider', function($routeProvider) {
 	});
 }]);
 
-app.controller('PageController', function($http, $scope, $location, authService, tabService, toastr){
+app.controller('PageController', function($http, $scope, $location, authService, tabService, toastr, GLOBALCONFIG){
 
 	$scope.setTab = function(num){
 		tabService.setTab(num);
