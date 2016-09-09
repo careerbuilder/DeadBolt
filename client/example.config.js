@@ -10,7 +10,10 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and limitations under the License.
 */
-angular.module('DeadBolt').constant('GLOBALCONFIG', {
-  contactEmail: 'mailto:example@example.com'
-});
+angular.module('DeadBolt')
+  .run(function ($rootScope) {
+      $rootScope.GLOBALCONFIG = {
+        contactEmail: "example@example.com"
+      };
+   });
 
