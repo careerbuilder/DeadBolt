@@ -3,7 +3,7 @@
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
-* 
+*
 *     http://www.apache.org/licenses/LICENSE-2.0
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
@@ -71,7 +71,7 @@ module.exports = {
         if(connection){
           return callback(null, connection);
         }
-        if(err && err.code === 'HANDSHAKE_NO_SSL_SUPPORT'){
+        if((err && err.code === 'HANDSHAKE_NO_SSL_SUPPORT') || err.code === 'HANDSHAKE_SSL_ERROR'){
           console.log('Connection does not support SSL. Falling back to insecure connection.');
           mysql_pool.end();
           mysql_pool = mysql.createPool({
